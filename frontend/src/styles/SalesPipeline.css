@@ -98,3 +98,63 @@
   letter-spacing: normal !important;
   flex-shrink: 0;
 }
+
+/* STAGE COLUMNS ROW */
+.pipeline-stages {
+  display: flex;
+  flex-direction: row;
+  gap: clamp(6px, 1vw, 12px);
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+/* INDIVIDUAL STAGE COLUMN */
+.stage-column {
+  flex: 1;
+  min-width: clamp(130px, 14vw, 175px);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: clamp(14px, 2vw, 30px);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
+  gap: clamp(8px, 1vw, 12px);
+  overflow-y: auto;
+}
+
+/* STAGE HEADER ROW */
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 0.8vw, 8px);
+  flex-shrink: 0;
+}
+
+/* STAGE DOT */
+.stage-dot {
+  width: clamp(12px, 1.2vw, 18px);
+  height: clamp(12px, 1.2vw, 18px);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* STAGE NAME */
+.stage-name {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: clamp(12px, 1.3vw, 18px);
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* CARDS AREA INSIDE COLUMN */
+.stage-cards-area {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vw, 10px);
+  flex: 1;
+  overflow-y: auto;
+}
