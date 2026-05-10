@@ -1,7 +1,17 @@
 import React from 'react';
 import './CustomerProfile.css';
-import arrowRight from "../assets/arrow-right.svg";
-import { FaPen } from "react-icons/fa";
+import {
+  FiArrowRight,
+  FiEdit2,
+  FiEdit3,
+  FiFolder,
+  FiList,
+  FiMail,
+  FiPhone,
+  FiSearch,
+  FiUpload,
+  FiUser,
+} from "react-icons/fi";
 
 function CustomerProfile() {
   return (
@@ -11,10 +21,7 @@ function CustomerProfile() {
         {/* Profile Card */}
         <div className="profile-card">
           <div className="avatar-placeholder">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="avatar-icon">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
+            <FiUser className="avatar-icon" />
           </div>
           <h2 className="profile-name">John Smith</h2>
           <p className="profile-subtitle">Procurement Manager ·<br/>GreenWatts Ltd</p>
@@ -59,7 +66,9 @@ function CustomerProfile() {
               <span className="deal-amount">$48,000</span>
               <span className="deal-status status-proposal">Proposal Made</span>
             </div>
-            <button className="deal-arrow-btn"><img src={arrowRight} alt="arrow right" /></button>
+            <button className="deal-arrow-btn" aria-label="View solar grid expansion deal">
+              <FiArrowRight />
+            </button>
           </div>
           
           <div className="deal-item">
@@ -68,7 +77,9 @@ function CustomerProfile() {
               <span className="deal-amount">$12,000</span>
               <span className="deal-status status-won">Won</span>
             </div>
-            <button className="deal-arrow-btn"><img src={arrowRight} alt="arrow right" /></button>
+            <button className="deal-arrow-btn" aria-label="View EV charging pilot deal">
+              <FiArrowRight />
+            </button>
           </div>
         </div>
       </div>
@@ -98,13 +109,10 @@ function CustomerProfile() {
           <div className="header-actions">
             <div className="search-bar">
               <input type="text" placeholder="Search interactions, notes, email and more..." />
-              <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
+              <FiSearch className="search-icon" />
             </div>
             <button className="edit-profile-btn">
-              <FaPen className="edit-icon" />
+              <FiEdit2 className="edit-icon" />
               Edit Profile
             </button>
           </div>
@@ -131,10 +139,7 @@ function CustomerProfile() {
             {/* Item 1 */}
             <div className="interaction-item">
               <div className="interaction-icon-wrapper icon-email">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
+                <FiMail />
               </div>
               <div className="interaction-content">
                 <div className="interaction-meta">
@@ -149,14 +154,7 @@ function CustomerProfile() {
             {/* Item 2 */}
             <div className="interaction-item">
               <div className="interaction-icon-wrapper icon-task">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="8" y1="6" x2="21" y2="6"></line>
-                  <line x1="8" y1="12" x2="21" y2="12"></line>
-                  <line x1="8" y1="18" x2="21" y2="18"></line>
-                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                </svg>
+                <FiList />
               </div>
               <div className="interaction-content">
                 <div className="interaction-meta">
@@ -171,9 +169,7 @@ function CustomerProfile() {
             {/* Item 3 */}
             <div className="interaction-item">
               <div className="interaction-icon-wrapper icon-stage">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                </svg>
+                <FiFolder />
               </div>
               <div className="interaction-content">
                 <div className="interaction-meta">
@@ -188,9 +184,7 @@ function CustomerProfile() {
             {/* Item 4 */}
             <div className="interaction-item">
               <div className="interaction-icon-wrapper icon-call">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                </svg>
+                <FiPhone />
               </div>
               <div className="interaction-content">
                 <div className="interaction-meta">
@@ -205,10 +199,7 @@ function CustomerProfile() {
             {/* Item 5 */}
             <div className="interaction-item">
               <div className="interaction-icon-wrapper icon-note">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 20h9"></path>
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                </svg>
+                <FiEdit3 />
               </div>
               <div className="interaction-content">
                 <div className="interaction-meta">
@@ -229,11 +220,7 @@ function CustomerProfile() {
           <div className="files-header">
             <h3>Files & Documents</h3>
             <button className="upload-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="17 8 12 3 7 8"></polyline>
-                <line x1="12" y1="3" x2="12" y2="15"></line>
-              </svg>
+              <FiUpload />
               Upload
             </button>
           </div>

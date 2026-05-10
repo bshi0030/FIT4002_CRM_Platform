@@ -138,6 +138,11 @@
   color: var(--text);
 }
 
+.deal-arrow-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* RIGHT COLUMN */
 .right-column {
   flex: 1;
@@ -280,7 +285,7 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background: var(--text);
+  background: rgba(54, 44, 40, 1);
   border-radius: 3px;
 }
 
