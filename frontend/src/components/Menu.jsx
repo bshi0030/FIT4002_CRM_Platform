@@ -1,12 +1,18 @@
-function Menu() {
+function Menu({ currentPage, setCurrentPage }) {
   return (
     <nav className="menu">
 
-      <button className="menu-item">
+      <button 
+        className={`menu-item ${currentPage === "home" || currentPage === "Dashboard" ? "active" : ""}`} 
+        onClick={() => setCurrentPage("home")}
+      >
         Dashboard ⌂
       </button>
 
-      <button className="menu-item">
+      <button 
+        className={`menu-item ${currentPage === "customer-list" || currentPage === "customer-profile" ? "active" : ""}`}
+        onClick={() => setCurrentPage("customer-list")}
+      >
         Customers ⌘
       </button>
 

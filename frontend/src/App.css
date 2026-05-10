@@ -79,7 +79,7 @@ body {
 
 .menu-title {
   font-size: 22px;
-  color: #555;
+  color: var(--text);
   margin-left: 16px;
   margin-bottom: 34px;
 }
@@ -105,15 +105,17 @@ body {
   padding-left: 16px;
 
   font-size: 18px;
-  color: #555;
+  color: var(--text);
 
   cursor: pointer;
 
   transition: 0.2s;
 }
 
-.menu-item:hover {
-  background: #d8d8d8;
+.menu-item:hover, .menu-item.active {
+  background: linear-gradient(90deg, #E9FF6B 16.71%, #D7E682 55.67%, #BDBDBD 100%);
+  color: var(--text-h);
+  font-weight: bold;
 }
 
 /* MAIN CONTENT */
@@ -127,23 +129,65 @@ body {
 
 .topbar {
   height: 70px;
-
   display: flex;
   justify-content: flex-end;
   align-items: center;
-
-  padding-right: 22px;
+  padding-right: 30px;
+  gap: 15px;
 }
 
-.profile-icon {
-  width: 50px;
-  height: 50px;
+.user-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  background: #fdf5d3;
+  border: 2px solid #333;
   border-radius: 50%;
-  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.topbar-user-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.logout-text {
+  font-size: 14px;
+  color: var(--text-h);
+  font-weight: bold;
+  cursor: pointer;
+}
+
 /* CONTENT */
 
 .content-area {
   flex: 1;
   background: #cfcfcf;
+  overflow: hidden; /* Let CustomerProfile scroll internally */
+}
+
+.sidebar-menu-container {
+  flex: 1;
+}
+
+.home-placeholder {
+  padding: 60px;
+  text-align: center;
+}
+
+.home-placeholder h1 {
+  color: var(--text-h);
+}
+
+.home-btn {
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: var(--text-h);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
