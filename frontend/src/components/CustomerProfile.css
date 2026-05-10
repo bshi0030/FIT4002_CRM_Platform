@@ -188,12 +188,12 @@
 .pill-count {
   font-size: 18px;
   font-weight: bold;
-  color: var(--text-h);
+  color: rgba(54, 44, 40, 1);
 }
 
 .pill-label {
   font-size: 12px;
-  color: var(--text);
+  color: rgba(54, 44, 40, 1);
 }
 
 .pill-emails { background: #ebccaf; }
@@ -332,9 +332,6 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
-.item-grey {
-  background: rgba(255, 255, 255, 0.4);
-}
 
 .interaction-icon-wrapper {
   width: 35px;

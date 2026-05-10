@@ -45,7 +45,7 @@ function App() {
           ) : currentPage === "customer-list" ? (
             <CustomerList setCurrentPage={setCurrentPage} />
           ) : (
-            <CustomerProfile />
+            <CustomerProfile setCurrentPage={setCurrentPage} />
           )}
         </div>
       </main>
