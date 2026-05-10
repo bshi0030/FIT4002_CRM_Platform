@@ -112,7 +112,7 @@ body {
   transition: 0.2s;
 }
 
-.menu-item:hover, .menu-item.active {
+.menu-item.active {
   background: linear-gradient(90deg, #E9FF6B 16.71%, #D7E682 55.67%, #BDBDBD 100%);
   color: var(--text-h);
   font-weight: bold;
