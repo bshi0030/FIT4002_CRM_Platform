@@ -1,0 +1,82 @@
+const mongoose = require('mongoose')
+const bcrypt = require('bcryptjs')
+
+const ROLES = ['Admin', 'Supervisor', 'User']
+
+const userSchema = new mongoose.Schema(
+    {
+        fullName: {
+            type: String,
+            required: [true, 'Full name is required'],
+            trim: true,
+            maxlength: 120,
+        },
+        email: {
+            type: String,
+            required: [true, 'Email is required'],
+            unique: true,
+            lowercase: true,
+            trim: true,
+            match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please provide a valid email'],
+        },
+        password: {
+            type: String,
+            required: function () {
+                return this.authProvider === 'local'
+            },
+            minlength: 8,
+            select: false,
+        },
+        companyName: {
+            type: String,
+            required: [true, 'Company name is required'],
+            trim: true,
+            maxlength: 120,
+        },
+        role: {
+            type: String,
+            enum: ROLES,
+            default: 'User',
+        },
+        authProvider: {
+            type: String,
+            enum: ['local', 'google'],
+            default: 'local',
+        },
+        googleId: {
+            type: String,
+            index: true,
+            sparse: true,
+        },
+    },
+    {timestamps: true}
+)
+
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password') || !this.password) return next()
+    const salt = await bcrypt.genSalt(12)
+    this.password = await bcrypt.hash(this.password, salt)
+    next()
+})
+
+userSchema.methods.comparePassword = function (candidate) {
+    if (!this.password) return false
+    return bcrypt.compare(candidate, this.password)
+}
+
+userSchema.methods.toSafeJSON = function () {
+    return {
+        id: this._id,
+        fullName: this.fullName,
+        email: this.email,
+        companyName: this.companyName,
+        role: this.role,
+        authProvider: this.authProvider,
+        createdAt: this.createdAt,
+    }
+}
+
+const User = mongoose.model('User', userSchema)
+
+module.exports = User
+module.exports.ROLES = ROLES
