@@ -2,28 +2,36 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import './Customers.css';
+import AddCustomerModal from '../components/AddCustomerModal';
 
 const CustomerDetail = () => {
   const { id } = useParams();
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const fetchCustomer = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/customers/${id}`);
+      setCustomer(res.data);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch customer details.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCustomer = async () => {
-      try {
-        const res = await api.get(`/customers/${id}`);
-        setCustomer(res.data);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to fetch customer details.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCustomer();
   }, [id]);
+
+  const handleCustomerUpdated = () => {
+    fetchCustomer();
+  };
 
   if (loading) return <div className="loading-msg">Loading...</div>;
   if (error) return <div className="error-msg">{error}</div>;
@@ -31,9 +39,14 @@ const CustomerDetail = () => {
 
   return (
     <div className="customer-detail-page">
-      <div className="customer-detail-header">
-        <Link to="/customers" className="back-link">← Back to Customers</Link>
-        <h1>Customer Profile</h1>
+      <div className="customer-detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div>
+          <Link to="/customers" className="back-link">← Back to Customers</Link>
+          <h1 style={{ marginTop: '10px' }}>Customer Profile</h1>
+        </div>
+        <button className="add-contact-btn" onClick={() => setIsEditModalOpen(true)}>
+          Edit Customer
+        </button>
       </div>
 
       <div className="customer-profile-container">
@@ -83,6 +96,14 @@ const CustomerDetail = () => {
           </div>
         </div>
       </div>
+
+      {isEditModalOpen && (
+        <AddCustomerModal 
+          onClose={() => setIsEditModalOpen(false)} 
+          onAdd={handleCustomerUpdated}
+          initialData={customer}
+        />
+      )}
     </div>
   );
 };
