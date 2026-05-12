@@ -4,7 +4,8 @@ const upload = require('../middleware/uploadMiddleware');
 const {
   createCustomer,
   getCustomers,
-  getCustomerById
+  getCustomerById,
+  updateCustomer
 } = require('../controllers/customerController');
 
 router.route('/')
@@ -12,6 +13,7 @@ router.route('/')
   .get(getCustomers);
 
 router.route('/:id')
-  .get(getCustomerById);
+  .get(getCustomerById)
+  .put(upload.single('companyLogo'), updateCustomer);
 
 module.exports = router;
