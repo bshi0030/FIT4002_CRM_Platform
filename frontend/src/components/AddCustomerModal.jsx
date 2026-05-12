@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 
-const AddCustomerModal = ({ onClose, onAdd }) => {
+const AddCustomerModal = ({ onClose, onAdd, initialData = null }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -9,7 +9,7 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
     company: '',
     designation: '',
     department: '',
-    address: 'Not Provided' // Address isn't in UI but required by backend, defaulting for now, or we can add it to form
+    address: 'Not Provided'
   });
   const [logoFile, setLogoFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -17,6 +17,23 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
   const [error, setError] = useState('');
   
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        fullName: initialData.fullName || '',
+        email: initialData.email || '',
+        phone: initialData.phone || '',
+        company: initialData.company || '',
+        designation: initialData.designation || '',
+        department: initialData.department || '',
+        address: initialData.address || 'Not Provided'
+      });
+      if (initialData.companyLogo) {
+        setPreviewUrl(`http://localhost:5000${initialData.companyLogo}`);
+      }
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,26 +71,31 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
     data.append('company', formData.company);
     data.append('designation', formData.designation);
     data.append('department', formData.department);
-    data.append('address', formData.address); // added default or we can add to UI later if needed. The prompt says 'User can input address' so I should actually add it.
-    
-    // Actually, I should add Address to the form to fully satisfy A1 criteria.
-    // I will add Address below email.
+    data.append('address', formData.address); 
     
     if (logoFile) {
       data.append('companyLogo', logoFile);
     }
 
     try {
-      await api.post('/customers', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      if (initialData) {
+        await api.put(`/customers/${initialData._id}`, data, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      } else {
+        await api.post('/customers', data, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
       onAdd();
       onClose();
     } catch (err) {
-      console.error('Error creating customer:', err);
-      setError(err.response?.data?.message || 'Failed to create customer');
+      console.error('Error saving customer:', err);
+      setError(err.response?.data?.message || 'Failed to save customer');
     } finally {
       setLoading(false);
     }
@@ -82,7 +104,7 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Add Contact</h2>
+        <h2>{initialData ? 'Edit Contact' : 'Add Contact'}</h2>
         {error && <p className="error-msg">{error}</p>}
         
         <form onSubmit={handleSubmit} className="add-contact-form">
@@ -149,7 +171,7 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
               )}
             </div>
             <button type="submit" className="add-btn" disabled={loading}>
-              {loading ? 'Adding...' : 'Add'}
+              {loading ? 'Saving...' : (initialData ? 'Save' : 'Add')}
             </button>
             <button type="button" className="cancel-btn" onClick={onClose}>
               Cancel
