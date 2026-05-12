@@ -65,8 +65,54 @@ const getCustomerById = async (req, res) => {
   }
 };
 
+// @desc    Update customer
+// @route   PUT /api/customers/:id
+// @access  Public (for now)
+const updateCustomer = async (req, res) => {
+  try {
+    const { fullName, phone, email, company, address, designation, department } = req.body;
+    
+    let customer = await Customer.findById(req.params.id);
+
+    if (!customer) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+
+    // Basic validation
+    if (!fullName || !phone || !email || !company || !address || !designation || !department) {
+      return res.status(400).json({ message: 'Please include all required fields' });
+    }
+
+    const updatedData = {
+      fullName,
+      phone,
+      email,
+      company,
+      address,
+      designation,
+      department
+    };
+
+    if (req.file) {
+      updatedData.companyLogo = `/uploads/${req.file.filename}`;
+    }
+
+    customer = await Customer.findByIdAndUpdate(
+      req.params.id,
+      updatedData,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json(customer);
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 module.exports = {
   createCustomer,
   getCustomers,
-  getCustomerById
+  getCustomerById,
+  updateCustomer
 };
