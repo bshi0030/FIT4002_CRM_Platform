@@ -2,30 +2,41 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure uploads directory exists
+// Ensure uploads directories exist
 const uploadDir = path.join(__dirname, '../uploads');
+const documentDir = path.join(__dirname, '../uploads/documents');
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
+if (!fs.existsSync(documentDir)) {
+  fs.mkdirSync(documentDir, { recursive: true });
+}
 
-// Set storage engine
-const storage = multer.diskStorage({
+// Storage for logos
+const logoStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    // Make file name unique
-    cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, '-')}`);
+    cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.]/g, '_')}`);
   }
 });
 
-// Check file type
-function checkFileType(file, cb) {
-  // Allowed ext
+// Storage for documents
+const documentStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, documentDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.]/g, '_')}`);
+  }
+});
+
+// Check logo type
+function checkLogoType(file, cb) {
   const filetypes = /jpeg|jpg|png|gif|webp/;
-  // Check ext
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  // Check mime
   const mimetype = filetypes.test(file.mimetype);
 
   if (mimetype && extname) {
@@ -35,13 +46,41 @@ function checkFileType(file, cb) {
   }
 }
 
-// Init upload
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5000000 }, // 5MB max
+// Check document type
+function checkDocumentType(file, cb) {
+  // Allow PDF, image, DOC, DOCX, TXT, CSV
+  const filetypes = /jpeg|jpg|png|gif|webp|pdf|doc|docx|txt|csv/;
+  const mimetypes = /jpeg|jpg|png|gif|webp|pdf|msword|wordprocessingml|text\/plain|text\/csv/;
+  
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = mimetypes.test(file.mimetype.toLowerCase());
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Error: Invalid file type! Allowed types: PDF, Image, DOC, DOCX, TXT, CSV.'));
+  }
+}
+
+// Init logo upload (5MB)
+const uploadLogo = multer({
+  storage: logoStorage,
+  limits: { fileSize: 5000000 },
   fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
+    checkLogoType(file, cb);
   }
 });
 
-module.exports = upload;
+// Init document upload (10MB)
+const uploadDocument = multer({
+  storage: documentStorage,
+  limits: { fileSize: 10000000 },
+  fileFilter: function (req, file, cb) {
+    checkDocumentType(file, cb);
+  }
+});
+
+module.exports = {
+  uploadLogo,
+  uploadDocument
+};
