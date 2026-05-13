@@ -2,13 +2,13 @@ import {useCallback, useState} from 'react'
 import {Link, useLocation, useNavigate} from 'react-router-dom'
 import {ArrowRight, Lock, Mail} from 'lucide-react'
 import {useAuth} from '@/context/auth'
+import AppHeader from '@/components/AppHeader'
 import GoogleSignInButton from '@/components/GoogleSignInButton'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {Label} from '@/components/ui/label'
 import {Card, CardContent} from '@/components/ui/card'
 import {Alert, AlertDescription} from '@/components/ui/alert'
-import logo from '@/assets/CRM_logo.png'
 
 export default function Login() {
     const {login, loginWithGoogle} = useAuth()
@@ -74,13 +74,7 @@ export default function Login() {
                     'linear-gradient(135deg, #704B2F 0%, #CC8C48 50%, #AA6A37 100%)',
             }}
         >
-            <header className="flex items-center gap-4 bg-stone-300/90 px-6 py-3">
-                <img src={logo} alt="NexGen CRM" className="h-20 w-36 object-contain"/>
-                <div className="h-12 w-px bg-stone-500/40"/>
-                <p className="text-base font-semibold text-stone-700">
-                    Next Generation CRM Platform
-                </p>
-            </header>
+            <AppHeader/>
 
             <main className="flex min-h-[calc(100vh-92px)] flex-col items-center px-4 py-10">
                 <h1 className="mb-1 text-center text-5xl font-extrabold tracking-tight text-amber-200 drop-shadow-sm sm:text-6xl">

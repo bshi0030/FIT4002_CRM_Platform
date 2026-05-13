@@ -14,6 +14,7 @@ import {
     Users,
 } from 'lucide-react'
 import {useAuth} from '@/context/auth'
+import AppHeader from '@/components/AppHeader'
 import KanbanMock from '@/components/KanbanMock'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
@@ -27,7 +28,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import logo from '@/assets/CRM_logo.png'
 
 const ROLES = ['Admin', 'Supervisor', 'User']
 
@@ -147,13 +147,7 @@ export default function Signup() {
 
     return (
         <div className="min-h-screen bg-stone-300">
-            <header className="flex items-center gap-4 bg-stone-300/90 px-6 py-3">
-                <img src={logo} alt="NexGen CRM" className="h-20 w-36 object-contain"/>
-                <div className="h-12 w-px bg-stone-500/40"/>
-                <p className="text-base font-semibold text-stone-700">
-                    Next Generation CRM Platform
-                </p>
-            </header>
+            <AppHeader/>
 
             <section
                 className="px-6 py-12"
