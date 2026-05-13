@@ -8,41 +8,42 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background: #cfcfcf;
   overflow: hidden;
+  height: 100vh;
+  width: 100vw;
 }
 
 /* MAIN LAYOUT */
-
 .app-layout {
   display: flex;
   width: 100vw;
   height: 100vh;
   background: #cfcfcf;
+  overflow: hidden;
 }
 
 /* SIDEBAR */
-
 .sidebar {
   width: 200px;
   background: hsl(0, 0%, 81%);
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow: visible;
 }
 
 /* TOP LOGO AREA */
-
 .sidebar-top {
   height: 90px;
-
   display: flex;
   align-items: center;
-
   padding: 0 16px;
-
   gap: 1px;
+  flex-shrink: 0;
+  overflow: visible;
 }
 
-/* BIGGER LOGO */
-
+/* LOGO */
 .logo {
   width: 230px;
   height: 230px;
@@ -50,33 +51,30 @@ body {
 }
 
 /* LOGO TEXT */
-
 .logo-text {
   display: flex;
   flex-direction: column;
   justify-content: center;
-
   margin-top: -10px;
-  min-width: unset; 
+  min-width: unset;
 }
+
 .logo-text p {
   font-size: 16px;
   color: #444;
-
   margin-top: 0;
-
   white-space: nowrap;
-  margin-left: -70px;
+  margin-left: -30px;
 }
 
 /* MENU AREA */
-
 .menu-wrapper {
   padding-top: 36px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 /* MENU TITLE */
-
 .menu-title {
   font-size: 22px;
   color: #555;
@@ -85,7 +83,6 @@ body {
 }
 
 /* MENU */
-
 .menu {
   display: flex;
   flex-direction: column;
@@ -93,22 +90,15 @@ body {
 }
 
 /* MENU ITEMS */
-
 .menu-item {
   height: 52px;
-
   border: none;
   background: transparent;
-
   text-align: left;
-
   padding-left: 16px;
-
   font-size: 18px;
   color: #555;
-
   cursor: pointer;
-
   transition: 0.2s;
 }
 
@@ -121,18 +111,19 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* TOPBAR */
-
 .topbar {
   height: 70px;
-
   display: flex;
   justify-content: flex-end;
   align-items: center;
-
   padding-right: 22px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .profile-icon {
@@ -141,9 +132,12 @@ body {
   border-radius: 50%;
   object-fit: cover;
 }
-/* CONTENT */
 
+/* CONTENT AREA */
 .content-area {
   flex: 1;
   background: #cfcfcf;
+  overflow: hidden;
+  min-height: 0;
+  padding: clamp(10px, 1.5vh, 16px) clamp(10px, 1.5vw, 16px);
 }
