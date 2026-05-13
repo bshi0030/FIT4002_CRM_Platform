@@ -9,6 +9,14 @@ const customerSchema = new mongoose.Schema({
   designation: { type: String, required: true },
   department: { type: String, required: true },
   companyLogo: { type: String }, // stores the file path
+  attachments: [{
+    originalName: String,
+    filename: String,
+    path: String,
+    mimetype: String,
+    size: Number,
+    uploadedAt: { type: Date, default: Date.now }
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 
