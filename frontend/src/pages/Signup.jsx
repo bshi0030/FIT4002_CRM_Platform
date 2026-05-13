@@ -116,8 +116,12 @@ export default function Signup() {
             setError('Please fill in every field.')
             return
         }
+        if (form.fullName.trim().length > 120) {
+            setError('Full name cannot be more than 120 characters.')
+            return
+        }
         if (form.password.length < 8) {
-            setError('Password must be at least 8 characters long.')
+            setError('Password must be at least 8 characters.')
             return
         }
         if (!ROLES.includes(form.role)) {

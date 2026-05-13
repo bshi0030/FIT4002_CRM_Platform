@@ -20,13 +20,18 @@ exports.signup = async (req, res) => {
                 .status(400)
                 .json({message: 'Full name, email, password and company name are required'})
         }
+        if (fullName.trim().length > 120) {
+            return res
+                .status(400)
+                .json({message: 'Full name cannot be more than 120 characters'})
+        }
         if (!isValidEmail(email)) {
             return res.status(400).json({message: 'Please provide a valid email'})
         }
         if (typeof password !== 'string' || password.length < 8) {
             return res
                 .status(400)
-                .json({message: 'Password must be at least 8 characters long'})
+                .json({message: 'Password must be at least 8 characters'})
         }
         if (role && !ROLES.includes(role)) {
             return res.status(400).json({message: 'Invalid role'})
