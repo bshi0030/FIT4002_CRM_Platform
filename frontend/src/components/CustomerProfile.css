@@ -153,6 +153,7 @@
   flex-direction: column;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .activity-header-area {
@@ -454,4 +455,164 @@
   border-radius: 15px;
   font-size: 12px;
   cursor: pointer;
+}
+
+.close-btn {
+  background: none;
+  color: #666;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.detail-row {
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.detail-label {
+  font-weight: bold;
+  color: #666;
+  min-width: 100px;
+}
+
+.description-block {
+  flex-direction: column;
+}
+
+.modal-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.delete-btn-action {
+  background: #fff0f0;
+  color: #d9534f;
+  border: 1px solid #d9534f;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.edit-btn-action {
+  background: #333;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.edit-input, .edit-textarea, .edit-select {
+  font-family: inherit;
+  font-size: inherit;
+  color: #555; /* Match the text color from image_1f7095.png */
+  background: #f9f9f9; /* Very light gray instead of black */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px 6px;
+  outline: none;
+}
+
+.edit-textarea {
+  width: 100%;
+  min-height: 80px;
+  display: block;
+  margin-top: 10px;
+  resize: none; /* Prevents user from breaking layout */
+}
+
+.save-btn {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cancel-btn {
+  background-color: white;
+  color: #d9534f; /* Red to match Delete theme */
+  border: 1px solid #f8d7da;
+  padding: 8px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.cancel-btn:hover {
+  background-color: #fff5f5;
+}
+
+/* Make list items look clickable */
+.interaction-item.clickable {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.interaction-item.clickable:hover {
+  background-color: #f0f0f0;
+}
+
+
+.interactions-content-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+
+/* The list part: fills space, but shrinks when detail is open */
+.interactions-list {
+  flex: 1;
+  min-width: 0;
+}
+
+.interaction-detail-inline {
+  flex: 0 0 40%;
+  max-width: 650px;
+  min-width: 350px;
+  
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.detail-inline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.detail-inline-body .detail-row {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.detail-inline-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  display: flex;
+  gap: 12px;
 }
