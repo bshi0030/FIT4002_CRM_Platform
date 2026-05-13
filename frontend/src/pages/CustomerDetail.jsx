@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import './Customers.css';
@@ -10,6 +10,9 @@ const CustomerDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const fileInputRef = useRef(null);
 
   const fetchCustomer = async () => {
     try {
@@ -31,6 +34,42 @@ const CustomerDetail = () => {
 
   const handleCustomerUpdated = () => {
     fetchCustomer();
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10000000) {
+      setUploadError("File size exceeds 10MB limit.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      setUploading(true);
+      setUploadError(null);
+      await api.post(`/customers/${id}/files`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      fetchCustomer();
+    } catch (err) {
+      console.error(err);
+      setUploadError(err.response?.data?.message || 'Failed to upload file.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const formatSize = (bytes) => {
+    if (!bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   if (loading) return <div className="loading-msg">Loading...</div>;
@@ -70,28 +109,63 @@ const CustomerDetail = () => {
 
         <div className="profile-main-content">
           <div className="timeline-section">
-            <h3>Interaction Timeline (Placeholder)</h3>
+            <h3>Interaction Timeline</h3>
             <div className="timeline-placeholder">
+              {/* Combine file uploads as events in the timeline */}
+              {customer.attachments && customer.attachments.map((file) => (
+                <div className="timeline-item" key={`timeline-${file._id}`}>
+                  <span className="timeline-date">{new Date(file.uploadedAt).toLocaleString()}</span>
+                  <p>Uploaded document: <strong>{file.originalName}</strong></p>
+                </div>
+              ))}
               <div className="timeline-item">
-                <span className="timeline-date">Today</span>
-                <p>Sent introduction email to {customer.fullName}.</p>
-              </div>
-              <div className="timeline-item">
-                <span className="timeline-date">Yesterday</span>
+                <span className="timeline-date">{new Date(customer.createdAt).toLocaleString()}</span>
                 <p>Added to the system.</p>
               </div>
             </div>
           </div>
 
           <div className="files-section">
-            <h3>Files & Notes (Placeholder)</h3>
-            <div className="files-placeholder">
-              <div className="file-item">
-                <span>📄 Proposal_v1.pdf</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h3 style={{ margin: 0 }}>Files & Documents</h3>
+              <div>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload} 
+                  style={{ display: 'none' }} 
+                  accept=".pdf,.doc,.docx,.txt,.csv,.jpg,.jpeg,.png,.gif,.webp"
+                />
+                <button className="add-contact-btn" onClick={() => fileInputRef.current.click()} disabled={uploading}>
+                  {uploading ? 'Uploading...' : 'Upload File'}
+                </button>
               </div>
-              <div className="file-item">
-                <span>📝 Note: Client is interested in Q3 implementation.</span>
-              </div>
+            </div>
+            
+            {uploadError && <p className="error-msg">{uploadError}</p>}
+            
+            <div className="files-list">
+              {customer.attachments && customer.attachments.length > 0 ? (
+                customer.attachments.map(file => (
+                  <div className="file-item" key={file._id}>
+                    <div className="file-info">
+                      <span className="file-icon">📄</span>
+                      <div>
+                        <strong>{file.originalName}</strong>
+                        <div className="file-meta">
+                          {formatSize(file.size)} • {new Date(file.uploadedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="file-actions">
+                      <a href={`http://localhost:5000/api/customers/${customer._id}/files/${file._id}/view`} target="_blank" rel="noopener noreferrer" className="btn-link">Open</a>
+                      <a href={`http://localhost:5000/api/customers/${customer._id}/files/${file._id}/download`} className="btn-link">Download</a>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p style={{ color: '#777', fontStyle: 'italic' }}>No files attached yet.</p>
+              )}
             </div>
           </div>
         </div>

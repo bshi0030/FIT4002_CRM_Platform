@@ -417,3 +417,62 @@
   color: red;
   margin-bottom: 15px;
 }
+
+/* File Attachment Styles */
+.files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  transition: 0.2s;
+}
+
+.file-item:hover {
+  background: #f1f1f1;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.file-icon {
+  font-size: 24px;
+}
+
+.file-meta {
+  font-size: 12px;
+  color: #777;
+  margin-top: 4px;
+}
+
+.file-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-link {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  color: #333;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.btn-link:hover {
+  background: #eee;
+}
