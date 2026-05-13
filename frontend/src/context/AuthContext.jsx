@@ -47,6 +47,13 @@ export function AuthProvider({children}) {
         }
     }, [])
 
+    useEffect(() => {
+        const handleExpired = () => setUser(null)
+        window.addEventListener('auth:session-expired', handleExpired)
+        return () =>
+            window.removeEventListener('auth:session-expired', handleExpired)
+    }, [])
+
     const persist = (token, nextUser) => {
         localStorage.setItem(TOKEN_KEY, token)
         localStorage.setItem(USER_KEY, JSON.stringify(nextUser))

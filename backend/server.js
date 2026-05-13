@@ -2,14 +2,34 @@ const express = require('express')
 const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const cors = require('cors')
+const helmet = require('helmet')
 
 dotenv.config()
 
 const authRoutes = require('./routes/auth')
 
 const app = express()
-app.use(cors())
-app.use(express.json())
+
+app.set('trust proxy', 1)
+
+app.use(helmet())
+
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+
+app.use(
+    cors({
+        origin: (origin, cb) => {
+            if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
+            return cb(new Error('Origin not allowed by CORS'))
+        },
+        credentials: true,
+    })
+)
+
+app.use(express.json({limit: '100kb'}))
 
 if (process.env.MONGO_URI) {
     mongoose
@@ -21,7 +41,7 @@ if (process.env.MONGO_URI) {
 }
 
 app.get('/', (req, res) => {
-  res.send('NexGen CRM backend is running')
+    res.send('NexGen CRM backend is running')
 })
 
 app.use('/api/auth', authRoutes)

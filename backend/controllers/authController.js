@@ -110,16 +110,10 @@ exports.googleLogin = async (req, res) => {
         })
 
         if (user) {
-            let dirty = false
             if (!user.googleId) {
                 user.googleId = profile.googleId
-                dirty = true
+                await user.save()
             }
-            if (user.authProvider !== 'google') {
-                user.authProvider = 'google'
-                dirty = true
-            }
-            if (dirty) await user.save()
         } else {
             user = await User.create({
                 fullName: profile.fullName,
