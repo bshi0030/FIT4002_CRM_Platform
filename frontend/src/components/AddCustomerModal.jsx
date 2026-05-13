@@ -15,7 +15,7 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
@@ -55,10 +55,10 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
     data.append('designation', formData.designation);
     data.append('department', formData.department);
     data.append('address', formData.address); // added default or we can add to UI later if needed. The prompt says 'User can input address' so I should actually add it.
-    
+
     // Actually, I should add Address to the form to fully satisfy A1 criteria.
     // I will add Address below email.
-    
+
     if (logoFile) {
       data.append('companyLogo', logoFile);
     }
@@ -84,7 +84,7 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
       <div className="modal-content">
         <h2>Add Contact</h2>
         {error && <p className="error-msg">{error}</p>}
-        
+
         <form onSubmit={handleSubmit} className="add-contact-form">
           <div className="form-left">
             <div className="form-group">
@@ -125,17 +125,17 @@ const AddCustomerModal = ({ onClose, onAdd }) => {
               <label>Department</label>
               <input type="text" name="department" value={formData.department} onChange={handleChange} placeholder="Management" />
             </div>
-            
+
             <div className="upload-btn-wrapper">
               <button type="button" className="upload-logo-btn" onClick={() => fileInputRef.current.click()}>
                 <span>↪</span> Upload company logo
               </button>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                accept="image/*" 
-                style={{ display: 'none' }} 
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                style={{ display: 'none' }}
               />
             </div>
           </div>
