@@ -24,6 +24,10 @@ function CustomerProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
 
+  // State for the Log Interaction Modal
+  const [isLoggingModalOpen, setIsLoggingModalOpen] = useState(false);
+  const [newInteractionData, setNewInteractionData] = useState({ type: 'Note', desc: '' });
+
   const [allInteractions, setAllInteractions] = useState([
     {
       id: 1, type: 'Email', 
@@ -107,6 +111,67 @@ function CustomerProfile() {
 
   const handleCancel = () => {
     setIsEditing(false);
+  };
+
+  // Logic for adding a new interaction
+  const handleOpenLogModal = () => {
+    let defaultType = 'Note';
+    if (['Emails', 'Calls', 'Tasks', 'Notes'].includes(activeTab)) {
+      const mapping = {
+        'Emails': 'Email',
+        'Calls': 'Call',
+        'Tasks': 'Task',
+        'Notes': 'Note'
+      };
+      defaultType = mapping[activeTab];
+    }
+    setNewInteractionData({ type: defaultType, desc: '' });
+    setIsLoggingModalOpen(true);
+  };
+
+  const handleCloseLogModal = () => {
+    setIsLoggingModalOpen(false);
+  };
+
+  const handleNewInteractionChange = (e) => {
+    const { name, value } = e.target;
+    setNewInteractionData({ ...newInteractionData, [name]: value });
+  };
+
+  const handleSaveNewInteraction = () => {
+    if (!newInteractionData.desc.trim()) {
+      alert("Please enter a description.");
+      return;
+    }
+
+    const typeDetails = {
+      'Email': { icon: <FiMail />, className: 'icon-email', typeClass: 'type-email' },
+      'Call': { icon: <FiPhone />, className: 'icon-call', typeClass: 'type-call' },
+      'Task': { icon: <FiList />, className: 'icon-task', typeClass: 'type-task' },
+      'Note': { icon: <FiEdit3 />, className: 'icon-note', typeClass: 'type-note' },
+    };
+
+    const details = typeDetails[newInteractionData.type] || typeDetails['Note'];
+
+    const newId = allInteractions.length > 0 ? Math.max(...allInteractions.map(i => i.id)) + 1 : 1;
+    
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timeStamp = `Today ${timeString}`;
+
+    const newInteraction = {
+      id: newId,
+      type: newInteractionData.type,
+      icon: details.icon,
+      author: 'Hiba Zaman',
+      desc: newInteractionData.desc,
+      time: timeStamp,
+      className: details.className,
+      typeClass: details.typeClass
+    };
+
+    setAllInteractions([newInteraction, ...allInteractions]);
+    setIsLoggingModalOpen(false);
   };
 
   //Logic to filter interactions based on tab
@@ -244,7 +309,7 @@ function CustomerProfile() {
         <div className="interactions-card">
           <div className="interactions-header">
             <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
-            <button className="log-interaction-btn">+ Log Interaction</button>
+            <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
           </div>
           
           <div className="interactions-content-layout">
@@ -370,6 +435,51 @@ function CustomerProfile() {
           </div>
         </div>
       </div>
+
+      {/* LOG INTERACTION MODAL */}
+      {isLoggingModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content-card">
+            <div className="modal-header">
+              <h3>Log Interaction</h3>
+              <button onClick={handleCloseLogModal} className="close-btn"><FiX /></button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Interaction Type</label>
+                <select 
+                  name="type" 
+                  value={newInteractionData.type} 
+                  onChange={handleNewInteractionChange}
+                  className="edit-select"
+                >
+                  <option value="Email">Email</option>
+                  <option value="Call">Call</option>
+                  <option value="Task">Task</option>
+                  <option value="Note">Note</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Description / Notes</label>
+                <textarea 
+                  name="desc"
+                  value={newInteractionData.desc} 
+                  onChange={handleNewInteractionChange}
+                  className="edit-textarea"
+                  placeholder="Enter details about this interaction..."
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={handleCloseLogModal}>Cancel</button>
+              <button className="save-btn" onClick={handleSaveNewInteraction}>Save Interaction</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
