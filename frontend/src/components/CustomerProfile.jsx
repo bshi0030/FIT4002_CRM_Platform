@@ -233,7 +233,11 @@ function CustomerProfile() {
             <button 
               key={name}
               className={`tab ${activeTab === name ? 'active-tab' : ''}`}
-              onClick={() => setActiveTab(name)}
+              onClick={() => {
+                setActiveTab(name)
+                setSelectedInteraction(null);
+                setIsEditing(false);
+              }}
             >
               {name}
             </button>
