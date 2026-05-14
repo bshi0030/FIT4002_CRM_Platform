@@ -24,6 +24,8 @@ function CustomerProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
 
+  const [isComposingEmail, setIsComposingEmail] = useState(false);
+
   const [allInteractions, setAllInteractions] = useState([
     {
       id: 1, type: 'Email', 
@@ -244,7 +246,12 @@ function CustomerProfile() {
         <div className="interactions-card">
           <div className="interactions-header">
             <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
-            <button className="log-interaction-btn">+ Log Interaction</button>
+            <div style={{display: 'flex', gap: '10px'}}>
+              <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
+                <FiMail /> Send Email
+              </button>
+              <button className="log-interaction-btn">+ Log Interaction</button>
+            </div>
           </div>
           
           <div className="interactions-content-layout">
@@ -270,73 +277,82 @@ function CustomerProfile() {
                   <div className="interaction-time">{item.time}</div>
                 </div>
               ))}
-          </div> 
-
-          {/* DETAIL VIEW */}
-          {selectedInteraction && (
-            <div className="interaction-detail-inline">
-              <div className="detail-inline-header">
-                <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
-                <button onClick={() => { setSelectedInteraction(null); setIsEditing(false); }} className="close-btn"><FiX /></button>
-              </div>
-              
-              <div className="detail-inline-body">
-                <div className="detail-row">
-                  <strong>Activity:</strong> 
-                  {isEditing ? (
-                    <select name="type" className="edit-select" value={editedData.type} onChange={handleInputChange}>
-                      <option value="Email">Email</option>
-                      <option value="Call">Call</option>
-                      <option value="Task">Task</option>
-                      <option value="Note">Note</option>
-                    </select>
-                  ) : (
-                    <span>{selectedInteraction.type}</span>
-                  )}
-                </div>
-
-                <div className="detail-row">
-                  <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
-                </div>
-                <div className="detail-row">
-                  <strong>Logged:</strong> <span>{selectedInteraction.time}</span>
-                </div>
-                <div style={{ marginTop: '15px' }}>
-                  <strong>Notes:</strong>
-                  {isEditing ? (
-                    <textarea 
-                      name="desc"
-                      value={editedData.desc} 
-                      onChange={handleInputChange}
-                      className="edit-textarea"
-                    />
-                  ) : (
-                    <p style={{ color: '#555', marginTop: '8px', lineHeight: '1.4' }}>
-                      {selectedInteraction.desc}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="detail-inline-footer">
-                {isEditing ? (
-                  <>
-                    <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
-                    <button className="save-btn" onClick={handleSave}>Save Changes</button>
-                  </>
-                ) : (
-                  <>
-                    <button className="delete-btn-action" onClick={() => handleDelete(selectedInteraction.id)}>
-                      <FiTrash2 /> Delete
-                    </button>
-                    <button className="edit-btn-action" onClick={handleEditClick}>
-                      <FiEdit2 /> Edit
-                    </button>
-                  </>
-                )}
-              </div>
             </div>
-          )}
+
+            {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
+            {isComposingEmail ? (
+              <EmailComposer 
+                customerEmail="john@greenwatts.com" 
+                onClose={() => setIsComposingEmail(false)}
+                onEmailSent={(newLog) => {
+                    // Logic to add the new log to your interaction state
+                    setAllInteractions([newLog, ...allInteractions]);
+                }}
+              />
+              ) : selectedInteraction && (
+                <div className="interaction-detail-inline">
+                  <div className="detail-inline-header">
+                    <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
+                    <button onClick={() => { setSelectedInteraction(null); setIsEditing(false); }} className="close-btn"><FiX /></button>
+                  </div>
+              
+                <div className="detail-inline-body">
+                  <div className="detail-row">
+                    <strong>Activity:</strong> 
+                    {isEditing ? (
+                      <select name="type" className="edit-select" value={editedData.type} onChange={handleInputChange}>
+                        <option value="Email">Email</option>
+                        <option value="Call">Call</option>
+                        <option value="Task">Task</option>
+                        <option value="Note">Note</option>
+                      </select>
+                    ) : (
+                      <span>{selectedInteraction.type}</span>
+                    )}
+                  </div>
+
+                  <div className="detail-row">
+                    <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
+                  </div>
+                  <div className="detail-row">
+                    <strong>Logged:</strong> <span>{selectedInteraction.time}</span>
+                  </div>
+                  <div style={{ marginTop: '15px' }}>
+                    <strong>Notes:</strong>
+                    {isEditing ? (
+                      <textarea 
+                        name="desc"
+                        value={editedData.desc} 
+                        onChange={handleInputChange}
+                        className="edit-textarea"
+                      />
+                    ) : (
+                      <p style={{ color: '#555', marginTop: '8px', lineHeight: '1.4' }}>
+                        {selectedInteraction.desc}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="detail-inline-footer">
+                  {isEditing ? (
+                    <>
+                      <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                      <button className="save-btn" onClick={handleSave}>Save Changes</button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="delete-btn-action" onClick={() => handleDelete(selectedInteraction.id)}>
+                        <FiTrash2 /> Delete
+                      </button>
+                      <button className="edit-btn-action" onClick={handleEditClick}>
+                        <FiEdit2 /> Edit
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
           {activeTab === 'Interactions' && <button className="view-more-btn">View more</button>}
         </div>
