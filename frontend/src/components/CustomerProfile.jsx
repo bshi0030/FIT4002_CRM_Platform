@@ -187,6 +187,25 @@ function CustomerProfile() {
     return item.type === tabMapping[activeTab];
   });
 
+  // Calculate dynamic stats
+  const emailCount = allInteractions.filter(i => i.type === 'Email').length;
+  const callCount = allInteractions.filter(i => i.type === 'Call').length;
+  const taskCount = allInteractions.filter(i => i.type === 'Task').length;
+
+  const totalInteractions = allInteractions.length;
+  let engagementLevel = 'Low';
+  let engagementClass = 'engagement-low';
+  if (totalInteractions >= 5) {
+    engagementLevel = 'High';
+    engagementClass = 'engagement-high';
+  } else if (totalInteractions >= 3) {
+    engagementLevel = 'Medium';
+    engagementClass = 'engagement-medium';
+  }
+
+  // Ensure recentInteractionTime is based on the first element (most recent)
+  const recentInteractionTime = allInteractions.length > 0 ? allInteractions[0].time : 'No recent activity';
+
   return (
     <div className="customer-profile-container">
 
@@ -266,16 +285,27 @@ function CustomerProfile() {
             <h3>Activity Summary</h3>
             <div className="activity-pills">
               <div className="summary-pill pill-emails">
-                <span className="pill-count">24</span>
+                <span className="pill-count">{emailCount}</span>
                 <span className="pill-label">Emails</span>
               </div>
               <div className="summary-pill pill-calls">
-                <span className="pill-count">16</span>
+                <span className="pill-count">{callCount}</span>
                 <span className="pill-label">Calls</span>
               </div>
               <div className="summary-pill pill-tasks">
-                <span className="pill-count">18</span>
+                <span className="pill-count">{taskCount}</span>
                 <span className="pill-label">Tasks</span>
+              </div>
+            </div>
+
+            <div className="engagement-insights">
+              <div className="insight-row">
+                <span className="insight-label">Engagement:</span>
+                <span className={`insight-badge ${engagementClass}`}>{engagementLevel}</span>
+              </div>
+              <div className="insight-row">
+                <span className="insight-label">Last Active:</span>
+                <span className="insight-value">{recentInteractionTime}</span>
               </div>
             </div>
           </div>
