@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/auth'
+import { useLocation } from 'react-router-dom'
 import AppHeader from '@/components/AppHeader'
 import Menu from '@/components/Menu'
 import { Button } from '@/components/ui/button'
@@ -7,11 +8,13 @@ import '../styles/AppLayout.css'
 
 function AppLayout({ children }) {
     const { logout } = useAuth()
+    const location = useLocation()
+
+    const currentPage = location.pathname === '/' ? 'home' : location.pathname.replace('/', '')
 
     return (
         <div className="app-layout-wrapper">
 
-            {/* TOPBAR — full width across top */}
             <AppHeader
                 actions={
                     <Button
@@ -25,13 +28,12 @@ function AppLayout({ children }) {
                 }
             />
 
-            {/* BOTTOM SECTION — sidebar + content side by side */}
             <div className="app-body">
 
                 <aside className="app-sidebar">
                     <div className="menu-wrapper">
                         <h2 className="menu-title">Menu</h2>
-                        <Menu currentPage="home" setCurrentPage={() => {}} />
+                        <Menu currentPage={currentPage} setCurrentPage={() => {}} />
                     </div>
                 </aside>
 
