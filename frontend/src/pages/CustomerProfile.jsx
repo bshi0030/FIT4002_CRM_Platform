@@ -349,7 +349,7 @@ function CustomerProfile() {
               <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
                 <FiMail /> Send Email
               </button>
-              <button className="log-interaction-btn">+ Log Interaction</button>
+              <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
             </div>
           </div>
           
