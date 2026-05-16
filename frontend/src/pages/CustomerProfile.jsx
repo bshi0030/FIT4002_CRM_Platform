@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import api from '../api/api.js';
 import '../styles/CustomerProfile.css';
 import '../styles/InteractionSidePanel.css'
 import EmailComposer from '../components/EmailComposer.jsx';
@@ -18,6 +20,8 @@ import {
 } from "react-icons/fi";
 
 function CustomerProfile() {
+  // const { id } = useParams();
+  const id = "6a0197bb20ec4d4f767bfa16";
   // State to track active tab
   const [activeTab, setActiveTab] = useState('Interactions');
 
@@ -31,7 +35,9 @@ function CustomerProfile() {
   const [isLoggingModalOpen, setIsLoggingModalOpen] = useState(false);
   const [newInteractionData, setNewInteractionData] = useState({ type: 'Note', desc: '' });
 
-  const [allInteractions, setAllInteractions] = useState([
+  const [allInteractions, setAllInteractions] = useState([]);
+
+  const [mockInteractions, setMockInteractions] = useState([
     {
       id: 1, type: 'Email', 
       icon: <FiMail />, 
@@ -82,6 +88,57 @@ function CustomerProfile() {
       typeClass: 'type-note'
     },
   ]);
+
+  //GET Request: Load timeline from MongoDB using Axios instance
+  useEffect(() => {
+    const fetchInteractions = async () => {
+      try {
+        const response = await api.get(`/interactions/${id}`);
+        setAllInteractions(response.data);
+      } catch (error) {
+        console.error("Error loading interactions from MongoDB:", error);
+      }
+    };
+    
+    if (id) fetchInteractions();
+  }, [id]);
+
+  // Helper to dynamically match raw text types to frontend style elements
+const getStyleConfig = (type) => {
+  switch (type) {
+    case 'Email':
+      return {
+        icon: <FiMail />,
+        className: 'icon-email',
+        typeClass: 'type-email'
+      };
+    case 'Task':
+      return {
+        icon: <FiList />,
+        className: 'icon-task',
+        typeClass: 'type-task'
+      };
+    case 'Call':
+      return {
+        icon: <FiPhone />,
+        className: 'icon-call',
+        typeClass: 'type-call'
+      };
+    case 'Note':
+      return {
+        icon: <FiEdit3 />,
+        className: 'icon-note',
+        typeClass: 'type-note'
+      };
+    case 'Stage Change':
+    default:
+      return {
+        icon: <FiFolder />,
+        className: 'icon-stage',
+        typeClass: 'type-stage'
+      };
+  }
+};
 
   // Logic to delete an interaction
   const handleDelete = (id) => {
@@ -141,40 +198,68 @@ function CustomerProfile() {
     setNewInteractionData({ ...newInteractionData, [name]: value });
   };
 
-  const handleSaveNewInteraction = () => {
+  const handleSaveNewInteraction = async () => {
     if (!newInteractionData.desc.trim()) {
       alert("Please enter a description.");
       return;
     }
 
-    const typeDetails = {
-      'Email': { icon: <FiMail />, className: 'icon-email', typeClass: 'type-email' },
-      'Call': { icon: <FiPhone />, className: 'icon-call', typeClass: 'type-call' },
-      'Task': { icon: <FiList />, className: 'icon-task', typeClass: 'type-task' },
-      'Note': { icon: <FiEdit3 />, className: 'icon-note', typeClass: 'type-note' },
-    };
-
-    const details = typeDetails[newInteractionData.type] || typeDetails['Note'];
-
-    const newId = allInteractions.length > 0 ? Math.max(...allInteractions.map(i => i.id)) + 1 : 1;
-    
     const now = new Date();
     const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const timeStamp = `Today ${timeString}`;
 
-    const newInteraction = {
-      id: newId,
-      type: newInteractionData.type,
-      icon: details.icon,
-      author: 'Hiba Zaman',
+    const payload = {
+      entityId: id, // Grabbed dynamically from your useParams() hook
+      type: newInteractionData.type || 'Note',
       desc: newInteractionData.desc,
-      time: timeStamp,
-      className: details.className,
-      typeClass: details.typeClass
+      author: 'Hiba Zaman', // Matches your current salesperson session variable
+      time: timeStamp
     };
 
-    setAllInteractions([newInteraction, ...allInteractions]);
-    setIsLoggingModalOpen(false);
+    try {
+      // 4. Hit the exact same Express endpoint to store it in MongoDB
+      const res = await api.post('/interactions/create', payload);
+      
+      if (res.data.status === 'success') {
+        // 5. Inject the raw saved document directly from the database to your timeline state
+        setAllInteractions([res.data.data, ...allInteractions]);
+        
+        // 6. Close the modal on success
+        setIsLoggingModalOpen(false);
+        
+        // 7. Clear the text field state for the next interaction entry
+        setNewInteractionData({ type: 'Note', desc: '' });
+      }
+    } catch (err) {
+      console.error("Failed to save new manual interaction to database:", err);
+      alert("Server error: Could not save interaction. Please check if your backend is running.");
+    }
+
+    // const typeDetails = {
+    //   'Email': { icon: <FiMail />, className: 'icon-email', typeClass: 'type-email' },
+    //   'Call': { icon: <FiPhone />, className: 'icon-call', typeClass: 'type-call' },
+    //   'Task': { icon: <FiList />, className: 'icon-task', typeClass: 'type-task' },
+    //   'Note': { icon: <FiEdit3 />, className: 'icon-note', typeClass: 'type-note' },
+    // };
+
+    // const details = typeDetails[newInteractionData.type] || typeDetails['Note'];
+
+    // const newId = allInteractions.length > 0 ? Math.max(...allInteractions.map(i => i.id)) + 1 : 1;
+    
+
+    // const newInteraction = {
+    //   id: newId,
+    //   type: newInteractionData.type,
+    //   icon: details.icon,
+    //   author: 'Hiba Zaman',
+    //   desc: newInteractionData.desc,
+    //   time: timeStamp,
+    //   className: details.className,
+    //   typeClass: details.typeClass
+    // };
+
+    // setAllInteractions([newInteraction, ...allInteractions]);
+    // setIsLoggingModalOpen(false);
   };
 
   //Logic to filter interactions based on tab
@@ -357,26 +442,34 @@ function CustomerProfile() {
           <div className="interactions-content-layout">
 
             <div className="interactions-list">
-              {filteredInteractions.map((item) => (
-                <div 
-                  className={`interaction-item clickable ${
-                    selectedInteraction?.id === item.id ? 'active-item' : ''
-                  }`}
-                  key={item.id} 
-                  onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
-                >
-                  <div className={`interaction-icon-wrapper ${item.className}`}>{item.icon}</div>
-                  
-                  <div className="interaction-content">
-                    <div className="interaction-meta">
-                      <span className={`interaction-type ${item.typeClass}`}>{item.type}</span>
-                      <span className="interaction-author">by {item.author}</span>
+              {filteredInteractions.map((item) => {
+
+                const config = getStyleConfig(item.type);
+
+                const itemId = item._id || item.id;
+
+                return (
+                  <div 
+                    className={`interaction-item clickable ${selectedInteraction?.id === item.id ? 'active-item' : ''}`}
+                    key={item.id} 
+                    onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
+                  >
+                    {/* Uses the generated icon background wrapper style */}
+                    <div className={`interaction-icon-wrapper ${config.className}`}>
+                      {config.icon}
                     </div>
-                    <p className="interaction-desc">{item.desc}</p>
+
+                    <div className="interaction-content">
+                      <div className="interaction-meta">
+                        <span className={`interaction-type ${config.typeClass}`}>{item.type}</span>
+                        <span className="interaction-author">by {item.author}</span>
+                      </div>
+                      <p className="interaction-desc">{item.desc}</p>
+                    </div>
+                    <div className="interaction-time">{item.time}</div>
                   </div>
-                  <div className="interaction-time">{item.time}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
@@ -384,17 +477,32 @@ function CustomerProfile() {
               <EmailComposer 
                 customerEmail="john@greenwatts.com" 
                 onClose={() => setIsComposingEmail(false)}
-                onEmailSent={(partialLog) => {
-                  const completeLog = {
-                    ...partialLog,
-                    id: Date.now(), // Essential unique key for React lists
-                    icon: <FiMail />, // Passes the icon component directly
-                    className: 'icon-email', 
-                    typeClass: 'type-email'  
+                onEmailSent={async ({ subject, message }) => {
+
+                  // Generate the dynamic timeline timestamp
+                  const now = new Date();
+                  const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  const timeStamp = `Today ${timeString}`;
+
+                  const payload = {
+                    entityId: id, // Pass the dynamic ID to the backend document
+                    type: 'Email',
+                    desc: `Sent: ${subject}`,
+                    author: 'Hiba Zaman',
+                    time: timeStamp
                   };
 
-                    // Logic to add the new log to your interaction state
-                    setAllInteractions([completeLog, ...allInteractions]);
+                  try {
+                    // Axios automatically serializes JSON objects
+                    const res = await api.post('/interactions/create', payload);
+
+                    if (res.data.status === 'success') {
+                      // Logic to add the new log to your interaction state
+                      setAllInteractions([res.data.data, ...allInteractions]);
+                    }
+                  } catch (err) {
+                    console.error("Failed to post interaction document:", err);
+                  }
                 }}
               />
               ) : selectedInteraction && (

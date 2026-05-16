@@ -577,6 +577,18 @@
   min-width: 0;
 }
 
+.interaction-detail-inline {
+  flex: 0 0 40%;
+  max-width: 650px;
+  min-width: 350px;
+  
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  animation: fadeIn 0.2s ease-in-out;
+}
 
 /* LOG INTERACTION MODAL (OVERLAY) */
 .modal-overlay {

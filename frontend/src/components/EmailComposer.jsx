@@ -6,6 +6,11 @@ function EmailComposer({ customerEmail, onClose, onEmailSent }) {
   const [message, setMessage] = useState("");
 
   const handleSend = async () => {
+    if (!subject.trim() || !message.trim()) {
+      alert("Please fill out the subject and message fields.");
+      return;
+    }
+
     // This is where you would call your Django API later
     const emailData = { to: customerEmail, subject, message };
     
@@ -13,30 +18,32 @@ function EmailComposer({ customerEmail, onClose, onEmailSent }) {
     console.log("Sending email:", emailData);
     
     // Inform the parent to update the timeline
-    onEmailSent({
-      type: 'Email',
-      desc: `Sent: ${subject}`,
-      author: 'You', // In a real app, this is the logged-in user
-      time: 'Just now'
-    });
+    // onEmailSent({
+    //   type: 'Email',
+    //   desc: `Sent: ${subject}`,
+    //   author: 'You', // In a real app, this is the logged-in user
+    //   time: 'Just now'
+    // });
+
+    onEmailSent({ subject, message });
     
     onClose();
   };
 
   return (
-    <div className="interaction-detail-inline"> {/* Reuse the same CSS class for consistency */}
-      <div className="detail-inline-header">
+    <div className="side-panel"> {/* Reuse the same CSS class for consistency */}
+      <div className="side-panel-header">
         <h4>Compose Email</h4>
         <button onClick={onClose} className="close-btn"><FiX /></button>
       </div>
 
-      <div className="detail-inline-body">
-        <div className="detail-row">
+      <div className="side-panel-body">
+        <div className="side-panel-row">
           <span className="detail-label">To:</span>
           <span>{customerEmail}</span>
         </div>
         
-        <div className="detail-row" style={{flexDirection: 'column', alignItems: 'flex-start'}}>
+        <div className="side-panel-row" style={{flexDirection: 'column', alignItems: 'flex-start'}}>
           <span className="detail-label">Subject:</span>
           <input 
             type="text" 
@@ -58,7 +65,7 @@ function EmailComposer({ customerEmail, onClose, onEmailSent }) {
         </div>
       </div>
 
-      <div className="detail-inline-footer">
+      <div className="side-panel-footer">
         <button className="cancel-btn" onClick={onClose}>Cancel</button>
         <button className="save-btn" onClick={handleSend}>
           <FiSend size={14}/> Send Email
