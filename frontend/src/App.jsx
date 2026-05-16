@@ -1,8 +1,8 @@
 import { useState } from "react";
 import "./App.css";
 import logo from "./assets/CRM_logo.png";
-import Sidebar from "./components/SideBar";
-import CustomerProfile from "./components/CustomerProfile";
+import Sidebar from "./pages/SideBar";
+import CustomerProfile from "./pages/CustomerProfile";
 import CustomerList from "./components/CustomerList";
 import NotificationBell from './components/NotificationBell';
 

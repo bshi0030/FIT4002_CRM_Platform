@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FiBell, FiX, FiCheckCircle, FiCircle } from 'react-icons/fi';
-import './NotificationBell.css';
+import '../styles/NotificationBell.css';
 
 function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);

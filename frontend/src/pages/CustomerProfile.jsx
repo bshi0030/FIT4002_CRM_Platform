@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import './CustomerProfile.css';
-import EmailComposer from './EmailComposer.jsx';
+import '../styles/CustomerProfile.css';
+import EmailComposer from '../components/EmailComposer.jsx';
 import {
   FiArrowRight,
   FiEdit2,
