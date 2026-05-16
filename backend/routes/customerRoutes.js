@@ -9,7 +9,8 @@ const {
   uploadCustomerFile,
   viewCustomerFile,
   downloadCustomerFile,
-  deleteCustomerFile
+  deleteCustomerFile,
+  addInteraction
 } = require('../controllers/customerController');
 
 router.route('/')
@@ -25,5 +26,8 @@ router.post('/:id/files', uploadDocument.single('file'), uploadCustomerFile);
 router.get('/:id/files/:fileId/view', viewCustomerFile);
 router.get('/:id/files/:fileId/download', downloadCustomerFile);
 router.delete('/:id/files/:fileId', deleteCustomerFile);
+
+// Interactions endpoint
+router.post('/:id/interactions', addInteraction);
 
 module.exports = router;

@@ -14,17 +14,17 @@ const CustomerDetail = () => {
   const [uploadError, setUploadError] = useState(null);
   const fileInputRef = useRef(null);
 
-  const fetchCustomer = async () => {
+  const fetchCustomer = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await api.get(`/customers/${id}`);
       setCustomer(res.data);
-      setError(null);
+      if (showLoading) setError(null);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch customer details.');
+      if (showLoading) setError('Failed to fetch customer details.');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -33,7 +33,20 @@ const CustomerDetail = () => {
   }, [id]);
 
   const handleCustomerUpdated = () => {
-    fetchCustomer();
+    fetchCustomer(false);
+  };
+
+  const handleInteraction = async (type) => {
+    try {
+      await api.post(`/customers/${id}/interactions`, {
+        type: type,
+        details: `Initiated ${type} contact from Customer Profile`
+      });
+      
+      fetchCustomer(false); // Silent refresh
+    } catch (err) {
+      console.error(`Failed to log ${type} interaction`, err);
+    }
   };
 
   const handleFileUpload = async (e) => {
@@ -72,9 +85,41 @@ const CustomerDetail = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const getMergedTimeline = () => {
+    if (!customer) return [];
+    let events = [];
+    if (customer.attachments) {
+      events = events.concat(customer.attachments.map(a => ({
+        id: a._id,
+        date: new Date(a.uploadedAt),
+        content: `Uploaded document: ${a.originalName}`,
+        icon: '📄'
+      })));
+    }
+    if (customer.interactions) {
+      events = events.concat(customer.interactions.map(i => ({
+        id: i._id,
+        date: new Date(i.date),
+        content: `Logged ${i.type}: ${i.details}`,
+        icon: i.type === 'Email' ? '✉️' : (i.type === 'Call' ? '📞' : '📝')
+      })));
+    }
+    events.push({
+      id: 'creation',
+      date: new Date(customer.createdAt),
+      content: 'Added to the system.',
+      icon: '👤'
+    });
+    
+    events.sort((a, b) => b.date - a.date);
+    return events;
+  };
+
   if (loading) return <div className="loading-msg">Loading...</div>;
   if (error) return <div className="error-msg">{error}</div>;
   if (!customer) return <div className="error-msg">Customer not found.</div>;
+
+  const timelineEvents = getMergedTimeline();
 
   return (
     <div className="customer-detail-page">
@@ -91,7 +136,7 @@ const CustomerDetail = () => {
       <div className="customer-profile-container">
         <div className="profile-sidebar">
           {customer.companyLogo ? (
-            <img src={`http://localhost:5000${customer.companyLogo}`} alt={`${customer.company} logo`} className="profile-logo" />
+            <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${customer.companyLogo}`} alt={`${customer.company} logo`} className="profile-logo" />
           ) : (
             <div className="profile-logo-placeholder">🏢</div>
           )}
@@ -105,23 +150,23 @@ const CustomerDetail = () => {
             <p><strong>Department:</strong> {customer.department}</p>
             <p><strong>Address:</strong> {customer.address}</p>
           </div>
+
+          <div className="profile-actions" style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
+            <a className="add-contact-btn" href={`mailto:${customer.email}`} target="_blank" rel="noopener noreferrer" onClick={() => handleInteraction('Email')} style={{flex: 1, textDecoration: 'none', textAlign: 'center', color: '#fff'}}>✉️ Email</a>
+            <a className="add-contact-btn" href={`tel:${customer.phone}`} target="_blank" rel="noopener noreferrer" onClick={() => handleInteraction('Call')} style={{flex: 1, textDecoration: 'none', textAlign: 'center', color: '#fff'}}>📞 Call</a>
+          </div>
         </div>
 
         <div className="profile-main-content">
           <div className="timeline-section">
             <h3>Interaction Timeline</h3>
             <div className="timeline-placeholder">
-              {/* Combine file uploads as events in the timeline */}
-              {customer.attachments && customer.attachments.map((file) => (
-                <div className="timeline-item" key={`timeline-${file._id}`}>
-                  <span className="timeline-date">{new Date(file.uploadedAt).toLocaleString()}</span>
-                  <p>Uploaded document: <strong>{file.originalName}</strong></p>
+              {timelineEvents.map((event) => (
+                <div className="timeline-item" key={`timeline-${event.id}`}>
+                  <span className="timeline-date">{event.date.toLocaleString()}</span>
+                  <p>{event.icon} <strong>{event.content}</strong></p>
                 </div>
               ))}
-              <div className="timeline-item">
-                <span className="timeline-date">{new Date(customer.createdAt).toLocaleString()}</span>
-                <p>Added to the system.</p>
-              </div>
             </div>
           </div>
 
@@ -158,8 +203,8 @@ const CustomerDetail = () => {
                       </div>
                     </div>
                     <div className="file-actions">
-                      <a href={`http://localhost:5000/api/customers/${customer._id}/files/${file._id}/view`} target="_blank" rel="noopener noreferrer" className="btn-link">Open</a>
-                      <a href={`http://localhost:5000/api/customers/${customer._id}/files/${file._id}/download`} className="btn-link">Download</a>
+                      <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/customers/${customer._id}/files/${file._id}/view`} target="_blank" rel="noopener noreferrer" className="btn-link">Open</a>
+                      <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/customers/${customer._id}/files/${file._id}/download`} className="btn-link">Download</a>
                     </div>
                   </div>
                 ))

@@ -24,5 +24,14 @@ app.get('/', (req, res) => {
   res.send('NexGen CRM backend is running')
 })
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+  if (err) {
+    res.status(400).json({ message: err.message });
+  } else {
+    next();
+  }
+});
+
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

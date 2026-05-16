@@ -30,7 +30,7 @@ const AddCustomerModal = ({ onClose, onAdd, initialData = null }) => {
         address: initialData.address || 'Not Provided'
       });
       if (initialData.companyLogo) {
-        setPreviewUrl(`http://localhost:5000${initialData.companyLogo}`);
+        setPreviewUrl(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${initialData.companyLogo}`);
       }
     }
   }, [initialData]);

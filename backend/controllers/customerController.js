@@ -154,6 +154,22 @@ const deleteCustomerFile = async (req, res) => {
   }
 };
 
+const addInteraction = async (req, res) => {
+  try {
+    const { type, details } = req.body;
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) return res.status(404).json({ message: 'Customer not found' });
+
+    customer.interactions.push({ type, details });
+    await customer.save();
+
+    res.status(201).json(customer);
+  } catch (error) {
+    console.error('Error adding interaction:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 module.exports = {
   createCustomer,
   getCustomers,
@@ -162,5 +178,6 @@ module.exports = {
   uploadCustomerFile,
   viewCustomerFile,
   downloadCustomerFile,
-  deleteCustomerFile
+  deleteCustomerFile,
+  addInteraction
 };

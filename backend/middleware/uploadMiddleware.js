@@ -35,15 +35,10 @@ const documentStorage = multer.diskStorage({
 
 // Check logo type
 function checkLogoType(file, cb) {
-  const filetypes = /jpeg|jpg|png|gif|webp/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
-
-  if (mimetype && extname) {
+  if (file.mimetype.startsWith('image/')) {
     return cb(null, true);
-  } else {
-    cb(new Error('Error: Images Only!'));
   }
+  return cb(new Error('Error: Images Only!'));
 }
 
 // Check document type

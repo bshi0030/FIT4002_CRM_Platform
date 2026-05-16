@@ -10,17 +10,17 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await api.get('/customers');
       setCustomers(res.data);
-      setError(null);
+      if (showLoading) setError(null);
     } catch (err) {
       console.error(err);
-      setError('Failed to load customers.');
+      if (showLoading) setError('Failed to load customers.');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -28,8 +28,35 @@ const Customers = () => {
     fetchCustomers();
   }, []);
 
+  const handleInteraction = async (customer, type) => {
+    try {
+      await api.post(`/customers/${customer._id}/interactions`, {
+        type: type,
+        details: `Initiated ${type} contact from Customer List`
+      });
+      
+      fetchCustomers(false); // Silent refresh to avoid unmounting DOM
+    } catch (err) {
+      console.error(`Failed to log ${type} interaction`, err);
+    }
+  };
+
   const handleCustomerAdded = () => {
     fetchCustomers(); // Refresh the list
+  };
+
+  const formatActivityDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const today = new Date();
+    
+    if (date.getDate() === today.getDate() && 
+        date.getMonth() === today.getMonth() && 
+        date.getFullYear() === today.getFullYear()) {
+      return 'Today';
+    }
+    
+    return date.toLocaleDateString();
   };
 
   return (
@@ -75,7 +102,7 @@ const Customers = () => {
                   <td>
                     <Link to={`/customers/${cust._id}`} className="contact-cell">
                       {cust.companyLogo ? (
-                        <img src={`http://localhost:5000${cust.companyLogo}`} alt="logo" className="contact-avatar" />
+                        <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${cust.companyLogo}`} alt="logo" className="contact-avatar" />
                       ) : (
                         <div className="contact-avatar-placeholder">👤</div>
                       )}
@@ -102,8 +129,12 @@ const Customers = () => {
                   </td>
                   <td>
                     <div className="last-activity">
-                      <span>Today</span>
-                      <span className="activity-icons">✉️ 📞</span>
+                      <span>{formatActivityDate(cust.interactions && cust.interactions.length > 0 ? cust.interactions[cust.interactions.length - 1].date : cust.createdAt)}</span>
+                      <span className="activity-icons">
+                        <a href={`mailto:${cust.email}`} target="_blank" rel="noopener noreferrer" style={{cursor: 'pointer', textDecoration: 'none', color: 'inherit'}} title="Email Customer" onClick={() => handleInteraction(cust, 'Email')}>✉️</a>
+                        {' '}
+                        <a href={`tel:${cust.phone}`} target="_blank" rel="noopener noreferrer" style={{cursor: 'pointer', textDecoration: 'none', color: 'inherit'}} title="Call Customer" onClick={() => handleInteraction(cust, 'Call')}>📞</a>
+                      </span>
                     </div>
                   </td>
                 </tr>
