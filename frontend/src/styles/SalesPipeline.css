@@ -114,14 +114,14 @@
 /* INDIVIDUAL STAGE COLUMN */
 .stage-column {
   flex: 1;
-  min-width: clamp(130px, 14vw, 175px);
+  min-width: 0;
   background: rgba(255, 255, 255, 0.5);
   border-radius: clamp(14px, 2vw, 30px);
   display: flex;
   flex-direction: column;
   padding: clamp(10px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
   gap: clamp(8px, 1vw, 12px);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 /* STAGE HEADER ROW */
@@ -152,9 +152,122 @@
 
 /* CARDS AREA INSIDE COLUMN */
 .stage-cards-area {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(6px, 1vw, 10px);
   flex: 1;
   overflow-y: auto;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px;
+}
+
+.pipeline-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.btn-add-lead {
+  background: #362c28;
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  height: 42px;
+}
+
+.btn-add-lead:hover {
+  background: #1a1410;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  width: 400px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-title {
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #362c28;
+  margin: 0;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-label {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555555;
+}
+
+.modal-input {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  outline: none;
+  color: #362c28;
+}
+
+.modal-input:focus {
+  border-color: #362c28;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid #cccccc;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555555;
+}
+
+.btn-submit {
+  background: #362c28;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
 }

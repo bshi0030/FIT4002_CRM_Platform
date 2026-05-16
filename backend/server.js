@@ -57,3 +57,6 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
 const stageRoutes = require('./routes/stageRoutes')
 app.use('/api/stages', stageRoutes)
+
+const dealRoutes = require('./routes/dealRoutes')
+app.use('/api/deals', dealRoutes)
