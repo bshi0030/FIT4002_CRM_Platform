@@ -4,6 +4,7 @@ import logo from "./assets/CRM_logo.png";
 import Sidebar from "./components/SideBar";
 import CustomerProfile from "./components/CustomerProfile";
 import CustomerList from "./components/CustomerList";
+import NotificationBell from './components/NotificationBell';
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -29,6 +30,7 @@ function App() {
 
       <main className="main-content">
         <div className="topbar">
+          <NotificationBell />
           <div className="user-icon-wrapper">
             <svg viewBox="0 0 24 24" fill="#fdf5d3" stroke="var(--text-h)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="topbar-user-icon">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
