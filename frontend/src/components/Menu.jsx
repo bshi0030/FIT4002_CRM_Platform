@@ -11,13 +11,13 @@ function Menu({ currentPage, setCurrentPage }) {
         className={`menu-item ${currentPage === "customer-list" || currentPage === "customer-profile" ? "active" : ""}`}
         onClick={() => setCurrentPage("customer-list")}
       >
-        Customers ⌘
-      </button>
-      <button className="menu-item">
         Sales Pipeline ⊷
       </button>
       <button className="menu-item">
         Tasks ☰
+      </button>
+      <button className="menu-item">
+        Customers ⌘
       </button>
       <button className="menu-item">
         Calendar ◫
