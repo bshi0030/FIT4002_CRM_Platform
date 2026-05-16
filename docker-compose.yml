@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    env_file:
+      - ./backend/.env
+    # Override command to ensure nodemon is run properly
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:5001
+    command: npm run dev
+    depends_on:
+      - backend
