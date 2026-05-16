@@ -4,6 +4,7 @@ import logo from "./assets/CRM_logo.png";
 import Sidebar from "./components/SideBar";
 import CustomerProfile from "./components/CustomerProfile";
 import CustomerList from "./components/CustomerList";
+import Dashboard from "./components/Dashboard";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -39,9 +40,7 @@ function App() {
         </div>
         <div className="content-area">
           {currentPage === "home" ? (
-            <div className="home-placeholder">
-              <h1>Welcome to NexGen CRM</h1>
-            </div>
+            <Dashboard />
           ) : currentPage === "customer-list" ? (
             <CustomerList setCurrentPage={setCurrentPage} />
           ) : (

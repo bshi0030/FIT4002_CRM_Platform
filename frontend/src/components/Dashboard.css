@@ -1,0 +1,550 @@
+/* ── Dashboard Layout ──────────────────────────────────────────────────────── */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 24px;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  /* background: #cfcfcf; */
+      background: linear-gradient(313.48deg, #FFFFFF 2.01%, #F5F4E6 7.46%, #EDEBCF 16.38%, #F2ECAB 23.45%, #F7E99A 32.02%, #FDD780 42.81%, #F2E8A4 59.29%, #F2EDCD 67.38%, #F0F2E7 74.18%, #F0F8C3 83.05%, #E9FF6B 99.17%);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  border-radius: 20px;
+}
+
+/* ── Top Bar (User & Filters) ──────────────────────────────────────────────── */
+.dashboard-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.dashboard-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #E5E5E5; /* Adjust to match the mockup */
+  padding: 6px 12px 6px 6px;
+  border-radius: 20px;
+}
+
+.dashboard-user-avatar {
+  background: #E9FF6B;
+  color: #333;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-user-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #333;
+}
+
+.dashboard-user-role {
+  font-size: 10px;
+  font-weight: 500;
+  color: #666;
+}
+
+.dashboard-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 12px;
+  color: #444;
+  outline: none;
+  cursor: pointer;
+}
+
+.dashboard-reset-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dashboard-reset-btn:hover {
+  background: #f0f0f0;
+}
+
+/* ── Live Banner ─────────────────────────────────────────────────────────────── */
+.live-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #555;
+  font-weight: 500;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4caf50;
+  box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6);
+  animation: pulse-dot 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-dot {
+  0%   { box-shadow: 0 0 0 0   rgba(76, 175, 80, 0.6); }
+  70%  { box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(76, 175, 80, 0);   }
+}
+
+.live-error {
+  color: #e57373;
+}
+
+/* ── KPI Cards Row ─────────────────────────────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.kpi-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.kpi-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpi-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  color: #555;
+}
+
+.kpi-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.badge-up {
+  background: rgba(76, 175, 80, 0.12);
+  color: #2e7d32;
+}
+
+.badge-down {
+  background: rgba(229, 115, 115, 0.12);
+  color: #c62828;
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* ── Skeleton ──────────────────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Card Base ─────────────────────────────────────────────────────────────── */
+.chart-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.card-sub {
+  font-size: 11px;
+  color: #999;
+  margin: 2px 0 0;
+}
+
+/* ── Middle Row ────────────────────────────────────────────────────────────── */
+.mid-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 14px;
+}
+
+/* ── Pipeline ──────────────────────────────────────────────────────────────── */
+.total-badge {
+  background: #E9FF6B;
+  color: #3a3a00;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.pipeline-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.donut-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.donut-legend {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 12px;
+  color: #555;
+}
+
+.donut-legend strong {
+  font-size: 13px;
+  color: #222;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.donut-center-text {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* ── Stage breakdown ─────────────────────────────────────────────────────── */
+.stage-breakdown {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stage-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #666;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.stage-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #555;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stage-name { flex: 1; }
+
+.stage-count {
+  font-weight: 700;
+  color: #222;
+  min-width: 24px;
+  text-align: right;
+}
+
+/* ── Trends ──────────────────────────────────────────────────────────────── */
+.trends-card {
+  /* inherits chart-card */
+}
+
+/* ── Chart tooltip ────────────────────────────────────────────────────────── */
+.chart-tooltip {
+  background: rgba(255,255,255,0.96);
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.ct-label {
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+/* ── Bottom Row ────────────────────────────────────────────────────────────── */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 14px;
+}
+
+/* ── Activity Summary ──────────────────────────────────────────────────────── */
+.activity-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.activity-tile {
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.15s;
+}
+
+.activity-tile:hover {
+  background: #f5f5f5;
+}
+
+.activity-tile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.activity-icon {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  color: #555;
+}
+
+.activity-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1;
+}
+
+.activity-label {
+  font-size: 11px;
+  color: #999;
+  font-weight: 500;
+}
+
+/* ── Recent Activities ─────────────────────────────────────────────────────── */
+.recent-activities {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.recent-activities-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
+.recent-activities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recent-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.recent-activity-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recent-activity-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-activity-company {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+}
+
+.recent-activity-desc {
+  font-size: 11px;
+  color: #777;
+}
+
+/* ── Team Performance ──────────────────────────────────────────────────────── */
+.top-badge {
+  background: #E9FF6B;
+  color: #3a3a00;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.team-table th {
+  text-align: left;
+  color: #999;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.team-table td {
+  padding: 7px 8px;
+  color: #444;
+  border-bottom: 1px solid #fafafa;
+}
+
+.team-table tr.top-row td {
+  background: rgba(233, 255, 107, 0.18);
+  font-weight: 600;
+  color: #222;
+}
+
+.team-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Team Footer ─────────────────────────────────────────────────────────── */
+.team-footer {
+  display: flex;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.team-footer-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+}
+
+.team-footer-item strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.tf-icon {
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .kpi-row      { grid-template-columns: repeat(2, 1fr); }
+  .mid-row      { grid-template-columns: 1fr; }
+  .bottom-row   { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 700px) {
+  .kpi-row { grid-template-columns: 1fr; }
+}
