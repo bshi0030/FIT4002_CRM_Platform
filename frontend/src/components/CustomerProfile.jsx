@@ -290,8 +290,8 @@ function CustomerProfile() {
                     ...partialLog,
                     id: Date.now(), // Essential unique key for React lists
                     icon: <FiMail />, // Passes the icon component directly
-                    className: 'icon-email', // Matches your teammate's CSS rule for the icon circle background
-                    typeClass: 'type-email'  // Matches your teammate's CSS rule for the text tag pill background
+                    className: 'icon-email', 
+                    typeClass: 'type-email'  
                   };
 
                     // Logic to add the new log to your interaction state
