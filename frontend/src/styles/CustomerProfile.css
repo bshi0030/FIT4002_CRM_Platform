@@ -161,6 +161,8 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 30px;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 .activity-summary-card {
@@ -168,6 +170,8 @@
   padding: 20px 25px;
   border-radius: 20px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  flex: 1;
+  min-width: 250px;
 }
 
 .activity-summary-card h3 {
@@ -179,6 +183,7 @@
 .activity-pills {
   display: flex;
   gap: 15px;
+  flex-wrap: wrap;
 }
 
 .summary-pill {
@@ -186,7 +191,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 60px;
+  flex: 1;
+  min-width: 60px;
   height: 60px;
   border-radius: 12px;
 }
@@ -616,3 +622,127 @@
   display: flex;
   gap: 12px;
 }
+
+/* LOG INTERACTION MODAL (OVERLAY) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-content-card {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.form-group .edit-select,
+.form-group .edit-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f9f9f9;
+  color: var(--text-h);
+  font-size: 14px;
+}
+
+.form-group .edit-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ENGAGEMENT INSIGHTS */
+.engagement-insights {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.insight-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.insight-label {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.insight-value {
+  font-size: 13px;
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.insight-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.engagement-high { background: #c6ff00; color: rgba(54, 44, 40, 1); } /* Matching tasks pill green */
+.engagement-medium { background: #ffea00; color: rgba(54, 44, 40, 1); } /* Matching calls pill yellow */
+.engagement-low { background: #ebccaf; color: rgba(54, 44, 40, 1); } /* Matching emails pill peach */
