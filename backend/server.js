@@ -53,3 +53,7 @@ app.use((err, req, res, _next) => {
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+
+
+const stageRoutes = require('./routes/stageRoutes')
+app.use('/api/stages', stageRoutes)

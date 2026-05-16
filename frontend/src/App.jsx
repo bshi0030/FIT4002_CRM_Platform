@@ -5,6 +5,7 @@ import AppLayout from '@/components/AppLayout'
 import Login from '@/pages/Login'
 import Signup from '@/pages/Signup'
 import Dashboard from '@/pages/Dashboard'
+import SalesPipeline from '@/pages/SalesPipeline'
 
 function App() {
     return (
@@ -19,6 +20,16 @@ function App() {
                             <ProtectedRoute>
                                 <AppLayout>
                                     <Dashboard />
+                                </AppLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/pipeline"
+                        element={
+                            <ProtectedRoute>
+                                <AppLayout>
+                                    <SalesPipeline />
                                 </AppLayout>
                             </ProtectedRoute>
                         }

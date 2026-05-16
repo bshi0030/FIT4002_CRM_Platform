@@ -1,0 +1,160 @@
+/* PIPELINE PAGE LAYOUT */
+.pipeline-page {
+  display: flex;
+  flex-direction: row;
+  gap: clamp(8px, 1.2vw, 14px);
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* LEFT WON/LOST PANEL */
+.wonlost-panel {
+  width: clamp(140px, 14vw, 200px);
+  flex-shrink: 0;
+  background: #e1e0e0;
+  border-radius: clamp(16px, 2vw, 30px);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
+  gap: clamp(10px, 1.5vw, 16px);
+  overflow-y: auto;
+}
+
+.wonlost-section {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vw, 10px);
+  flex: 1;
+}
+
+.wonlost-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wonlost-line {
+  flex: 1;
+  height: 1px;
+  background: #a0a0a0;
+}
+
+.wonlost-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: clamp(14px, 1.5vw, 20px);
+  color: #6a6a6a;
+  white-space: nowrap;
+}
+
+.wonlost-box {
+  background: #c7c7c7;
+  border-radius: clamp(14px, 2vw, 30px);
+  flex: 1;
+  width: 100%;
+  min-height: clamp(100px, 15vh, 180px);
+}
+
+.wonlost-arrow {
+  text-align: center;
+  font-size: clamp(14px, 1.5vw, 20px);
+  color: #a0a0a0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* MAIN GRADIENT BOX */
+/* Green top-left to white/yellow bottom-right matching Figma */
+.pipeline-gradient-box {
+  flex: 1;
+  border-radius: clamp(16px, 2vw, 30px);
+  padding: clamp(16px, 2vw, 28px) clamp(14px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2vw, 20px);
+  background: linear-gradient(
+    to bottom right,
+    #e9ff6b 0%,
+    #f0f8c3 15%,
+    #fdd780 40%,
+    #f7e99a 60%,
+    #f2ecab 75%,
+    #edebcf 88%,
+    #ffffff 100%
+  );
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* SALES PIPELINE TITLE */
+.pipeline-title {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+  font-size: clamp(26px, 3.5vw, 45px) !important;
+  color: #362c28 !important;
+  margin: 0 !important;
+  letter-spacing: normal !important;
+  flex-shrink: 0;
+}
+
+/* STAGE COLUMNS ROW */
+.pipeline-stages {
+  display: flex;
+  flex-direction: row;
+  gap: clamp(6px, 1vw, 12px);
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+/* INDIVIDUAL STAGE COLUMN */
+.stage-column {
+  flex: 1;
+  min-width: clamp(130px, 14vw, 175px);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: clamp(14px, 2vw, 30px);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
+  gap: clamp(8px, 1vw, 12px);
+  overflow-y: auto;
+}
+
+/* STAGE HEADER ROW */
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 0.8vw, 8px);
+  flex-shrink: 0;
+}
+
+/* STAGE DOT */
+.stage-dot {
+  width: clamp(12px, 1.2vw, 18px);
+  height: clamp(12px, 1.2vw, 18px);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* STAGE NAME */
+.stage-name {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: clamp(12px, 1.3vw, 18px);
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* CARDS AREA INSIDE COLUMN */
+.stage-cards-area {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vw, 10px);
+  flex: 1;
+  overflow-y: auto;
+}
