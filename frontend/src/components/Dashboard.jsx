@@ -86,6 +86,7 @@ export default function Dashboard() {
   const [error, setError]     = useState(null);
   const [clock, setClock]     = useState('');
   const [lastUpdated, setLastUpdated] = useState('');
+  const [salesChartType, setSalesChartType] = useState('area');
 
   // Live clock tick every second
   useEffect(() => {
@@ -344,11 +345,25 @@ export default function Dashboard() {
               <h3 className="card-title">Sales Trends</h3>
               <p className="card-sub">Revenue and deals performance over time</p>
             </div>
+            <div className="chart-toggle">
+              <button 
+                className={`toggle-btn ${salesChartType === 'area' ? 'active' : ''}`}
+                onClick={() => setSalesChartType('area')}
+              >
+                <FiTrendingUp size={16} />
+              </button>
+              <button 
+                className={`toggle-btn ${salesChartType === 'bar' ? 'active' : ''}`}
+                onClick={() => setSalesChartType('bar')}
+              >
+                <FiBarChart2 size={16} />
+              </button>
+            </div>
           </div>
 
           {loading ? (
             <Skeleton h={200} />
-          ) : (
+          ) : salesChartType === 'area' ? (
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={data?.salesTrends ?? []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -367,6 +382,16 @@ export default function Dashboard() {
                 <Tooltip content={<ChartTooltip />} />
                 <Area type="monotone" dataKey="sales" name="sales" stroke={ACCENT_DIM} strokeWidth={2} fill="url(#gradSales)" />
               </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={data?.salesTrends ?? []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
+                <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey="sales" name="sales" fill={ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </div>
