@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import AddCustomerModal from '../components/AddCustomerModal';
+import EmailComposer from '../components/EmailComposer';
+import '../components/EmailComposer.css';
 import { Link } from 'react-router-dom';
 import './Customers.css';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [emailModalData, setEmailModalData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -29,6 +32,11 @@ const Customers = () => {
   }, []);
 
   const handleInteraction = async (customer, type) => {
+    if (type === 'Email') {
+      setEmailModalData(customer);
+      return;
+    }
+
     try {
       await api.post(`/customers/${customer._id}/interactions`, {
         type: type,
@@ -38,6 +46,19 @@ const Customers = () => {
       fetchCustomers(false); // Silent refresh to avoid unmounting DOM
     } catch (err) {
       console.error(`Failed to log ${type} interaction`, err);
+    }
+  };
+
+  const handleEmailSent = async (data) => {
+    if (!emailModalData) return;
+    try {
+      await api.post(`/customers/${emailModalData._id}/interactions`, {
+        type: 'Email',
+        details: `Sent Email - Subject: ${data.desc}`
+      });
+      fetchCustomers(false);
+    } catch (err) {
+      console.error("Failed to log email interaction", err);
     }
   };
 
@@ -131,9 +152,9 @@ const Customers = () => {
                     <div className="last-activity">
                       <span>{formatActivityDate(cust.interactions && cust.interactions.length > 0 ? cust.interactions[cust.interactions.length - 1].date : cust.createdAt)}</span>
                       <span className="activity-icons">
-                        <a href={`mailto:${cust.email}`} target="_blank" rel="noopener noreferrer" style={{cursor: 'pointer', textDecoration: 'none', color: 'inherit'}} title="Email Customer" onClick={() => handleInteraction(cust, 'Email')}>✉️</a>
+                        <span style={{cursor: 'pointer'}} title="Email Customer" onClick={() => handleInteraction(cust, 'Email')}>✉️</span>
                         {' '}
-                        <a href={`tel:${cust.phone}`} target="_blank" rel="noopener noreferrer" style={{cursor: 'pointer', textDecoration: 'none', color: 'inherit'}} title="Call Customer" onClick={() => handleInteraction(cust, 'Call')}>📞</a>
+                        <a href={`tel:${cust.phone}`} style={{cursor: 'pointer', textDecoration: 'none', color: 'inherit'}} title="Call Customer" onClick={() => handleInteraction(cust, 'Call')}>📞</a>
                       </span>
                     </div>
                   </td>
@@ -154,6 +175,16 @@ const Customers = () => {
           onClose={() => setIsModalOpen(false)} 
           onAdd={handleCustomerAdded} 
         />
+      )}
+
+      {emailModalData && (
+        <div className="modal-overlay">
+          <EmailComposer 
+            customerEmail={emailModalData.email}
+            onClose={() => setEmailModalData(null)}
+            onEmailSent={handleEmailSent}
+          />
+        </div>
       )}
     </div>
   );

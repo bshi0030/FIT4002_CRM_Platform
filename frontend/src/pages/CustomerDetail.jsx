@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../services/api';
 import './Customers.css';
 import AddCustomerModal from '../components/AddCustomerModal';
+import EmailComposer from '../components/EmailComposer';
+import '../components/EmailComposer.css';
 
 const CustomerDetail = () => {
   const { id } = useParams();
@@ -10,6 +12,7 @@ const CustomerDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const fileInputRef = useRef(null);
@@ -37,6 +40,11 @@ const CustomerDetail = () => {
   };
 
   const handleInteraction = async (type) => {
+    if (type === 'Email') {
+      setIsEmailModalOpen(true);
+      return;
+    }
+
     try {
       await api.post(`/customers/${id}/interactions`, {
         type: type,
@@ -46,6 +54,18 @@ const CustomerDetail = () => {
       fetchCustomer(false); // Silent refresh
     } catch (err) {
       console.error(`Failed to log ${type} interaction`, err);
+    }
+  };
+
+  const handleEmailSent = async (data) => {
+    try {
+      await api.post(`/customers/${id}/interactions`, {
+        type: 'Email',
+        details: `Sent Email - Subject: ${data.desc}`
+      });
+      fetchCustomer(false);
+    } catch (err) {
+      console.error("Failed to log email interaction", err);
     }
   };
 
@@ -152,8 +172,8 @@ const CustomerDetail = () => {
           </div>
 
           <div className="profile-actions" style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
-            <a className="add-contact-btn" href={`mailto:${customer.email}`} target="_blank" rel="noopener noreferrer" onClick={() => handleInteraction('Email')} style={{flex: 1, textDecoration: 'none', textAlign: 'center', color: '#fff'}}>✉️ Email</a>
-            <a className="add-contact-btn" href={`tel:${customer.phone}`} target="_blank" rel="noopener noreferrer" onClick={() => handleInteraction('Call')} style={{flex: 1, textDecoration: 'none', textAlign: 'center', color: '#fff'}}>📞 Call</a>
+            <button className="add-contact-btn" onClick={() => handleInteraction('Email')} style={{flex: 1, textAlign: 'center', color: '#fff'}}>✉️ Email</button>
+            <a className="add-contact-btn" href={`tel:${customer.phone}`} onClick={() => handleInteraction('Call')} style={{flex: 1, textDecoration: 'none', textAlign: 'center', color: '#fff'}}>📞 Call</a>
           </div>
         </div>
 
@@ -222,6 +242,16 @@ const CustomerDetail = () => {
           onAdd={handleCustomerUpdated}
           initialData={customer}
         />
+      )}
+
+      {isEmailModalOpen && (
+        <div className="modal-overlay">
+          <EmailComposer 
+            customerEmail={customer.email}
+            onClose={() => setIsEmailModalOpen(false)}
+            onEmailSent={handleEmailSent}
+          />
+        </div>
       )}
     </div>
   );
