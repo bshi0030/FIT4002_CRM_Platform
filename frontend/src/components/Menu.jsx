@@ -1,15 +1,20 @@
+import { useNavigate, useLocation } from 'react-router-dom'
+
 function Menu({ currentPage, setCurrentPage }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+
   return (
     <nav className="menu">
       <button
-        className={`menu-item ${currentPage === "home" || currentPage === "Dashboard" ? "active" : ""}`}
-        onClick={() => setCurrentPage("home")}
+        className={`menu-item ${location.pathname === '/' ? 'active' : ''}`}
+        onClick={() => navigate('/')}
       >
         Dashboard ⌂
       </button>
       <button
-        className={`menu-item ${currentPage === "customer-list" || currentPage === "customer-profile" ? "active" : ""}`}
-        onClick={() => setCurrentPage("customer-list")}
+        className={`menu-item ${location.pathname === '/pipeline' ? 'active' : ''}`}
+        onClick={() => navigate('/pipeline')}
       >
         Sales Pipeline ⊷
       </button>
