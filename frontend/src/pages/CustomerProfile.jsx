@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../styles/CustomerProfile.css';
+import '../styles/InteractionSidePanel.css'
 import EmailComposer from '../components/EmailComposer.jsx';
 import {
   FiArrowRight,
@@ -397,14 +398,14 @@ function CustomerProfile() {
                 }}
               />
               ) : selectedInteraction && (
-                <div className="interaction-detail-inline">
-                  <div className="detail-inline-header">
+                <div className="side-panel">
+                  <div className="side-panel-header">
                     <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
                     <button onClick={() => { setSelectedInteraction(null); setIsEditing(false); }} className="close-btn"><FiX /></button>
                   </div>
               
-                <div className="detail-inline-body">
-                  <div className="detail-row">
+                <div className="side-panel-body">
+                  <div className="side-panel-row">
                     <strong>Activity:</strong> 
                     {isEditing ? (
                       <select name="type" className="edit-select" value={editedData.type} onChange={handleInputChange}>
@@ -418,10 +419,10 @@ function CustomerProfile() {
                     )}
                   </div>
 
-                  <div className="detail-row">
+                  <div className="side-panel-row">
                     <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
                   </div>
-                  <div className="detail-row">
+                  <div className="side-panel-row">
                     <strong>Logged:</strong> <span>{selectedInteraction.time}</span>
                   </div>
                   <div style={{ marginTop: '15px' }}>
@@ -441,7 +442,7 @@ function CustomerProfile() {
                   </div>
                 </div>
 
-                <div className="detail-inline-footer">
+                <div className="side-panel-footer">
                   {isEditing ? (
                     <>
                       <button className="cancel-btn" onClick={handleCancel}>Cancel</button>

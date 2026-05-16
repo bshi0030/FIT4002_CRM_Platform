@@ -471,18 +471,6 @@
   cursor: pointer;
 }
 
-.detail-row {
-  margin-bottom: 15px;
-  display: flex;
-  gap: 10px;
-}
-
-.detail-label {
-  font-weight: bold;
-  color: #666;
-  min-width: 100px;
-}
-
 .description-block {
   flex-direction: column;
 }
@@ -589,39 +577,6 @@
   min-width: 0;
 }
 
-.interaction-detail-inline {
-  flex: 0 0 40%;
-  max-width: 650px;
-  min-width: 350px;
-  
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-.detail-inline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.detail-inline-body .detail-row {
-  margin-bottom: 12px;
-  font-size: 14px;
-}
-
-.detail-inline-footer {
-  margin-top: auto;
-  padding-top: 20px;
-  display: flex;
-  gap: 12px;
-}
 
 /* LOG INTERACTION MODAL (OVERLAY) */
 .modal-overlay {
