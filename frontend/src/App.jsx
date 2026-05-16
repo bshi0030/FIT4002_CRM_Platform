@@ -1,21 +1,30 @@
-import "./App.css";
-import logo from "./assets/CRM_logo.png";
-import Sidebar from "./components/Sidebar";
+import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom'
+import {AuthProvider} from '@/context/AuthContext'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import Login from '@/pages/Login'
+import Signup from '@/pages/Signup'
+import Dashboard from '@/pages/Dashboard'
 
 function App() {
-  return (
-    <div className="app-layout">
-        {/* LOGO */}
-        <div className="sidebar-top">
-          <img src={logo} alt="CRM Logo" className="logo" />
-
-          <div className="logo-text">
-            <p>Next Generation CRM Platform</p>
-          </div>
-        </div>
-
-    </div>
-  );
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/login" element={<Login/>}/>
+                    <Route path="/signup" element={<Signup/>}/>
+                    <Route
+                        path="/"
+                        element={
+                            <ProtectedRoute>
+                                <Dashboard/>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route path="*" element={<Navigate to="/" replace/>}/>
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
+    )
 }
 
-export default App;
+export default App
