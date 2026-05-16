@@ -12,7 +12,6 @@ services:
       - /app/node_modules
     env_file:
       - ./backend/.env
-    # Override command to ensure nodemon is run properly
     command: npm run dev
 
   frontend:
@@ -26,6 +25,6 @@ services:
       - /app/node_modules
     environment:
       - VITE_API_URL=http://localhost:5001/api
-    command: npm run dev
+    command: sh -c "npm install && npm run dev"
     depends_on:
       - backend
