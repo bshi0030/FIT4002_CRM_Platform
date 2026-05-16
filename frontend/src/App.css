@@ -43,7 +43,6 @@ body {
   overflow: visible;
 }
 
-/* LOGO */
 .logo {
   width: 230px;
   height: 230px;
@@ -87,6 +86,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
 }
 
 /* MENU ITEMS */
@@ -100,13 +100,25 @@ body {
   color: #555;
   cursor: pointer;
   transition: 0.2s;
+  width: 100%;
+  display: block;
 }
 
 .menu-item:hover {
-  background: #d8d8d8;
+  background: linear-gradient(to left, #e9ff6b, #d7e682, #bdbdbd);
 }
 
-/* MAIN CONTENT */
+.menu-item.active {
+  background: linear-gradient(
+    90deg,
+    #e9ff6b 16.71%,
+    #d7e682 55.67%,
+    #bdbdbd 100%
+  );
+  color: #555;
+  font-weight: bold;
+}
+
 .main-content {
   flex: 1;
   display: flex;
@@ -122,8 +134,31 @@ body {
   justify-content: flex-end;
   align-items: center;
   padding-right: 22px;
-  gap: 10px;
   flex-shrink: 0;
+  gap: 15px;
+}
+
+.user-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  background: #fdf5d3;
+  border: 2px solid #333;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-user-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.logout-text {
+  font-size: 14px;
+  color: #555;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .profile-icon {
@@ -140,4 +175,29 @@ body {
   overflow: hidden;
   min-height: 0;
   padding: clamp(10px, 1.5vh, 16px) clamp(10px, 1.5vw, 16px);
+}
+
+.sidebar-menu-container {
+  flex: 1;
+}
+
+.home-placeholder {
+  padding: 60px;
+  text-align: center;
+}
+
+.home-placeholder h1 {
+  color: #555;
+}
+
+.home-btn {
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }

@@ -1,44 +1,44 @@
-import "./App.css";
-import logo from "./assets/CRM_logo.png";
-import Sidebar from "./components/Sidebar";
-import SalesPipeline from "./pages/SalesPipeline";
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from '@/context/AuthContext'
+import ProtectedRoute from '@/components/ProtectedRoute'
+import AppLayout from '@/components/AppLayout'
+import Login from '@/pages/Login'
+import Signup from '@/pages/Signup'
+import Dashboard from '@/pages/Dashboard'
+import SalesPipeline from '@/pages/SalesPipeline'
 
 function App() {
-  return (
-    <div className="app-layout">
-
-      {/* SIDEBAR */}
-      <aside className="sidebar">
-
-        {/* LOGO */}
-        <div className="sidebar-top">
-          <img src={logo} alt="CRM Logo" className="logo" />
-          <div className="logo-text">
-            <p>Next Generation CRM Platform</p>
-          </div>
-        </div>
-
-        {/* MENU */}
-        <Sidebar />
-
-      </aside>
-
-      {/* MAIN CONTENT */}
-      <div className="main-content">
-
-        {/* TOPBAR — empty, logout removed */}
-        <div className="topbar">
-        </div>
-
-        {/* PAGE CONTENT */}
-        <div className="content-area">
-          <SalesPipeline />
-        </div>
-
-      </div>
-
-    </div>
-  );
+    return (
+        <AuthProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route
+                        path="/"
+                        element={
+                            <ProtectedRoute>
+                                <AppLayout>
+                                    <Dashboard />
+                                </AppLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/pipeline"
+                        element={
+                            <ProtectedRoute>
+                                <AppLayout>
+                                    <SalesPipeline />
+                                </AppLayout>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </BrowserRouter>
+        </AuthProvider>
+    )
 }
 
-export default App;
+export default App
