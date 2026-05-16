@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './CustomerProfile.css';
+import '../styles/CustomerProfile.css'
 import {
   FiArrowRight,
   FiEdit2,

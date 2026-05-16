@@ -1,5 +1,5 @@
 import React from 'react';
-import './CustomerList.css';
+import '../styles/CustomerList.css'
 
 function CustomerList({ setCurrentPage }) {
   return (

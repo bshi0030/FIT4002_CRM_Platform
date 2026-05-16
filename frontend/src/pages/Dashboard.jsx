@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import '../components/Dashboard.css'
+import '../styles/Dashboard.css'
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, BarChart, Bar

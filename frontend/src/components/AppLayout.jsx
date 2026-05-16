@@ -3,7 +3,7 @@ import AppHeader from '@/components/AppHeader'
 import Menu from '@/components/Menu'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
-import './AppLayout.css'
+import '../styles/AppLayout.css'
 
 function AppLayout({ children }) {
     const { logout } = useAuth()
