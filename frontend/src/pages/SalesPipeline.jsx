@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../styles/SalesPipeline.css";
 import DealCard from "../components/DealCard";
+import { getDeals, createDeal } from "../api/deals";
 
 const STAGES = [
   { name: "Qualified", dot: "#A4A4A4" },
@@ -10,40 +11,47 @@ const STAGES = [
   { name: "Negotiation", dot: "#C0392B" },
 ];
 
-const DUMMY_DEALS = [
-  { id: 1, name: "Security Audit Deal", company: "ShieldTech", price: "112K", priority: "High", probability: 70, stage: "Qualified", daysAgo: 3 },
-  { id: 2, name: "Marketing Deal", company: "ShieldTech", price: "64K", priority: "Medium", probability: 45, stage: "Qualified", daysAgo: 5 },
-  { id: 3, name: "Cloud Infrastructure", company: "ShieldTech", price: "143K", priority: "High", probability: 70, stage: "Contact Made", daysAgo: 3 },
-  { id: 4, name: "Cloud Infrastructure", company: "ShieldTech", price: "143K", priority: "High", probability: 70, stage: "Demo Scheduled", daysAgo: 3 },
-  { id: 5, name: "Security Audit Deal", company: "ShieldTech", price: "112K", priority: "High", probability: 70, stage: "Proposal Made", daysAgo: 3 },
-  { id: 6, name: "Marketing Deal", company: "ShieldTech", price: "64K", priority: "Medium", probability: 40, stage: "Negotiation", daysAgo: 4 },
-];
-
 const INITIAL_FORM = { name: "", company: "", price: "", priority: "Medium", probability: 20 };
 
 function SalesPipeline() {
-  const [deals, setDeals] = useState(DUMMY_DEALS);
+  const [deals, setDeals] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    getDeals()
+      .then(data => {
+        setDeals(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Failed to fetch deals:', err)
+        setError('Failed to load deals')
+        setLoading(false)
+      })
+  }, [])
 
   const handleAddLead = () => setShowModal(true);
   const handleCloseModal = () => { setShowModal(false); setForm(INITIAL_FORM); };
   const handleFormChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name || !form.company || !form.price) return;
-    const newDeal = {
-      id: deals.length + 1,
-      name: form.name,
-      company: form.company,
-      price: form.price,
-      priority: form.priority,
-      probability: Number(form.probability),
-      stage: "Qualified",
-      daysAgo: 0,
-    };
-    setDeals([...deals, newDeal]);
-    handleCloseModal();
+    try {
+      const newDeal = await createDeal({
+        name: form.name,
+        company: form.company,
+        price: form.price,
+        priority: form.priority,
+        probability: Number(form.probability),
+      });
+      setDeals([...deals, newDeal]);
+      handleCloseModal();
+    } catch (err) {
+      console.error('Failed to create deal:', err)
+    }
   };
 
   const getDealsForStage = (stageName) => deals.filter((d) => d.stage === stageName);
@@ -81,6 +89,9 @@ function SalesPipeline() {
           </button>
         </div>
 
+        {loading && <p style={{ color: '#555', fontSize: '14px' }}>Loading deals...</p>}
+        {error && <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>}
+
         <div className="pipeline-stages">
           {STAGES.map((stage) => (
             <div className="stage-column" key={stage.name}>
@@ -90,7 +101,7 @@ function SalesPipeline() {
               </div>
               <div className="stage-cards-area">
                 {getDealsForStage(stage.name).map((deal) => (
-                  <DealCard key={deal.id} deal={deal} />
+                  <DealCard key={deal._id} deal={deal} />
                 ))}
               </div>
             </div>
