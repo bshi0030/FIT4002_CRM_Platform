@@ -183,6 +183,21 @@ const TaskDetail = ({ task, onClose }) => {
 
         </div>
 
+        {/* FOOTER */}
+        <footer className="detail-footer">
+
+          <button className="btn-email">
+            <Mail size={16} />
+            Send Email
+          </button>
+
+          <button className="btn-profile">
+            <ExternalLink size={16} />
+            View Profile
+          </button>
+
+        </footer>
+
       </div>
 
     </div>
