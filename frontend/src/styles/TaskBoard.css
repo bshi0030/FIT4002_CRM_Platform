@@ -270,3 +270,362 @@
     position: relative;
     z-index: 1; 
 }
+/* The semi-transparent background that covers the board */
+.task-detail-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: flex-end; /* This pushes the content to the right */
+    z-index: 2000;
+}
+
+/* The actual white panel */
+.task-detail-panel {
+    width: 550px;
+    height: 100%;
+    background: #fdfdf7; /* Light cream to match your theme */
+    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    animation: slideLeft 0.3s ease-out; /* Smooth slide-in effect */
+}
+
+@keyframes slideLeft {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+}
+
+.detail-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 35px;
+}
+
+.detail-item label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    color: #999;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.item-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+/* OVERLAY */
+.task-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: flex-end;
+    z-index: 2000;
+}
+
+/* SIDE PANEL */
+.task-detail-panel {
+    width: 620px;
+    height: 100vh;
+    background: #f8f8f3;
+    padding: 38px;
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+
+    box-shadow: -10px 0 30px rgba(0,0,0,0.12);
+
+    animation: slideLeft 0.25s ease;
+}
+
+@keyframes slideLeft {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* CLOSE BUTTON */
+.close-btn {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #777;
+}
+
+/* HEADER */
+.detail-header {
+    padding-right: 40px;
+}
+
+.detail-header h2 {
+    font-size: 2rem;
+    line-height: 1.2;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+.subtitle {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #666;
+}
+
+/* INFO GRID */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px 40px;
+}
+
+.detail-item label,
+.pipeline-section label,
+.activity-section label,
+.note-section label {
+    display: block;
+
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #888;
+
+    margin-bottom: 10px;
+}
+
+/* CONTENT */
+.item-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+}
+
+/* ASSIGNEES */
+.assignee-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.assignee-pill {
+    background: #efe17b;
+    padding: 8px 14px;
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* PRIORITY */
+.priority-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px 12px;
+    border-radius: 8px;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* PIPELINE */
+.pipeline-box {
+    background: #f4ef9d;
+    border-radius: 18px;
+    padding: 24px;
+
+    font-size: 16px;
+    line-height: 1.7;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    flex-wrap: wrap;
+}
+
+.pipeline-arrow {
+    font-size: 22px;
+    color: #777;
+}
+
+/* NOTE SECTION */
+.note-controls {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.note-select {
+    min-width: 100px;
+    height: 46px;
+
+    border-radius: 12px;
+    border: 1px solid #d7b08a;
+
+    background: white;
+    padding: 0 14px;
+
+    font-size: 14px;
+}
+
+.note-input {
+    flex: 1;
+    height: 46px;
+
+    border-radius: 12px;
+    border: 1px solid #d7b08a;
+
+    background: white;
+    padding: 0 16px;
+
+    font-size: 14px;
+}
+
+/* TIMELINE */
+.timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.timeline-card {
+    background: #f4efad;
+    border-radius: 18px;
+    padding: 18px;
+
+    display: flex;
+    gap: 16px;
+}
+
+.timeline-icon {
+    min-width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+    background: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #444;
+}
+
+.timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.timeline-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 12px;
+    color: #777;
+    font-weight: 700;
+}
+
+.timeline-message {
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+}
+
+/* FOOTER */
+.detail-footer {
+    margin-top: auto;
+
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.btn-email,
+.btn-profile {
+    flex: 1;
+    height: 54px;
+
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.btn-email {
+    background: #efb37b;
+    border: none;
+}
+
+.btn-email:hover {
+    transform: translateY(-1px);
+}
+
+.btn-profile {
+    background: white;
+    border: 1px solid #d6d6d6;
+}
+
+.btn-profile:hover {
+    background: #fafafa;
+}
