@@ -33,8 +33,12 @@
 
 .app-content {
   flex: 1;
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
   background: #cfcfcf;
+  padding: clamp(10px, 1.5vh, 16px) clamp(10px, 1.5vw, 16px);
+  display: flex;
+  flex-direction: column;
 }
 
 .menu-wrapper {
