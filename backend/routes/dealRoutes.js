@@ -32,7 +32,7 @@ router.get('/logs', requireAuth, async (req, res) => {
         })
       })
     })
-    logs.sort((a, b) => new Date(a.changedAt) - new Date(b.changedAt))
+    logs.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt))
     res.json(logs)
   } catch {
     res.status(500).json({ message: 'Failed to fetch logs' })
