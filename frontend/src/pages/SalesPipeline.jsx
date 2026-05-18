@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "../styles/SalesPipeline.css";
 import DealCard from "../components/DealCard";
-import { getDeals, createDeal } from "../api/deals";
+import { getDeals, createDeal, updateDealStage } from "../api/deals";
 
 const STAGES = [
   { name: "Qualified", dot: "#A4A4A4" },
@@ -11,7 +11,15 @@ const STAGES = [
   { name: "Negotiation", dot: "#C0392B" },
 ];
 
-const INITIAL_FORM = { name: "", company: "", price: "", priority: "Medium", probability: 20, assignee: "", customer: "" };
+const INITIAL_FORM = {
+  name: "",
+  company: "",
+  price: "",
+  priority: "Medium",
+  probability: 20,
+  assignee: "",
+  customer: ""
+};
 
 function SalesPipeline() {
   const [deals, setDeals] = useState([]);
@@ -23,22 +31,29 @@ function SalesPipeline() {
   useEffect(() => {
     getDeals()
       .then(data => {
-        setDeals(data)
-        setLoading(false)
+        setDeals(data);
+        setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to fetch deals:', err)
-        setError('Failed to load deals')
-        setLoading(false)
-      })
-  }, [])
+        console.error('Failed to fetch deals:', err);
+        setError('Failed to load deals');
+        setLoading(false);
+      });
+  }, []);
 
   const handleAddLead = () => setShowModal(true);
-  const handleCloseModal = () => { setShowModal(false); setForm(INITIAL_FORM); };
-  const handleFormChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setForm(INITIAL_FORM);
+  };
+
+  const handleFormChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async () => {
     if (!form.name || !form.company || !form.price) return;
+
     try {
       const newDeal = await createDeal({
         name: form.name,
@@ -49,14 +64,48 @@ function SalesPipeline() {
         assignee: form.assignee,
         customer: form.customer,
       });
+
       setDeals([...deals, newDeal]);
       handleCloseModal();
     } catch (err) {
-      console.error('Failed to create deal:', err)
+      console.error('Failed to create deal:', err);
     }
   };
 
-  const getDealsForStage = (stageName) => deals.filter((d) => d.stage === stageName);
+  const getDealsForStage = (stageName) =>
+    deals.filter((d) => d.stage === stageName);
+
+  // =========================
+  // DRAG & DROP HANDLERS
+  // =========================
+
+  const handleDragStart = (e, deal) => {
+    e.dataTransfer.setData('dealId', deal._id);
+    e.dataTransfer.setData('currentStage', deal.stage);
+  };
+
+  const handleDrop = async (e, targetStage) => {
+    e.preventDefault();
+
+    const dealId = e.dataTransfer.getData('dealId');
+    const currentStage = e.dataTransfer.getData('currentStage');
+
+    if (currentStage === targetStage) return;
+
+    try {
+      const updatedDeal = await updateDealStage(dealId, targetStage);
+
+      setDeals(prev =>
+        prev.map(d =>
+          d._id === updatedDeal._id ? updatedDeal : d
+        )
+      );
+    } catch (err) {
+      alert(err.response?.data?.message || 'Stage change not allowed');
+    }
+  };
+
+  const allowDrop = (e) => e.preventDefault();
 
   return (
     <div className="pipeline-page">
@@ -71,6 +120,7 @@ function SalesPipeline() {
           <div className="wonlost-box" />
           <div className="wonlost-arrow">&#8964;</div>
         </div>
+
         <div className="wonlost-section">
           <div className="wonlost-label-row">
             <div className="wonlost-line" />
@@ -101,9 +151,19 @@ function SalesPipeline() {
                 <span className="stage-dot" style={{ backgroundColor: stage.dot }} />
                 <span className="stage-name">{stage.name}</span>
               </div>
-              <div className="stage-cards-area">
+
+              {/* DROP ZONE ENABLED */}
+              <div
+                className="stage-cards-area"
+                onDragOver={allowDrop}
+                onDrop={(e) => handleDrop(e, stage.name)}
+              >
                 {getDealsForStage(stage.name).map((deal) => (
-                  <DealCard key={deal._id} deal={deal} />
+                  <DealCard
+                    key={deal._id}
+                    deal={deal}
+                    onDragStart={(e) => handleDragStart(e, deal)}
+                  />
                 ))}
               </div>
             </div>
@@ -115,55 +175,96 @@ function SalesPipeline() {
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
             <h2 className="modal-title">Add New Lead</h2>
+
             <div className="modal-field">
               <label className="modal-label">Deal Name *</label>
-              <input className="modal-input" type="text" name="name" placeholder="e.g. Security Audit Deal" value={form.name} onChange={handleFormChange} />
+              <input
+                className="modal-input"
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleFormChange}
+              />
             </div>
+
             <div className="modal-field">
               <label className="modal-label">Company Name *</label>
-              <input className="modal-input" type="text" name="company" placeholder="e.g. ShieldTech" value={form.company} onChange={handleFormChange} />
+              <input
+                className="modal-input"
+                type="text"
+                name="company"
+                value={form.company}
+                onChange={handleFormChange}
+              />
             </div>
+
             <div className="modal-field">
               <label className="modal-label">Deal Price *</label>
-              <input className="modal-input" type="text" name="price" placeholder="e.g. 50K" value={form.price} onChange={handleFormChange} />
+              <input
+                className="modal-input"
+                type="text"
+                name="price"
+                value={form.price}
+                onChange={handleFormChange}
+              />
             </div>
+
             <div className="modal-field">
               <label className="modal-label">Priority</label>
-              <select className="modal-input" name="priority" value={form.priority} onChange={handleFormChange}>
+              <select
+                className="modal-input"
+                name="priority"
+                value={form.priority}
+                onChange={handleFormChange}
+              >
                 <option value="High">High</option>
                 <option value="Medium">Medium</option>
                 <option value="Low">Low</option>
               </select>
             </div>
+
             <div className="modal-field">
               <label className="modal-label">Deal Probability (%)</label>
-              <input className="modal-input" type="number" name="probability" min="0" max="100" value={form.probability} onChange={handleFormChange} />
+              <input
+                className="modal-input"
+                type="number"
+                name="probability"
+                min="0"
+                max="100"
+                value={form.probability}
+                onChange={handleFormChange}
+              />
             </div>
+
             <div className="modal-field">
               <label className="modal-label">Assignee</label>
               <input
                 className="modal-input"
                 type="text"
                 name="assignee"
-                placeholder="e.g. John Smith"
                 value={form.assignee}
                 onChange={handleFormChange}
               />
             </div>
+
             <div className="modal-field">
               <label className="modal-label">Customer</label>
               <input
                 className="modal-input"
                 type="text"
                 name="customer"
-                placeholder="e.g. ShieldTech Contact"
                 value={form.customer}
                 onChange={handleFormChange}
-               />
+              />
             </div>
+
             <div className="modal-actions">
-              <button className="btn-cancel" onClick={handleCloseModal}>Cancel</button>
-              <button className="btn-submit" onClick={handleSubmit}>Add Lead</button>
+              <button className="btn-cancel" onClick={handleCloseModal}>
+                Cancel
+              </button>
+              <button className="btn-submit" onClick={handleSubmit}>
+                Add Lead
+              </button>
             </div>
           </div>
         </div>
