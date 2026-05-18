@@ -52,7 +52,6 @@ function SalesPipeline() {
 
   const getDealsForStage = (stageName) => deals.filter(d => d.stage === stageName);
 
-  // ── Drag & drop ──────────────────────────────────────────────
   const handleDragStart = (e, deal) => {
     e.dataTransfer.setData('dealId', deal._id);
     e.dataTransfer.setData('currentStage', deal.stage);
@@ -86,7 +85,6 @@ function SalesPipeline() {
 
   const allowDrop = (e) => e.preventDefault();
 
-  // ── Deal History ─────────────────────────────────────────────
   const handleOpenHistory = async () => {
     setShowHistory(true);
     setLogsLoading(true);
@@ -105,7 +103,6 @@ function SalesPipeline() {
     return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
   };
 
-  // ── Render ───────────────────────────────────────────────────
   return (
     <div className="pipeline-page">
 
@@ -163,16 +160,17 @@ function SalesPipeline() {
 
         <div className="pipeline-stages">
           {STAGES.map(stage => (
-            <div className="stage-column" key={stage.name}>
+            <div
+              className="stage-column"
+              key={stage.name}
+              onDragOver={allowDrop}
+              onDrop={(e) => handleDrop(e, stage.name)}
+            >
               <div className="stage-header">
                 <span className="stage-dot" style={{ backgroundColor: stage.dot }} />
                 <span className="stage-name">{stage.name}</span>
               </div>
-              <div
-                className="stage-cards-area"
-                onDragOver={allowDrop}
-                onDrop={(e) => handleDrop(e, stage.name)}
-              >
+              <div className="stage-cards-area">
                 {getDealsForStage(stage.name).map(deal => (
                   <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)} />
                 ))}
