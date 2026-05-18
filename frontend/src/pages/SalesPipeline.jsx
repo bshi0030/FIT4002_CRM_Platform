@@ -11,7 +11,7 @@ const STAGES = [
   { name: "Negotiation", dot: "#C0392B" },
 ];
 
-const INITIAL_FORM = { name: "", company: "", price: "", priority: "Medium", probability: 20 };
+const INITIAL_FORM = { name: "", company: "", price: "", priority: "Medium", probability: 20, assignee: "", customer: "" };
 
 function SalesPipeline() {
   const [deals, setDeals] = useState([]);
@@ -46,6 +46,8 @@ function SalesPipeline() {
         price: form.price,
         priority: form.priority,
         probability: Number(form.probability),
+        assignee: form.assignee,
+        customer: form.customer,
       });
       setDeals([...deals, newDeal]);
       handleCloseModal();
@@ -136,6 +138,28 @@ function SalesPipeline() {
             <div className="modal-field">
               <label className="modal-label">Deal Probability (%)</label>
               <input className="modal-input" type="number" name="probability" min="0" max="100" value={form.probability} onChange={handleFormChange} />
+            </div>
+            <div className="modal-field">
+              <label className="modal-label">Assignee</label>
+              <input
+                className="modal-input"
+                type="text"
+                name="assignee"
+                placeholder="e.g. John Smith"
+                value={form.assignee}
+                onChange={handleFormChange}
+              />
+            </div>
+            <div className="modal-field">
+              <label className="modal-label">Customer</label>
+              <input
+                className="modal-input"
+                type="text"
+                name="customer"
+                placeholder="e.g. ShieldTech Contact"
+                value={form.customer}
+                onChange={handleFormChange}
+               />
             </div>
             <div className="modal-actions">
               <button className="btn-cancel" onClick={handleCloseModal}>Cancel</button>
