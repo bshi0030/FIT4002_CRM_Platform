@@ -16,6 +16,8 @@ const dealSchema = new mongoose.Schema({
   },
   probability: { type: Number, default: 20 },
   daysAgo: { type: Number, default: 0 },
+  assignee: { type: String, default: '' },
+  customer: { type: String, default: '' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true })
 
