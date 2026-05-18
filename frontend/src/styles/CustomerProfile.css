@@ -396,9 +396,13 @@
 }
 
 .interaction-desc {
-  font-size: 13px;
-  color: var(--text-h);
-  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 .interaction-time {
@@ -588,6 +592,14 @@
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   animation: fadeIn 0.2s ease-in-out;
+}
+
+.detail-notes-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+  line-height: 1.5;
 }
 
 /* LOG INTERACTION MODAL (OVERLAY) */

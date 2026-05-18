@@ -21,4 +21,50 @@ const createInteraction = async (req, res) => {
   }
 };
 
-module.exports = { getInteractions, createInteraction };
+const deleteInteraction = async (req, res) => {
+  try {
+    const { interactionId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(interactionId)) {
+      return res.status(400).json({
+        status: "error",
+        message: "Invalid interaction ID",
+      });
+    }
+
+    const deletedInteraction = await Interaction.findByIdAndDelete(
+      req.params.interactionId
+    );
+
+    if (!deletedInteraction) {
+      return res.status(404).json({ status: "error", message: "Interaction not found" });
+    }
+
+    res.json({ status: "success", data: deletedInteraction });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: "Failed to delete interaction" });
+  }
+};
+
+const editInteraction = async (req, res) => {
+  try {
+    const updatedInteraction = await Interaction.findByIdAndUpdate(
+      req.params.interactionId,
+      {
+        type: req.body.type,
+        desc: req.body.desc,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedInteraction) {
+      return res.status(404).json({ status: "error", message: "Interaction not found" });
+    }
+
+    res.json({ status: "success", data: updatedInteraction });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: "Failed to update interaction" });
+  }
+};
+
+module.exports = { getInteractions, createInteraction, deleteInteraction, editInteraction};

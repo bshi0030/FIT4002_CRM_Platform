@@ -105,52 +105,68 @@ function CustomerProfile() {
   }, [id]);
 
   // Helper to dynamically match raw text types to frontend style elements
-const getStyleConfig = (type) => {
-  switch (type) {
-    case 'Email':
-      return {
-        icon: <FiMail />,
-        className: 'icon-email',
-        typeClass: 'type-email'
-      };
-    case 'Task':
-      return {
-        icon: <FiList />,
-        className: 'icon-task',
-        typeClass: 'type-task'
-      };
-    case 'Call':
-      return {
-        icon: <FiPhone />,
-        className: 'icon-call',
-        typeClass: 'type-call'
-      };
-    case 'Note':
-      return {
-        icon: <FiEdit3 />,
-        className: 'icon-note',
-        typeClass: 'type-note'
-      };
-    case 'Stage Change':
-    default:
-      return {
-        icon: <FiFolder />,
-        className: 'icon-stage',
-        typeClass: 'type-stage'
-      };
-  }
-};
+  const getStyleConfig = (type) => {
+    switch (type) {
+      case 'Email':
+        return {
+          icon: <FiMail />,
+          className: 'icon-email',
+          typeClass: 'type-email'
+        };
+      case 'Task':
+        return {
+          icon: <FiList />,
+          className: 'icon-task',
+          typeClass: 'type-task'
+        };
+      case 'Call':
+        return {
+          icon: <FiPhone />,
+          className: 'icon-call',
+          typeClass: 'type-call'
+        };
+      case 'Note':
+        return {
+          icon: <FiEdit3 />,
+          className: 'icon-note',
+          typeClass: 'type-note'
+        };
+      case 'Stage Change':
+      default:
+        return {
+          icon: <FiFolder />,
+          className: 'icon-stage',
+          typeClass: 'type-stage'
+        };
+    }
+  };
+
+  const truncateText = (text, maxLength = 120) => {
+    if (!text) return "";
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
 
   // Logic to delete an interaction
-  const handleDelete = (id) => {
+  const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this log?")) {
-      setAllInteractions(allInteractions.filter(item => item.id !== id));
-      setSelectedInteraction(null);
+
+      try{
+        const res = await api.delete(`/interactions/${selectedInteraction._id}`);
+        if (res.data.status === "success") {
+          setAllInteractions((prev) =>
+            prev.filter((interaction) => interaction._id !== selectedInteraction._id)
+          );
+          setSelectedInteraction(null);
+        }
+      } catch (err) {
+        console.error("Failed to delete interaction:", err);
+        alert("Failed to delete interaction.");
+      } 
     }
   };
 
   const handleEditClick = () => {
-    setEditedData(selectedInteraction); // Load current data into the form
+    setEditedData(selectedInteraction);
     setIsEditing(true);
   };
 
@@ -160,15 +176,29 @@ const getStyleConfig = (type) => {
   };
 
   // 3. Save changes back to the main list
-  const handleSave = () => {
-    const updatedList = allInteractions.map((item) =>
-      item.id === editedData.id ? editedData : item
-    );
-    
-    setAllInteractions(updatedList); // Update the master list
-    setSelectedInteraction(editedData); // Update current view
-    setIsEditing(false); // Exit edit mode
-  };
+  const handleSave = async () => {
+
+    try {
+      const res = await api.put(`/interactions/${selectedInteraction._id}`, {
+        type: editedData.type,
+        desc: editedData.desc,
+      });
+
+      if (res.data.status === "success") {
+        setAllInteractions((prev) =>
+          prev.map((interaction) =>
+            interaction._id === res.data.data._id ? res.data.data : interaction
+          )
+        );
+
+        setSelectedInteraction(res.data.data);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      console.error("Failed to update interaction:", err);
+      alert("Failed to update interaction.");
+    }
+  }
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -223,7 +253,8 @@ const getStyleConfig = (type) => {
       
       if (res.data.status === 'success') {
         // 5. Inject the raw saved document directly from the database to your timeline state
-        setAllInteractions([res.data.data, ...allInteractions]);
+        // setAllInteractions([res.data.data, ...allInteractions]);
+        setAllInteractions((prev) => [res.data.data, ...prev]);
         
         // 6. Close the modal on success
         setIsLoggingModalOpen(false);
@@ -503,7 +534,8 @@ const getStyleConfig = (type) => {
 
                     if (res.data.status === 'success') {
                       // Logic to add the new log to your interaction state
-                      setAllInteractions([res.data.data, ...allInteractions]);
+                      // setAllInteractions([res.data.data, ...allInteractions]);
+                      setAllInteractions((prev) => [res.data.data, ...prev]);
                     }
                   } catch (err) {
                     console.error("Failed to post interaction document:", err);
@@ -548,9 +580,7 @@ const getStyleConfig = (type) => {
                         className="edit-textarea"
                       />
                     ) : (
-                      <p style={{ color: '#555', marginTop: '8px', lineHeight: '1.4' }}>
-                        {selectedInteraction.desc}
-                      </p>
+                      <p className="detail-notes-text">{selectedInteraction.desc}</p>
                     )}
                   </div>
                 </div>
