@@ -7,6 +7,8 @@
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 /* LEFT WON/LOST PANEL */
@@ -19,20 +21,23 @@
   flex-direction: column;
   padding: clamp(10px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
   gap: clamp(10px, 1.5vw, 16px);
-  overflow-y: auto;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .wonlost-section {
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1vw, 10px);
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .wonlost-label-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .wonlost-line {
@@ -50,11 +55,22 @@
 }
 
 .wonlost-box {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
   background: #c7c7c7;
   border-radius: clamp(14px, 2vw, 30px);
-  flex: 1;
   width: 100%;
-  min-height: clamp(100px, 15vh, 180px);
+}
+
+.wonlost-box .deal-card {
+  width: 80%;
+  margin: 0 auto;
 }
 
 .wonlost-arrow {
@@ -66,7 +82,6 @@
 }
 
 /* MAIN GRADIENT BOX */
-/* Green top-left to white/yellow bottom-right matching Figma */
 .pipeline-gradient-box {
   flex: 1;
   border-radius: clamp(16px, 2vw, 30px);
@@ -109,18 +124,20 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 4px;
+  align-items: stretch;
 }
 
 /* INDIVIDUAL STAGE COLUMN */
 .stage-column {
   flex: 1;
-  min-width: 0;
+  min-width: 140px;
   background: rgba(255, 255, 255, 0.5);
   border-radius: clamp(14px, 2vw, 30px);
   display: flex;
   flex-direction: column;
   padding: clamp(10px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
   gap: clamp(8px, 1vw, 12px);
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -153,12 +170,11 @@
 /* CARDS AREA INSIDE COLUMN */
 .stage-cards-area {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 500px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 4px 2px;
 }
 
 .pipeline-action-bar {
@@ -278,6 +294,7 @@
   align-items: center;
   gap: 16px;
   margin-bottom: 4px;
+  flex-shrink: 0;
 }
 
 .btn-deal-history {
