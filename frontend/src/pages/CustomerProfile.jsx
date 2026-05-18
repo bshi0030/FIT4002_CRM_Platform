@@ -36,6 +36,7 @@ function CustomerProfile() {
   const [newInteractionData, setNewInteractionData] = useState({ type: 'Note', desc: '' });
 
   const [allInteractions, setAllInteractions] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   const [mockInteractions, setMockInteractions] = useState([
     {
@@ -213,7 +214,7 @@ const getStyleConfig = (type) => {
       type: newInteractionData.type || 'Note',
       desc: newInteractionData.desc,
       author: 'Hiba Zaman', // Matches your current salesperson session variable
-      time: timeStamp
+      time: now.toISOString()
     };
 
     try {
@@ -234,32 +235,32 @@ const getStyleConfig = (type) => {
       console.error("Failed to save new manual interaction to database:", err);
       alert("Server error: Could not save interaction. Please check if your backend is running.");
     }
+  };
 
-    // const typeDetails = {
-    //   'Email': { icon: <FiMail />, className: 'icon-email', typeClass: 'type-email' },
-    //   'Call': { icon: <FiPhone />, className: 'icon-call', typeClass: 'type-call' },
-    //   'Task': { icon: <FiList />, className: 'icon-task', typeClass: 'type-task' },
-    //   'Note': { icon: <FiEdit3 />, className: 'icon-note', typeClass: 'type-note' },
-    // };
+  const formatInteractionTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
 
-    // const details = typeDetails[newInteractionData.type] || typeDetails['Note'];
+    const time = date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).toLowerCase();
 
-    // const newId = allInteractions.length > 0 ? Math.max(...allInteractions.map(i => i.id)) + 1 : 1;
-    
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const interactionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-    // const newInteraction = {
-    //   id: newId,
-    //   type: newInteractionData.type,
-    //   icon: details.icon,
-    //   author: 'Hiba Zaman',
-    //   desc: newInteractionData.desc,
-    //   time: timeStamp,
-    //   className: details.className,
-    //   typeClass: details.typeClass
-    // };
+    const diffDays = Math.floor((today - interactionDate) / (1000 * 60 * 60 * 24));
 
-    // setAllInteractions([newInteraction, ...allInteractions]);
-    // setIsLoggingModalOpen(false);
+    if (diffDays === 0) {
+      return `Today ${time}`;
+    }
+
+    if (diffDays === 1) {
+      return `Yesterday ${time}`;
+    }
+
+    return `${date.getDate()}/${date.getMonth() + 1} ${time}`;
   };
 
   //Logic to filter interactions based on tab
@@ -274,6 +275,10 @@ const getStyleConfig = (type) => {
     };
     return item.type === tabMapping[activeTab];
   });
+
+  const visibleInteractions = filteredInteractions.slice(0, visibleCount);
+  const hasMoreInteractions = visibleCount < filteredInteractions.length;
+  const canViewLess = visibleCount > 5;
 
   // Calculate dynamic stats
   const emailCount = allInteractions.filter(i => i.type === 'Email').length;
@@ -393,7 +398,7 @@ const getStyleConfig = (type) => {
               </div>
               <div className="insight-row">
                 <span className="insight-label">Last Active:</span>
-                <span className="insight-value">{recentInteractionTime}</span>
+                <span className="insight-value">{formatInteractionTime(recentInteractionTime)}</span>
               </div>
             </div>
           </div>
@@ -442,7 +447,7 @@ const getStyleConfig = (type) => {
           <div className="interactions-content-layout">
 
             <div className="interactions-list">
-              {filteredInteractions.map((item) => {
+              {visibleInteractions.map((item) => {
 
                 const config = getStyleConfig(item.type);
 
@@ -466,7 +471,7 @@ const getStyleConfig = (type) => {
                       </div>
                       <p className="interaction-desc">{item.desc}</p>
                     </div>
-                    <div className="interaction-time">{item.time}</div>
+                    <div className="interaction-time">{formatInteractionTime(item.time)}</div>
                   </div>
                 );
               })}
@@ -489,7 +494,7 @@ const getStyleConfig = (type) => {
                     type: 'Email',
                     desc: `Sent: ${subject}`,
                     author: 'Hiba Zaman',
-                    time: timeStamp
+                    time: now.toISOString()
                   };
 
                   try {
@@ -531,7 +536,7 @@ const getStyleConfig = (type) => {
                     <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
                   </div>
                   <div className="side-panel-row">
-                    <strong>Logged:</strong> <span>{selectedInteraction.time}</span>
+                    <strong>Logged:</strong> <span>{formatInteractionTime(selectedInteraction.time)}</span>
                   </div>
                   <div style={{ marginTop: '15px' }}>
                     <strong>Notes:</strong>
@@ -570,7 +575,20 @@ const getStyleConfig = (type) => {
               </div>
             )}
           </div>
-          {activeTab === 'Interactions' && <button className="view-more-btn">View more</button>}
+          {filteredInteractions.length > 5 && (
+            <button
+              className="view-more-btn"
+              onClick={() => {
+                if (hasMoreInteractions) {
+                  setVisibleCount((prev) => prev + 5);
+                } else {
+                  setVisibleCount(5);
+                }
+              }}
+            >
+              {hasMoreInteractions ? "View more" : "View less"}
+            </button>
+          )}
         </div>
 
         
