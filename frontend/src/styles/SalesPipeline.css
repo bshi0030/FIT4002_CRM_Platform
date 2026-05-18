@@ -271,3 +271,67 @@
   font-weight: 500;
   cursor: pointer;
 }
+
+/* Deal History button */
+.pipeline-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.btn-deal-history {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  color: #444;
+}
+
+.btn-deal-history:hover {
+  background: #f0f0f0;
+}
+
+/* History modal */
+.history-modal {
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-log-list {
+  overflow-y: auto;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.history-log-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f7f7f7;
+  border-left: 3px solid #4dc9c9;
+}
+
+.history-log-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.history-log-deal {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.history-log-change {
+  font-size: 12px;
+  color: #555;
+}
