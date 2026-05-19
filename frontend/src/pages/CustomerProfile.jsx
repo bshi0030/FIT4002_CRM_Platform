@@ -24,6 +24,7 @@ function CustomerProfile() {
   const id = "6a0197bb20ec4d4f767bfa16";
   // State to track active tab
   const [activeTab, setActiveTab] = useState('Interactions');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // State for the Detail Modal
   const [selectedInteraction, setSelectedInteraction] = useState(null);
@@ -37,6 +38,9 @@ function CustomerProfile() {
 
   const [allInteractions, setAllInteractions] = useState([]);
   const [visibleCount, setVisibleCount] = useState(5);
+
+  const [documents, setDocuments] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [mockInteractions, setMockInteractions] = useState([
     {
@@ -102,6 +106,20 @@ function CustomerProfile() {
     };
     
     if (id) fetchInteractions();
+  }, [id]);
+
+  // fetch documents
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const res = await api.get(`/documents/${id}`);
+        setDocuments(res.data);
+      } catch (err) {
+        console.error("Failed to load documents:", err);
+      }
+    };
+
+    if (id) fetchDocuments();
   }, [id]);
 
   // Helper to dynamically match raw text types to frontend style elements
@@ -224,6 +242,34 @@ function CustomerProfile() {
     setIsLoggingModalOpen(false);
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("entityId", id);
+    formData.append("uploadedBy", "Hiba Zaman");
+
+    try {
+      const res = await api.post("/documents/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (res.data.status === "success") {
+        setDocuments((prev) => [res.data.data, ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to upload file:", err);
+      alert("Failed to upload file.");
+    }
+
+  e.target.value = "";
+};
+
   const handleNewInteractionChange = (e) => {
     const { name, value } = e.target;
     setNewInteractionData({ ...newInteractionData, [name]: value });
@@ -295,8 +341,7 @@ function CustomerProfile() {
   };
 
   //Logic to filter interactions based on tab
-  const filteredInteractions = allInteractions.filter(item => {
-    if (activeTab === 'Interactions') return true;
+  const filteredInteractions = allInteractions.filter((item) => {
     // Map plural tab names to singular types
     const tabMapping = {
       'Emails': 'Email',
@@ -304,7 +349,20 @@ function CustomerProfile() {
       'Tasks': 'Task',
       'Notes': 'Note'
     };
-    return item.type === tabMapping[activeTab];
+
+    const matchesTab =
+      activeTab === "Interactions" || item.type === tabMapping[activeTab];
+
+    const query = searchQuery.toLowerCase().trim();
+    
+    const matchesSearch =
+      query === "" ||
+      item.type?.toLowerCase().includes(query) ||
+      item.desc?.toLowerCase().includes(query) ||
+      item.author?.toLowerCase().includes(query);
+
+    // return item.type === tabMapping[activeTab];
+    return matchesTab && matchesSearch;
   });
 
   const visibleInteractions = filteredInteractions.slice(0, visibleCount);
@@ -436,7 +494,12 @@ function CustomerProfile() {
           
           <div className="header-actions">
             <div className="search-bar">
-              <input type="text" placeholder="Search interactions, notes, email and more..." />
+              <input 
+                type="text" 
+                placeholder="Search interactions, notes, email and more..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
               <FiSearch className="search-icon" />
             </div>
             <button className="edit-profile-btn">
@@ -626,27 +689,37 @@ function CustomerProfile() {
         <div className="files-card">
           <div className="files-header">
             <h3>Files & Documents</h3>
-            <button className="upload-btn">
+            <label className="upload-btn">
               <FiUpload />
               Upload
-            </button>
+              <input type="file" hidden onChange={handleFileUpload} />
+            </label>
           </div>
           
           <div className="files-list">
-            <div className="file-item">
-              <div className="file-info">
-                <span className="file-name">GreenWatts_Proposal_v2.pdf</span>
-                <span className="file-meta">Uploaded Apr 20 - 1.2 MB</span>
-              </div>
-              <button className="download-btn">Download</button>
-            </div>
-            <div className="file-item">
-              <div className="file-info">
-                <span className="file-name">Contract_draft_Apr22.docx</span>
-                <span className="file-meta">Uploaded Apr 20 - 1.2 MB</span>
-              </div>
-              <button className="download-btn">Download</button>
-            </div>
+            {documents.length === 0 ? (
+              <p className="empty-state">No documents uploaded yet.</p>
+            ) : (
+              documents.map((doc) => (
+                <div className="file-item" key={doc._id}>
+                  <div className="file-info">
+                    <span className="file-name">{doc.originalName}</span>
+
+                    <span className="file-meta">
+                      Uploaded {formatInteractionTime(doc.createdAt)} -{" "}
+                      {(doc.fileSize / 1024 / 1024).toFixed(1)} MB
+                    </span>
+                  </div>
+
+                  <a
+                    href={`http://localhost:5001/api/documents/${doc._id}/download`}
+                    className="download-btn"
+                  >
+                    Download
+                  </a>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
