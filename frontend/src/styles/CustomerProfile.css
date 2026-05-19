@@ -457,6 +457,14 @@
   color: var(--text);
 }
 
+.file-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .download-btn {
   background: transparent;
   border: 1px solid var(--text-h);

@@ -267,8 +267,24 @@ function CustomerProfile() {
       alert("Failed to upload file.");
     }
 
-  e.target.value = "";
-};
+    e.target.value = "";
+  };
+
+  const handleDeleteDocument = async (documentId) => {
+    const confirmDelete = window.confirm("Delete this file?");
+    if (!confirmDelete) return;
+
+    try {
+      const res = await api.delete(`/documents/${documentId}`);
+
+      if (res.data.status === "success") {
+        setDocuments((prev) => prev.filter((doc) => doc._id !== documentId));
+      }
+    } catch (err) {
+      console.error("Failed to delete file:", err);
+      alert("Failed to delete file.");
+    }
+  };
 
   const handleNewInteractionChange = (e) => {
     const { name, value } = e.target;
@@ -711,12 +727,22 @@ function CustomerProfile() {
                     </span>
                   </div>
 
-                  <a
-                    href={`http://localhost:5001/api/documents/${doc._id}/download`}
-                    className="download-btn"
-                  >
-                    Download
-                  </a>
+                  <div className="file-actions">
+                    <a
+                      href={`http://localhost:5001/api/documents/${doc._id}/download`}
+                      className="download-btn"
+                    >
+                      Download
+                    </a>
+
+                    <button
+                      type="button"
+                      className="delete-btn-action"
+                      onClick={() => handleDeleteDocument(doc._id)}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
                 </div>
               ))
             )}

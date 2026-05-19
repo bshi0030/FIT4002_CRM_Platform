@@ -32,7 +32,7 @@ const upload = multer({ storage });
 
 router.get("/:entityId", getDocuments);
 router.post("/upload", upload.single("file"), uploadDocument);
-router.delete("/:documentId", deleteDocument);
+router.delete("/:id", deleteDocument);
 router.get("/:id/download", downloadDocument);
 
 module.exports = router;

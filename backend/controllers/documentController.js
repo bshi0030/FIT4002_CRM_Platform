@@ -39,7 +39,7 @@ const uploadDocument = async (req, res) => {
 
 const deleteDocument = async (req, res) => {
   try {
-    const document = await Document.findByIdAndDelete(req.params.documentId);
+    const document = await Document.findByIdAndDelete(req.params.id);
 
     if (!document) {
       return res.status(404).json({ status: "error", message: "Document not found" });
