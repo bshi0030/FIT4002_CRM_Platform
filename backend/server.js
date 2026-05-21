@@ -13,9 +13,15 @@ app.use(express.json())
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/documents", documentRoutes);
 
+// Serve uploads statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.log('MongoDB connection error:', err))
+
+// Routes
+app.use('/api/customers', require('./routes/customerRoutes'));
 
 app.get('/', (req, res) => {
   res.send('NexGen CRM backend is running')
@@ -24,4 +30,14 @@ app.get('/', (req, res) => {
 app.use('/api/interactions', require('./routes/interactionRoutes'))
 
 const PORT = process.env.PORT || 5001
+// Global Error Handler
+app.use((err, req, res, next) => {
+  if (err) {
+    res.status(400).json({ message: err.message });
+  } else {
+    next();
+  }
+});
+
+const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
