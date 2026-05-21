@@ -16,14 +16,6 @@ function EmailComposer({ customerEmail, onClose, onEmailSent }) {
     
     // For now, let's simulate a successful send
     console.log("Sending email:", emailData);
-    
-    // Inform the parent to update the timeline
-    // onEmailSent({
-    //   type: 'Email',
-    //   desc: `Sent: ${subject}`,
-    //   author: 'You', // In a real app, this is the logged-in user
-    //   time: 'Just now'
-    // });
 
     onEmailSent({ subject, message });
     

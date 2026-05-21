@@ -3,8 +3,9 @@ import "./App.css";
 import logo from "./assets/CRM_logo.png";
 import Sidebar from "./pages/SideBar";
 import CustomerProfile from "./pages/CustomerProfile";
-import CustomerList from "./components/CustomerList";
+import Customers from "./pages/Customers";
 import NotificationBell from './components/NotificationBell';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 function App() {
   const [currentPage, setCurrentPage] = useState("home");
@@ -45,7 +46,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Navigate to="/customers" replace />} />
                 <Route path="/customers" element={<Customers />} />
-                <Route path="/customers/:id" element={<CusomterProfile />} />
+                <Route path="/customers/:id" element={<CustomerProfile />} />
               </Routes>
             </div>
           </div>

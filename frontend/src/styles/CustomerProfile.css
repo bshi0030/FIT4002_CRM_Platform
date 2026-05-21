@@ -6,6 +6,39 @@
   /* overflow-y: auto; */
 }
 
+.customer-detail-page {
+  min-height: 100vh;
+  overflow-y: auto;
+}
+
+.customer-detail-header {
+  margin-bottom: 30px;
+}
+
+.add-contact-btn {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.add-contact-btn:hover {
+  background: #555;
+}
+
+.back-link {
+  color: #666;
+  text-decoration: none;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+
+
 /* LEFT COLUMN */
 .left-column {
   width: 320px;

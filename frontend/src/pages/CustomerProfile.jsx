@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import api from '../api/api.js';
 import '../styles/CustomerProfile.css';
 import '../styles/InteractionSidePanel.css'
+import AddCustomerModal from '../components/AddCustomerModal';
 import EmailComposer from '../components/EmailComposer.jsx';
 import {
   FiArrowRight,
@@ -20,8 +21,13 @@ import {
 } from "react-icons/fi";
 
 function CustomerProfile() {
-  // const { id } = useParams();
-  const id = "6a0197bb20ec4d4f767bfa16";
+  const { id } = useParams();
+  const [customer, setCustomer] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   // State to track active tab
   const [activeTab, setActiveTab] = useState('Interactions');
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,84 +48,53 @@ function CustomerProfile() {
   const [documents, setDocuments] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const [mockInteractions, setMockInteractions] = useState([
-    {
-      id: 1, type: 'Email', 
-      icon: <FiMail />, 
-      author: 'Hiba Zaman', 
-      desc: 'Follow-up email sent on proposal terms and payment schedule',
-      time: 'Today 9:42 AM', 
-      className: 'icon-email', 
-      typeClass: 'type-email'
-    },
-    {
-      id: 2, 
-      type: 'Task', 
-      icon: <FiList />, 
-      author: 'Hiba Zaman', 
-      desc: 'Prepare pricing breakdown — marked complete', 
-      time: 'Yesterday 3:15 PM', 
-      className: 'icon-task', 
-      typeClass: 'type-task'
-    },
-    {
-      id: 3, 
-      type: 'Stage Change', 
-      icon: <FiFolder />, 
-      author: 'System', 
-      desc: 'Deal moved from Demo scheduled to Proposal made',
-      time: 'Apr 22 11:00 AM', 
-      className: 'icon-stage', 
-      typeClass: 'type-stage'
-    },
-    {
-      id: 4, 
-      type: 'Call', 
-      icon: <FiPhone />, 
-      author: 'Hiba Zaman', 
-      desc: 'Discovery call — 22 mins. Budget confirmed for Q3. Decision maker is CFO.',
-      time: 'Apr 21 2:00 PM', 
-      className: 'icon-call', 
-      typeClass: 'type-call'
-    },
-    {
-      id: 5, 
-      type: 'Note', 
-      icon: <FiEdit3 />, 
-      author: 'Hiba Zaman', 
-      desc: 'Client prefers monthly billing. Refer all technical questions to their IT lead.',
-      time: 'Apr 19 10:30 AM', 
-      className: 'icon-note', 
-      typeClass: 'type-note'
-    },
-  ]);
-
   //GET Request: Load timeline from MongoDB using Axios instance
-  useEffect(() => {
-    const fetchInteractions = async () => {
-      try {
-        const response = await api.get(`/interactions/${id}`);
-        setAllInteractions(response.data);
-      } catch (error) {
-        console.error("Error loading interactions from MongoDB:", error);
-      }
-    };
-    
-    if (id) fetchInteractions();
-  }, [id]);
+  const mapBackendInteractionToMyUI = (interaction) => ({
+    _id: interaction._id,
+    type: interaction.type,
+    desc: interaction.details || interaction.desc || "",
+    author: interaction.author || "Hiba Zaman",
+    createdAt: interaction.date || interaction.createdAt,
+    time: interaction.date || interaction.createdAt,
+  });
 
-  // fetch documents
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      try {
-        const res = await api.get(`/documents/${id}`);
-        setDocuments(res.data);
-      } catch (err) {
-        console.error("Failed to load documents:", err);
-      }
-    };
+  const mapBackendAttachmentToMyUI = (attachment) => ({
+    _id: attachment._id,
+    originalName: attachment.originalName,
+    fileName: attachment.filename || attachment.fileName,
+    filePath: attachment.path || attachment.filePath,
+    fileSize: attachment.size || attachment.fileSize,
+    createdAt: attachment.uploadedAt || attachment.createdAt,
+  });
 
-    if (id) fetchDocuments();
+  const fetchCustomer = async (showLoading = true) => {
+    try {
+      if (showLoading) setLoading(true);
+
+      const res = await api.get(`/customers/${id}`);
+
+      const customerData = res.data;
+      setCustomer(customerData);
+
+      setAllInteractions(
+        (customerData.interactions || []).map(mapBackendInteractionToMyUI)
+      );
+
+      setDocuments(
+        (customerData.attachments || []).map(mapBackendAttachmentToMyUI)
+      );
+
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch customer details:", err);
+      setError("Failed to fetch customer details.");
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) fetchCustomer();
   }, [id]);
 
   // Helper to dynamically match raw text types to frontend style elements
@@ -162,6 +137,10 @@ function CustomerProfile() {
   const truncateText = (text, maxLength = 120) => {
     if (!text) return "";
     return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
+
+  const handleCustomerUpdated = () => {
+    fetchCustomer(false);
   };
 
   // Logic to delete an interaction
@@ -247,27 +226,33 @@ function CustomerProfile() {
 
     if (!file) return;
 
+    if (file.size > 10000000) {
+      setUploadError("File size exceeds 10MB limit.");
+      e.target.value = "";
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("entityId", id);
-    formData.append("uploadedBy", "Hiba Zaman");
 
     try {
-      const res = await api.post("/documents/upload", formData, {
+      setUploading(true);
+      setUploadError(null);
+
+      await api.post(`/customers/${id}/files`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      if (res.data.status === "success") {
-        setDocuments((prev) => [res.data.data, ...prev]);
-      }
+      await fetchCustomer(false);
     } catch (err) {
       console.error("Failed to upload file:", err);
-      alert("Failed to upload file.");
+      setUploadError(err.response?.data?.message || "Failed to upload file.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
     }
-
-    e.target.value = "";
   };
 
   const handleDeleteDocument = async (documentId) => {
@@ -275,11 +260,9 @@ function CustomerProfile() {
     if (!confirmDelete) return;
 
     try {
-      const res = await api.delete(`/documents/${documentId}`);
-
-      if (res.data.status === "success") {
-        setDocuments((prev) => prev.filter((doc) => doc._id !== documentId));
-      }
+      await api.delete(`/customers/${id}/files/${documentId}`);
+      setDocuments((prev) => prev.filter((doc) => doc._id !== documentId));
+      await fetchCustomer(false);
     } catch (err) {
       console.error("Failed to delete file:", err);
       alert("Failed to delete file.");
@@ -292,38 +275,24 @@ function CustomerProfile() {
   };
 
   const handleSaveNewInteraction = async () => {
-    if (!newInteractionData.desc.trim()) {
-      alert("Please enter a description.");
+    if (type === 'Email') {
+      setIsEmailModalOpen(true);
       return;
     }
 
-    const now = new Date();
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const timeStamp = `Today ${timeString}`;
-
     const payload = {
-      entityId: id, // Grabbed dynamically from your useParams() hook
-      type: newInteractionData.type || 'Note',
-      desc: newInteractionData.desc,
-      author: 'Hiba Zaman', // Matches your current salesperson session variable
-      time: now.toISOString()
+      type: newInteractionData.type || "Note",
+      details: newInteractionData.desc,
     };
 
     try {
       // 4. Hit the exact same Express endpoint to store it in MongoDB
-      const res = await api.post('/interactions/create', payload);
+      const res = await api.post(`/customers/${id}/interactions`, payload);
       
-      if (res.data.status === 'success') {
-        // 5. Inject the raw saved document directly from the database to your timeline state
-        // setAllInteractions([res.data.data, ...allInteractions]);
-        setAllInteractions((prev) => [res.data.data, ...prev]);
-        
-        // 6. Close the modal on success
-        setIsLoggingModalOpen(false);
-        
-        // 7. Clear the text field state for the next interaction entry
-        setNewInteractionData({ type: 'Note', desc: '' });
-      }
+      await fetchCustomer(false);
+
+      setIsLoggingModalOpen(false);  
+      setNewInteractionData({ type: 'Note', desc: '' });
     } catch (err) {
       console.error("Failed to save new manual interaction to database:", err);
       alert("Server error: Could not save interaction. Please check if your backend is running.");
@@ -404,45 +373,65 @@ function CustomerProfile() {
   // Ensure recentInteractionTime is based on the first element (most recent)
   const recentInteractionTime = allInteractions.length > 0 ? allInteractions[0].time : 'No recent activity';
 
+  if (loading) return <div className="loading-msg">Loading...</div>;
+  if (error) return <div className="error-msg">{error}</div>;
+  if (!customer) return <div className="error-msg">Customer not found.</div>;
+
   return (
-    <div className="customer-profile-container">
+    <div className="customer-detail-page">
+      <div className="customer-detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div>
+          <Link to="/customers" className="back-link">← Back to Customers</Link>
+          <h1 style={{ marginTop: '10px' }}>Customer Profile</h1>
+        </div>
+        <button className="add-contact-btn" onClick={() => setIsEditModalOpen(true)}>
+          Edit Customer
+        </button>
+      </div>
+      
+      <div className="customer-profile-container">
 
       {/* LEFT COLUMN */}
       <div className="left-column">
         {/* Profile Card */}
         <div className="profile-card">
-          <div className="avatar-placeholder">
+          {customer.companyLogo ? (
+            <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${customer.companyLogo}`} alt={`${customer.company} logo`} className="profile-logo" />
+          ) : (
             <FiUser className="avatar-icon" />
-          </div>
-          <h2 className="profile-name">John Smith</h2>
-          <p className="profile-subtitle">Procurement Manager ·<br/>GreenWatts Ltd</p>
+          )}
+          <h2 className="profile-name">{customer.fullName}</h2>
+          <p className="profile-subtitle">
+            {customer.designation} ·<br />
+            {customer.company}
+          </p>
           
           <div className="about-account">
             <h3>About account</h3>
             
             <div className="info-group">
               <span className="info-label">Email</span>
-              <span className="info-value email-link">john@greenwatts.com</span>
+              <span className="info-value email-link">{customer.email}</span>
             </div>
             
             <div className="info-group">
               <span className="info-label">Phone</span>
-              <span className="info-value">+60 12 345 6789</span>
+              <span className="info-value">{customer.phone}</span>
             </div>
             
             <div className="info-group">
               <span className="info-label">Company</span>
-              <span className="info-value">GreenWatts Ltd</span>
+              <span className="info-value">{customer.company}</span>
             </div>
             
             <div className="info-group">
               <span className="info-label">Department</span>
-              <span className="info-value">Operations</span>
+              <span className="info-value">{customer.department}</span>
             </div>
             
             <div className="info-group">
               <span className="info-label">Created</span>
-              <span className="info-value">April 1, 2026</span>
+              <span className="info-value">{new Date(customer.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
@@ -565,7 +554,7 @@ function CustomerProfile() {
 
                 return (
                   <div 
-                    className={`interaction-item clickable ${selectedInteraction?.id === item.id ? 'active-item' : ''}`}
+                    className={`interaction-item clickable ${selectedInteraction?.id === itemId ? 'active-item' : ''}`}
                     key={item.id} 
                     onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
                   >
@@ -586,38 +575,32 @@ function CustomerProfile() {
                 );
               })}
             </div>
-
+            
+            {isEditModalOpen && (
+              <AddCustomerModal 
+                onClose={() => setIsEditModalOpen(false)} 
+                onAdd={handleCustomerUpdated}
+                initialData={customer}
+              />
+            )}
             {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
             {isComposingEmail ? (
               <EmailComposer 
-                customerEmail="john@greenwatts.com" 
+                customerEmail={customer.email}
                 onClose={() => setIsComposingEmail(false)}
                 onEmailSent={async ({ subject, message }) => {
 
-                  // Generate the dynamic timeline timestamp
-                  const now = new Date();
-                  const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                  const timeStamp = `Today ${timeString}`;
-
-                  const payload = {
-                    entityId: id, // Pass the dynamic ID to the backend document
-                    type: 'Email',
-                    desc: `Sent: ${subject}`,
-                    author: 'Hiba Zaman',
-                    time: now.toISOString()
-                  };
-
                   try {
                     // Axios automatically serializes JSON objects
-                    const res = await api.post('/interactions/create', payload);
+                    await api.post(`/customers/${id}/interactions`, {
+                      type: "Email",
+                      details: `Sent Email - Subject: ${subject || ""}`,
+                    });
 
-                    if (res.data.status === 'success') {
-                      // Logic to add the new log to your interaction state
-                      // setAllInteractions([res.data.data, ...allInteractions]);
-                      setAllInteractions((prev) => [res.data.data, ...prev]);
-                    }
+                    await fetchCustomer(false);
+                    setIsComposingEmail(false);
                   } catch (err) {
-                    console.error("Failed to post interaction document:", err);
+                    console.error("Failed to log email interaction", err);
                   }
                 }}
               />
@@ -672,7 +655,7 @@ function CustomerProfile() {
                     </>
                   ) : (
                     <>
-                      <button className="delete-btn-action" onClick={() => handleDelete(selectedInteraction.id)}>
+                      <button className="delete-btn-action" onClick={handleDelete}>
                         <FiTrash2 /> Delete
                       </button>
                       <button className="edit-btn-action" onClick={handleEditClick}>
@@ -729,7 +712,7 @@ function CustomerProfile() {
 
                   <div className="file-actions">
                     <a
-                      href={`http://localhost:5001/api/documents/${doc._id}/download`}
+                      href={`${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/customers/${customer._id}/files/${doc._id}/download`}
                       className="download-btn"
                     >
                       Download
@@ -749,6 +732,7 @@ function CustomerProfile() {
           </div>
         </div>
       </div>
+    </div>
 
       {/* LOG INTERACTION MODAL */}
       {isLoggingModalOpen && (

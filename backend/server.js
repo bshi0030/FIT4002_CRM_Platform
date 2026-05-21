@@ -3,15 +3,12 @@ const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const cors = require('cors')
 const path = require("path");
-const documentRoutes = require("./routes/documentRoutes");
 
 dotenv.config()
 
 const app = express()
 app.use(cors())
 app.use(express.json())
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/api/documents", documentRoutes);
 
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -39,5 +36,4 @@ app.use((err, req, res, next) => {
   }
 });
 
-const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))

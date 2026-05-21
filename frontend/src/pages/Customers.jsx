@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import AddCustomerModal from '../components/AddCustomerModal';
 import EmailComposer from '../components/EmailComposer';
-import '../components/EmailComposer.css';
+import '../styles/EmailComposer.css';
 import { Link } from 'react-router-dom';
-import './Customers.css';
+import '../styles/Customers.css';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
