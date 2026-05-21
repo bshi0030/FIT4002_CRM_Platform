@@ -18,7 +18,7 @@ const customerSchema = new mongoose.Schema({
     uploadedAt: { type: Date, default: Date.now }
   }],
   interactions: [{
-    type: { type: String, enum: ['Email', 'Call', 'Note'] },
+    type: { type: String, enum: ['Email', 'Call', 'Task', 'Note'] },
     details: String,
     date: { type: Date, default: Date.now }
   }],

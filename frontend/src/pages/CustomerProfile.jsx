@@ -78,6 +78,7 @@ function CustomerProfile() {
 
       setAllInteractions(
         (customerData.interactions || []).map(mapBackendInteractionToMyUI)
+        .sort((a, b) => new Date(b.time) - new Date(a.time))
       );
 
       setDocuments(
@@ -275,10 +276,6 @@ function CustomerProfile() {
   };
 
   const handleSaveNewInteraction = async () => {
-    if (type === 'Email') {
-      setIsEmailModalOpen(true);
-      return;
-    }
 
     const payload = {
       type: newInteractionData.type || "Note",
@@ -287,7 +284,7 @@ function CustomerProfile() {
 
     try {
       // 4. Hit the exact same Express endpoint to store it in MongoDB
-      const res = await api.post(`/customers/${id}/interactions`, payload);
+      await api.post(`/customers/${id}/interactions`, payload);
       
       await fetchCustomer(false);
 
@@ -295,7 +292,23 @@ function CustomerProfile() {
       setNewInteractionData({ type: 'Note', desc: '' });
     } catch (err) {
       console.error("Failed to save new manual interaction to database:", err);
-      alert("Server error: Could not save interaction. Please check if your backend is running.");
+      console.error("Backend response:", err.response?.data);
+      console.error("Status:", err.response?.status);
+      alert(err.response?.data?.message || "Server error: Could not save interaction.");
+    }
+  };
+
+  const handleInteraction = async (type) => {
+
+    try {
+      await api.post(`/customers/${id}/interactions`, {
+        type: type,
+        details: `Initiated ${type} contact from Customer Profile`
+      });
+      
+      fetchCustomer(false); // Silent refresh
+    } catch (err) {
+      console.error(`Failed to log ${type} interaction`, err);
     }
   };
 
@@ -382,11 +395,8 @@ function CustomerProfile() {
       <div className="customer-detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
         <div>
           <Link to="/customers" className="back-link">← Back to Customers</Link>
-          <h1 style={{ marginTop: '10px' }}>Customer Profile</h1>
+          <h1>Customer Profile</h1>
         </div>
-        <button className="add-contact-btn" onClick={() => setIsEditModalOpen(true)}>
-          Edit Customer
-        </button>
       </div>
       
       <div className="customer-profile-container">
@@ -432,6 +442,11 @@ function CustomerProfile() {
             <div className="info-group">
               <span className="info-label">Created</span>
               <span className="info-value">{new Date(customer.createdAt).toLocaleDateString()}</span>
+            </div>
+
+            <div className="profile-actions" style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
+              <button className="add-contact-btn" onClick={() => setIsComposingEmail(true)}>✉️ Email</button>
+              <a className="add-contact-btn" href={`tel:${customer.phone}`} onClick={() => handleInteraction('Call')} style={{flex: 1, textDecoration: 'none', textAlign: 'center', color: '#fff'}}>📞 Call</a>
             </div>
           </div>
         </div>
@@ -507,7 +522,7 @@ function CustomerProfile() {
               />
               <FiSearch className="search-icon" />
             </div>
-            <button className="edit-profile-btn">
+            <button className="edit-profile-btn" onClick={() => setIsEditModalOpen(true)}>
               <FiEdit2 className="edit-icon" />
               Edit Profile
             </button>
