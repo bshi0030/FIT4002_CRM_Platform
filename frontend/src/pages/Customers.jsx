@@ -3,10 +3,11 @@ import api from '../services/api';
 import AddCustomerModal from '../components/AddCustomerModal';
 import EmailComposer from '../components/EmailComposer';
 import '../styles/EmailComposer.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Customers.css';
 
 const Customers = () => {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [emailModalData, setEmailModalData] = useState(null);

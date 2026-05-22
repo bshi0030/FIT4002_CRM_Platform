@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../api/api.js';
+import api from '../services/api';
 import '../styles/CustomerProfile.css';
 import '../styles/InteractionSidePanel.css'
 import AddCustomerModal from '../components/AddCustomerModal';

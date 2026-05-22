@@ -21,7 +21,10 @@ function Menu({ currentPage, setCurrentPage }) {
       <button className="menu-item">
         Tasks ☰
       </button>
-      <button className="menu-item">
+      <button
+        className={`menu-item ${location.pathname === '/customers' ? 'active' : ''}`}
+        onClick={() => navigate('/customers')}
+      >
         Customers ⌘
       </button>
       <button className="menu-item">
