@@ -1,7 +1,7 @@
 import { useAuth } from '@/context/auth'
 import { useLocation } from 'react-router-dom'
 import AppHeader from '@/components/AppHeader'
-import Menu from '@/components/Menu'
+import Menu from '@/pages/Menu'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
 import '../styles/AppLayout.css'
