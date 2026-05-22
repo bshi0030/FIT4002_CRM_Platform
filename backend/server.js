@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const cors = require('cors')
 const helmet = require('helmet')
+const path = require("path");
 
 dotenv.config()
 
@@ -39,6 +40,15 @@ if (process.env.MONGO_URI) {
 } else {
     console.warn('MONGO_URI not set; database features are disabled')
 }
+// Serve uploads statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected successfully'))
+  .catch((err) => console.log('MongoDB connection error:', err))
+
+// Routes
+app.use('/api/customers', require('./routes/customerRoutes'));
 
 app.get('/', (req, res) => {
     res.send('NexGen CRM backend is running')
@@ -51,12 +61,16 @@ app.use((err, req, res, _next) => {
     res.status(500).json({message: 'Internal server error'})
 })
 
-const PORT = process.env.PORT || 5000
+app.use('/api/interactions', require('./routes/interactionRoutes'))
+
+const PORT = process.env.PORT || 5001
+// Global Error Handler
+app.use((err, req, res, next) => {
+  if (err) {
+    res.status(400).json({ message: err.message });
+  } else {
+    next();
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
-
-
-const stageRoutes = require('./routes/stageRoutes')
-app.use('/api/stages', stageRoutes)
-
-const dealRoutes = require('./routes/dealRoutes')
-app.use('/api/deals', dealRoutes)

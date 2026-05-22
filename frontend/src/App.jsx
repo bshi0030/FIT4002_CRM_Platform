@@ -6,39 +6,63 @@ import Login from '@/pages/Login'
 import Signup from '@/pages/Signup'
 import Dashboard from '@/pages/Dashboard'
 import SalesPipeline from '@/pages/SalesPipeline'
+import Customers from "@/pages/Customers";
+import CustomerProfile from "@/pages/CustomerProfile";
 
 function App() {
-    return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route
-                        path="/"
-                        element={
-                            <ProtectedRoute>
-                                <AppLayout>
-                                    <Dashboard />
-                                </AppLayout>
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/pipeline"
-                        element={
-                            <ProtectedRoute>
-                                <AppLayout>
-                                    <SalesPipeline />
-                                </AppLayout>
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-            </BrowserRouter>
-        </AuthProvider>
-    )
+  return (
+    <AuthProvider>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route
+                    path="/"
+                    element={
+                        <ProtectedRoute>
+                            <AppLayout>
+                                <Dashboard />
+                            </AppLayout>
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                  path="/customers"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Customers />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/customers/:id"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <CustomerProfile />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pipeline"
+                  element={
+                      <ProtectedRoute>
+                          <AppLayout>
+                              <SalesPipeline />
+                          </AppLayout>
+                      </ProtectedRoute>
+                  }
+                />
+
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </BrowserRouter>
+    </AuthProvider>
+  ); 
 }
 
 export default App
