@@ -6,6 +6,7 @@ import Login from '@/pages/Login'
 import Signup from '@/pages/Signup'
 import Dashboard from '@/pages/Dashboard'
 import SalesPipeline from '@/pages/SalesPipeline'
+import TaskKanban from './pages/TaskKanban'
 
 function App() {
     return (
@@ -34,6 +35,17 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                        <Route
+        path="/task-kanban"
+        element={
+            <ProtectedRoute>
+                <AppLayout>
+                    <TaskKanban />
+                </AppLayout>
+            </ProtectedRoute>
+        }
+    />
+                    
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>
