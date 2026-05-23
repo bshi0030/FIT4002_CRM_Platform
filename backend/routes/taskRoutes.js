@@ -27,4 +27,32 @@ router.get('/', requireAuth, async (req, res) => {
 
 })
 
+router.patch('/:id/status', requireAuth, async (req, res) => {
+
+  try {
+
+    const { status } = req.body
+
+    const updatedTask = await Task.findByIdAndUpdate(
+
+      req.params.id,
+
+      { status },
+
+      { new: true }
+
+    )
+
+    res.json(updatedTask)
+
+  } catch {
+
+    res.status(500).json({
+      message: 'Failed to update task status'
+    })
+
+  }
+
+})
+
 module.exports = router
