@@ -8,6 +8,7 @@ import Dashboard from '@/pages/Dashboard'
 import SalesPipeline from '@/pages/SalesPipeline'
 import Customers from "@/pages/Customers";
 import CustomerProfile from "@/pages/CustomerProfile";
+import TaskKanban from './pages/TaskKanban'
 
 function App() {
   return (
@@ -58,6 +59,17 @@ function App() {
                   }
                 />
 
+                        <Route
+        path="/task-kanban"
+        element={
+            <ProtectedRoute>
+                <AppLayout>
+                    <TaskKanban />
+                </AppLayout>
+            </ProtectedRoute>
+        }
+    />
+                    
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>

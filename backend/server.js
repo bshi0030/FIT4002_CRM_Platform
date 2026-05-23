@@ -33,6 +33,7 @@ app.use(
 app.use(express.json({limit: '100kb'}))
 
 if (process.env.MONGO_URI) {
+
     mongoose
         .connect(process.env.MONGO_URI)
         .then(() => console.log('MongoDB connected successfully'))
@@ -65,6 +66,9 @@ app.use('/api/interactions', require('./routes/interactionRoutes'))
 
 const dealRoutes = require('./routes/dealRoutes')
 app.use('/api/deals', dealRoutes)
+
+const taskRoutes = require('./routes/taskRoutes')
+app.use('/api/tasks', taskRoutes)
 
 const PORT = process.env.PORT || 5001
 // Global Error Handler

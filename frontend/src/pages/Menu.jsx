@@ -18,7 +18,10 @@ function Menu({ currentPage, setCurrentPage }) {
       >
         Sales Pipeline ⊷
       </button>
-      <button className="menu-item">
+      <button
+        className={`menu-item ${location.pathname === '/task-kanban' ? 'active' : ''}`}
+        onClick={() => navigate('/task-kanban')}
+      >
         Tasks ☰
       </button>
       <button

@@ -1,0 +1,272 @@
+.task-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    gap: 20px;
+    padding: 20px;
+}
+
+.task-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; 
+    gap: 15px;
+    width: 100%;
+    padding: 10px 20px; 
+    box-sizing: border-box;
+    position: relative; 
+    z-index: 50; 
+}
+
+[data-radix-select-content] {
+    padding: 8px !important;
+    min-width: 160px !important;
+    background-color: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    z-index: 100;
+}
+
+.SelectItem {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.search-wrapper {
+    position: relative;
+    max-width: 600px;
+}
+
+.search-icon-svg {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+.search-input-field {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    border-radius: 25px;
+    background: #e0e0e0;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+/* Kanban Board Layout */
+.kanban-board-gradient {
+    flex-grow: 1;
+    border-radius: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, #e9ff6b 0%, #fdd780 40%, #ffffff 100%);
+    overflow: hidden;
+}
+
+.columns-wrapper {
+    display: flex;
+    gap: 25px;
+    height: 100%;
+    overflow-x: auto;
+}
+
+.kanban-column {
+    flex: 1;
+    min-width: 300px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.column-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.cards-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Task Card Styling */
+.task-card-item {
+    background: #fdf5d6;
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.task-text-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.prio-tag {
+    font-size: 9px;
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.prio-high { background: #d00000; color: white; }
+.prio-medium { background: #e67e22; color: white; }
+.prio-low { background: #2ecc71; color: black; }
+
+.card-body {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.date-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #888;
+}
+
+.date-overdue {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.collab-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #444;
+}
+
+.collab-plus {
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Notification Styling */
+.notification-wrapper {
+    position: relative;
+    background: #e0e0e0;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.notif-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: #ff4d4d;
+    border-radius: 50%;
+    border: 2px solid #e0e0e0;
+}
+
+
+.task-navbar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    position: relative; 
+    z-index: 50; 
+}
+
+
+.dropdown-trigger-custom {
+    width: 180px !important;
+    height: 42px !important;
+    border-radius: 9999px !important;
+    background-color: #e1e1e1 !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+
+.dropdown-content-custom {
+    background-color: white !important;
+    border-radius: 16px !important;
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    padding: 8px !important;
+    min-width: 180px !important;
+    z-index: 1000 !important;
+}
+
+/* Ensure items inside have room */
+[data-radix-collection-item] {
+    padding: 10px 12px !important;
+    margin: 2px 0 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Hover state for dropdown items */
+[data-radix-collection-item]:hover {
+    background-color: #f3f4f6 !important;
+    outline: none !important;
+}
+
+/* Search bar styling */
+.search-wrapper {
+    position: relative;
+    flex-grow: 1;
+}
+
+.search-input-field {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    border-radius: 25px;
+    background: #e0e0e0;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+/* The gradient board*/
+.kanban-board-gradient {
+    flex-grow: 1;
+    border-radius: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, #e9ff6b 0%, #fdd780 40%, #ffffff 100%);
+    overflow: hidden;
+    position: relative;
+    z-index: 1; 
+}
