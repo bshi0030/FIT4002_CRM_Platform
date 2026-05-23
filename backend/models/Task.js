@@ -28,11 +28,12 @@ const taskSchema = new mongoose.Schema({
     type: Date
   },
 
-  assignedTo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
+   assignedTo: [
+    {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
+    ],
 
   collaborative: {
     type: Boolean,
