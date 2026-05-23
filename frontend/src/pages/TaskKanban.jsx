@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Bell, Building2, Calendar, Users } from 'lucide-react';
 
 import {
@@ -10,7 +10,12 @@ import {
 } from "@/components/ui/select";
 
 import "../styles/TaskBoard.css";
+<<<<<<< ours
 import TaskDetail from "./TaskDetail";
+=======
+import { getTasks } from "../api/tasks";
+
+>>>>>>> theirs
 
 const COLUMNS = [
   { id: "todo", name: "To Do" },
@@ -18,6 +23,7 @@ const COLUMNS = [
   { id: "completed", name: "Completed" }
 ];
 
+<<<<<<< ours
 const TASKS = [
   {
     id: 1,
@@ -138,11 +144,20 @@ const TaskKanban = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [tasks, setTasks] = useState(TASKS);
 
+=======
+const TaskKanban = () => {
+  const [tasks, setTasks] = useState([]);
+>>>>>>> theirs
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPriority, setFilterPriority] = useState("all");
 
   const [draggedTaskId, setDraggedTaskId] = useState(null);
 
+<<<<<<< ours
+=======
+
+  // PRIORITY COLORS
+>>>>>>> theirs
   const getPriorityClass = (priority) => {
     switch (priority) {
       case "High":
@@ -166,7 +181,7 @@ const TaskKanban = () => {
   const handleDrop = (newStatus) => {
     setTasks(prev =>
       prev.map(task =>
-        task.id === draggedTaskId
+        task._id === draggedTaskId
           ? { ...task, status: newStatus }
           : task
       )
@@ -175,14 +190,27 @@ const TaskKanban = () => {
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch =
+<<<<<<< ours
       task.title.toLowerCase().includes(searchTerm.toLowerCase());
 
+=======
+  (task.title ?? "").toLowerCase().includes(searchTerm.toLowerCase());
+>>>>>>> theirs
     const matchesPriority =
       filterPriority === "all" ||
       task.priority.toLowerCase() === filterPriority.toLowerCase();
 
     return matchesSearch && matchesPriority;
   });
+
+  useEffect(() => {
+  getTasks()
+    .then(data => {
+      console.log("TASKS FROM API:", data);
+      setTasks(data);
+    })
+    .catch(err => console.error("API ERROR:", err));
+}, []);
 
   return (
     <div className="task-container">
@@ -257,11 +285,15 @@ const TaskKanban = () => {
                   .map(task => (
 
                     <div
-                      key={task.id}
+                      key={task._id}
                       className="task-card-item"
                       draggable
+<<<<<<< ours
                       onDragStart={() => handleDragStart(task.id)}
                       onClick={() => setSelectedTask(task)}
+=======
+                      onDragStart={() => handleDragStart(task._id)}
+>>>>>>> theirs
                     >
 
                       <div className="card-header">
@@ -284,15 +316,25 @@ const TaskKanban = () => {
                       <div className="card-footer">
 
                         <div className={`date-info ${task.overdue ? 'date-overdue' : ''}`}>
+<<<<<<< ours
                           <Calendar size={14} />
                           {task.date}
                           {task.overdue && " (Overdue)"}
+=======
+                          <Calendar size={14} /> {new Date(task.dueDate).toLocaleDateString()} {task.overdue && "(Overdue)"}
+>>>>>>> theirs
                         </div>
 
-                        {task.collaborative && (
+                        {task.assignedTo?.length > 1 && (
                           <div className="collab-info">
                             <Users size={16} />
+<<<<<<< ours
                             <span className="collab-plus">+1</span>
+=======
+                            <span className="collab-plus">
+                              +{task.assignedTo.length - 1}
+                            </span>
+>>>>>>> theirs
                           </div>
                         )}
 
