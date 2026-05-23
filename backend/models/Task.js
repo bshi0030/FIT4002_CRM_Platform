@@ -35,10 +35,36 @@ const taskSchema = new mongoose.Schema({
     }
     ],
 
-  collaborative: {
-    type: Boolean,
-    default: false
-  }
+    description: {
+    type: String,
+    default: ''
+  },
+
+  customer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Customer'
+  },
+
+  deal: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Deal'
+  },
+
+  currentStage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Stage'
+  },
+
+  nextStage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Stage'
+  },
+
+    collaborative: {
+      type: Boolean,
+      default: false
+    }
+
 
 }, { timestamps: true })
 
