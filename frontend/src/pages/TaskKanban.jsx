@@ -22,35 +22,6 @@ const COLUMNS = [
   { id: "completed", name: "Completed" }
 ];
 
-  {
-    id: 4,
-    title: "Price negotiation with RetailCo",
-    company: "RetailCo",
-    date: "Aug 27",
-    priority: "Medium",
-    status: "completed",
-    collaborative: true,
-
-    description: "Negotiate final pricing and licensing terms.",
-    currentStage: "Negotiation",
-    nextStage: "Closed Deal",
-
-    assignees: ["You", "Emma"],
-
-    activities: [
-      {
-        type: "CALL",
-        date: "Apr 20, 2026",
-        text: "Negotiated enterprise pricing"
-      },
-      {
-        type: "EMAIL",
-        date: "Apr 19, 2026",
-        text: "Shared revised proposal"
-      }
-];
-
-
 const TaskKanban = () => {
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

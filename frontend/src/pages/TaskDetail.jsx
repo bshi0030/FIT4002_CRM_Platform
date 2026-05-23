@@ -6,7 +6,9 @@ import {
   Building2,
   Calendar,
   ArrowRight
-} from 'lucide-react';
+} from "lucide-react";
+
+import { Link } from "react-router-dom";
 
 const TaskDetail = ({ task, onClose }) => {
 
@@ -16,11 +18,15 @@ const TaskDetail = ({ task, onClose }) => {
     task.priority === "High"
       ? "prio-high"
       : task.priority === "Medium"
-      ? "prio-medium"
-      : "prio-low";
+        ? "prio-medium"
+        : "prio-low";
 
   return (
-    <div className="task-detail-overlay" onClick={onClose}>
+
+    <div
+      className="task-detail-overlay"
+      onClick={onClose}
+    >
 
       <div
         className="task-detail-panel"
@@ -28,7 +34,10 @@ const TaskDetail = ({ task, onClose }) => {
       >
 
         {/* CLOSE BUTTON */}
-        <button className="close-btn" onClick={onClose}>
+        <button
+          className="close-btn"
+          onClick={onClose}
+        >
           <X size={20} />
         </button>
 
@@ -38,7 +47,7 @@ const TaskDetail = ({ task, onClose }) => {
           <h2>{task.title}</h2>
 
           <p className="subtitle">
-            {task.description}
+            {task.description || "No description provided"}
           </p>
 
         </header>
@@ -46,17 +55,22 @@ const TaskDetail = ({ task, onClose }) => {
         {/* TOP DETAILS */}
         <div className="detail-grid">
 
+          {/* CUSTOMER */}
           <div className="detail-item">
 
             <label>CUSTOMER</label>
 
             <div className="item-content">
               <Building2 size={14} />
-              {task.company}
+
+              {task.customer?.fullName ||
+                task.company ||
+                "No customer"}
             </div>
 
           </div>
 
+          {/* PRIORITY */}
           <div className="detail-item">
 
             <label>PRIORITY</label>
@@ -67,28 +81,48 @@ const TaskDetail = ({ task, onClose }) => {
 
           </div>
 
+          {/* DUE DATE */}
           <div className="detail-item">
 
             <label>DUE DATE</label>
 
             <div className="item-content">
+
               <Calendar size={14} />
-              {task.date}, 2027
+
+              {task.dueDate
+                ? new Date(task.dueDate).toLocaleDateString()
+                : "No due date"}
+
             </div>
 
           </div>
 
+          {/* ASSIGNEES */}
           <div className="detail-item">
 
             <label>ASSIGNEES</label>
 
             <div className="assignee-list">
 
-              {task.assignees?.map((person, index) => (
-                <span key={index} className="assignee-pill">
-                  {person}
-                </span>
-              ))}
+              {task.assignedTo?.length > 0 ? (
+
+                task.assignedTo.map((person, index) => (
+
+                  <span
+                    key={index}
+                    className="assignee-pill"
+                  >
+                    {person.fullName}
+                  </span>
+
+                ))
+
+              ) : (
+
+                <span>No assignees</span>
+
+              )}
 
             </div>
 
@@ -104,16 +138,49 @@ const TaskDetail = ({ task, onClose }) => {
           <div className="pipeline-box">
 
             <span>
-              Current: <strong>{task.currentStage}</strong>
+              Current:
+              <strong>
+                {" "}
+                {task.currentStage?.name || "N/A"}
+              </strong>
             </span>
 
             <ArrowRight size={18} />
 
             <span>
-              Next: <strong>{task.nextStage}</strong>
+              Next:
+              <strong>
+                {" "}
+                {task.nextStage?.name || "N/A"}
+              </strong>
             </span>
 
           </div>
+
+        </div>
+
+        {/* NAVIGATION LINKS */}
+        <div className="task-links">
+
+          {task.customer && (
+
+            <Link to={`/customers/${task.customer._id}`}>
+
+              View Customer
+
+            </Link>
+
+          )}
+
+          {task.deal && (
+
+            <Link to={`/deals/${task.deal._id}`}>
+
+              View Deal
+
+            </Link>
+
+          )}
 
         </div>
 
@@ -125,10 +192,12 @@ const TaskDetail = ({ task, onClose }) => {
           <div className="note-input-wrapper">
 
             <select className="note-select">
+
               <option>Note</option>
               <option>Email</option>
               <option>Call</option>
               <option>Meeting</option>
+
             </select>
 
             <input
@@ -146,40 +215,52 @@ const TaskDetail = ({ task, onClose }) => {
 
           <label>ACTIVITY TIMELINE</label>
 
-          {task.activities?.map((activity, index) => (
+          {task.activities?.length > 0 ? (
 
-            <div key={index} className="activity-item">
+            task.activities.map((activity, index) => (
 
-              <div className="activity-icon">
+              <div
+                key={index}
+                className="activity-item"
+              >
 
-                {activity.type === "CALL"
-                  ? <Phone size={14} />
-                  : <Mail size={14} />
-                }
+                <div className="activity-icon">
 
-              </div>
-
-              <div className="activity-content">
-
-                <div className="activity-top">
-
-                  <strong>{activity.type}</strong>
-
-                  <span className="activity-date">
-                    {activity.date}
-                  </span>
+                  {activity.type === "CALL" ? (
+                    <Phone size={14} />
+                  ) : (
+                    <Mail size={14} />
+                  )}
 
                 </div>
 
-                <div className="activity-text">
-                  {activity.text}
+                <div className="activity-content">
+
+                  <div className="activity-top">
+
+                    <strong>{activity.type}</strong>
+
+                    <span className="activity-date">
+                      {activity.date}
+                    </span>
+
+                  </div>
+
+                  <div className="activity-text">
+                    {activity.text}
+                  </div>
+
                 </div>
 
               </div>
 
-            </div>
+            ))
 
-          ))}
+          ) : (
+
+            <p>No activities yet</p>
+
+          )}
 
         </div>
 
@@ -187,13 +268,19 @@ const TaskDetail = ({ task, onClose }) => {
         <footer className="detail-footer">
 
           <button className="btn-email">
+
             <Mail size={16} />
+
             Send Email
+
           </button>
 
           <button className="btn-profile">
+
             <ExternalLink size={16} />
+
             View Profile
+
           </button>
 
         </footer>
@@ -201,7 +288,9 @@ const TaskDetail = ({ task, onClose }) => {
       </div>
 
     </div>
+
   );
+
 };
 
 export default TaskDetail;
