@@ -11,100 +11,16 @@ import {
 
 import "../styles/TaskBoard.css";
 import TaskDetail from "./TaskDetail";
-import { getTasks } from "../api/tasks";
-
+import {
+  getTasks,
+  updateTaskStatus
+} from "../api/tasks";
 
 const COLUMNS = [
   { id: "todo", name: "To Do" },
   { id: "inprogress", name: "In Progress" },
   { id: "completed", name: "Completed" }
 ];
-
-const TASKS = [
-  {
-    id: 1,
-    title: "Follow up with Armc Inc",
-    company: "Armc Inc",
-    date: "Apr 27",
-    priority: "High",
-    status: "todo",
-    description: "Follow up with the client regarding pricing discussion.",
-    currentStage: "Lead Contacted",
-    nextStage: "Proposal",
-
-    assignees: ["You", "Daniel"],
-
-    activities: [
-      {
-        type: "EMAIL",
-        date: "Apr 24, 2026",
-        text: "Sent pricing follow-up email"
-      },
-      {
-        type: "CALL",
-        date: "Apr 23, 2026",
-        text: "Discussed requirements with client"
-      }
-    ]
-  },
-
-  {
-    id: 2,
-    title: "Send contract to TechCorp",
-    company: "TechCorp Inc",
-    date: "Jan 27",
-    priority: "Low",
-    status: "todo",
-    collaborative: true,
-
-    description: "Send final contract draft for approval.",
-    currentStage: "Proposal Made",
-    nextStage: "Negotiation",
-
-    assignees: ["You", "Sarah"],
-
-    activities: [
-      {
-        type: "EMAIL",
-        date: "Apr 24, 2026",
-        text: "Confirmed demo time"
-      },
-      {
-        type: "CALL",
-        date: "Apr 23, 2026",
-        text: "Discovery call"
-      }
-    ]
-  },
-
-  {
-    id: 3,
-    title: "Product demo GlobalTech",
-    company: "GlobalTech Solutions",
-    date: "Apr 27",
-    priority: "Medium",
-    status: "inprogress",
-    overdue: true,
-
-    description: "Schedule and conduct product demonstration.",
-    currentStage: "Demo Scheduled",
-    nextStage: "Client Decision",
-
-    assignees: ["You", "Mike"],
-
-    activities: [
-      {
-        type: "MEETING",
-        date: "Apr 25, 2026",
-        text: "Prepared demo slides"
-      },
-      {
-        type: "EMAIL",
-        date: "Apr 24, 2026",
-        text: "Sent Zoom meeting link"
-      }
-    ]
-  },
 
   {
     id: 4,
@@ -132,8 +48,6 @@ const TASKS = [
         date: "Apr 19, 2026",
         text: "Shared revised proposal"
       }
-    ]
-  },
 ];
 
 
@@ -142,7 +56,6 @@ const TaskKanban = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPriority, setFilterPriority] = useState("all");
   const [selectedTask, setSelectedTask] = useState(null);
-
   const [draggedTaskId, setDraggedTaskId] = useState(null);
 
 
@@ -167,15 +80,29 @@ const TaskKanban = () => {
     setDraggedTaskId(taskId);
   };
 
-  const handleDrop = (newStatus) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task._id === draggedTaskId
-          ? { ...task, status: newStatus }
-          : task
+  const handleDrop = async (newStatus) => {
+
+    try {
+      setTasks(prev =>
+        prev.map(task =>
+          task._id === draggedTaskId
+            ? { ...task, status: newStatus }
+            : task
+        )
       )
-    );
-  };
+      await updateTaskStatus(
+        draggedTaskId,
+        newStatus
+      )
+    } catch (err) {
+      console.error(
+        "Failed to update task",
+        err
+      )
+
+    }
+
+  }
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch =
