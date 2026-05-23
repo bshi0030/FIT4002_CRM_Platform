@@ -221,7 +221,7 @@ const TaskDetail = ({ task, onClose }) => {
 
               <div
                 key={index}
-                className="activity-item"
+                className="activity-item" 
               >
 
                 <div className="activity-icon">
