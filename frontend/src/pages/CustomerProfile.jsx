@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
-import '../styles/CustomerProfile.css'
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import api from '../services/api';
+import '../styles/CustomerProfile.css';
+import '../styles/InteractionSidePanel.css'
+import AddCustomerModal from '../components/AddCustomerModal';
+import EmailComposer from '../components/EmailComposer.jsx';
 import {
   FiArrowRight,
   FiEdit2,
@@ -16,80 +21,150 @@ import {
 } from "react-icons/fi";
 
 function CustomerProfile() {
+  const { id } = useParams();
+  const [customer, setCustomer] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   // State to track active tab
   const [activeTab, setActiveTab] = useState('Interactions');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // State for the Detail Modal
   const [selectedInteraction, setSelectedInteraction] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
 
+  const [isComposingEmail, setIsComposingEmail] = useState(false);
   // State for the Log Interaction Modal
   const [isLoggingModalOpen, setIsLoggingModalOpen] = useState(false);
   const [newInteractionData, setNewInteractionData] = useState({ type: 'Note', desc: '' });
 
-  const [allInteractions, setAllInteractions] = useState([
-    {
-      id: 1, type: 'Email', 
-      icon: <FiMail />, 
-      author: 'Hiba Zaman', 
-      desc: 'Follow-up email sent on proposal terms and payment schedule',
-      time: 'Today 9:42 AM', 
-      className: 'icon-email', 
-      typeClass: 'type-email'
-    },
-    {
-      id: 2, 
-      type: 'Task', 
-      icon: <FiList />, 
-      author: 'Hiba Zaman', 
-      desc: 'Prepare pricing breakdown — marked complete', 
-      time: 'Yesterday 3:15 PM', 
-      className: 'icon-task', 
-      typeClass: 'type-task'
-    },
-    {
-      id: 3, 
-      type: 'Stage Change', 
-      icon: <FiFolder />, 
-      author: 'System', 
-      desc: 'Deal moved from Demo scheduled to Proposal made',
-      time: 'Apr 22 11:00 AM', 
-      className: 'icon-stage', 
-      typeClass: 'type-stage'
-    },
-    {
-      id: 4, 
-      type: 'Call', 
-      icon: <FiPhone />, 
-      author: 'Hiba Zaman', 
-      desc: 'Discovery call — 22 mins. Budget confirmed for Q3. Decision maker is CFO.',
-      time: 'Apr 21 2:00 PM', 
-      className: 'icon-call', 
-      typeClass: 'type-call'
-    },
-    {
-      id: 5, 
-      type: 'Note', 
-      icon: <FiEdit3 />, 
-      author: 'Hiba Zaman', 
-      desc: 'Client prefers monthly billing. Refer all technical questions to their IT lead.',
-      time: 'Apr 19 10:30 AM', 
-      className: 'icon-note', 
-      typeClass: 'type-note'
-    },
-  ]);
+  const [allInteractions, setAllInteractions] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(5);
+
+  const [documents, setDocuments] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  //GET Request: Load timeline from MongoDB using Axios instance
+  const mapBackendInteractionToMyUI = (interaction) => ({
+    _id: interaction._id,
+    type: interaction.type,
+    desc: interaction.details || interaction.desc || "",
+    author: interaction.author || "Hiba Zaman",
+    createdAt: interaction.date || interaction.createdAt,
+    time: interaction.date || interaction.createdAt,
+  });
+
+  const mapBackendAttachmentToMyUI = (attachment) => ({
+    _id: attachment._id,
+    originalName: attachment.originalName,
+    fileName: attachment.filename || attachment.fileName,
+    filePath: attachment.path || attachment.filePath,
+    fileSize: attachment.size || attachment.fileSize,
+    createdAt: attachment.uploadedAt || attachment.createdAt,
+  });
+
+  const fetchCustomer = async (showLoading = true) => {
+    try {
+      if (showLoading) setLoading(true);
+
+      const res = await api.get(`/customers/${id}`);
+
+      const customerData = res.data;
+      setCustomer(customerData);
+
+      setAllInteractions(
+        (customerData.interactions || []).map(mapBackendInteractionToMyUI)
+        .sort((a, b) => new Date(b.time) - new Date(a.time))
+      );
+
+      setDocuments(
+        (customerData.attachments || []).map(mapBackendAttachmentToMyUI)
+      );
+
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch customer details:", err);
+      setError("Failed to fetch customer details.");
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) fetchCustomer();
+  }, [id]);
+
+  // Helper to dynamically match raw text types to frontend style elements
+  const getStyleConfig = (type) => {
+    switch (type) {
+      case 'Email':
+        return {
+          icon: <FiMail />,
+          className: 'icon-email',
+          typeClass: 'type-email'
+        };
+      case 'Task':
+        return {
+          icon: <FiList />,
+          className: 'icon-task',
+          typeClass: 'type-task'
+        };
+      case 'Call':
+        return {
+          icon: <FiPhone />,
+          className: 'icon-call',
+          typeClass: 'type-call'
+        };
+      case 'Note':
+        return {
+          icon: <FiEdit3 />,
+          className: 'icon-note',
+          typeClass: 'type-note'
+        };
+      case 'Stage Change':
+      default:
+        return {
+          icon: <FiFolder />,
+          className: 'icon-stage',
+          typeClass: 'type-stage'
+        };
+    }
+  };
+
+  const truncateText = (text, maxLength = 120) => {
+    if (!text) return "";
+    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+  };
+
+  const handleCustomerUpdated = () => {
+    fetchCustomer(false);
+  };
 
   // Logic to delete an interaction
-  const handleDelete = (id) => {
+  const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this log?")) {
-      setAllInteractions(allInteractions.filter(item => item.id !== id));
-      setSelectedInteraction(null);
+
+      try{
+        const res = await api.delete(`/interactions/${selectedInteraction._id}`);
+        if (res.data.status === "success") {
+          setAllInteractions((prev) =>
+            prev.filter((interaction) => interaction._id !== selectedInteraction._id)
+          );
+          setSelectedInteraction(null);
+        }
+      } catch (err) {
+        console.error("Failed to delete interaction:", err);
+        alert("Failed to delete interaction.");
+      } 
     }
   };
 
   const handleEditClick = () => {
-    setEditedData(selectedInteraction); // Load current data into the form
+    setEditedData(selectedInteraction);
     setIsEditing(true);
   };
 
@@ -99,15 +174,29 @@ function CustomerProfile() {
   };
 
   // 3. Save changes back to the main list
-  const handleSave = () => {
-    const updatedList = allInteractions.map((item) =>
-      item.id === editedData.id ? editedData : item
-    );
-    
-    setAllInteractions(updatedList); // Update the master list
-    setSelectedInteraction(editedData); // Update current view
-    setIsEditing(false); // Exit edit mode
-  };
+  const handleSave = async () => {
+
+    try {
+      const res = await api.put(`/interactions/${selectedInteraction._id}`, {
+        type: editedData.type,
+        desc: editedData.desc,
+      });
+
+      if (res.data.status === "success") {
+        setAllInteractions((prev) =>
+          prev.map((interaction) =>
+            interaction._id === res.data.data._id ? res.data.data : interaction
+          )
+        );
+
+        setSelectedInteraction(res.data.data);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      console.error("Failed to update interaction:", err);
+      alert("Failed to update interaction.");
+    }
+  }
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -133,50 +222,124 @@ function CustomerProfile() {
     setIsLoggingModalOpen(false);
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    if (file.size > 10000000) {
+      setUploadError("File size exceeds 10MB limit.");
+      e.target.value = "";
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      setUploading(true);
+      setUploadError(null);
+
+      await api.post(`/customers/${id}/files`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      await fetchCustomer(false);
+    } catch (err) {
+      console.error("Failed to upload file:", err);
+      setUploadError(err.response?.data?.message || "Failed to upload file.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDeleteDocument = async (documentId) => {
+    const confirmDelete = window.confirm("Delete this file?");
+    if (!confirmDelete) return;
+
+    try {
+      await api.delete(`/customers/${id}/files/${documentId}`);
+      setDocuments((prev) => prev.filter((doc) => doc._id !== documentId));
+      await fetchCustomer(false);
+    } catch (err) {
+      console.error("Failed to delete file:", err);
+      alert("Failed to delete file.");
+    }
+  };
+
   const handleNewInteractionChange = (e) => {
     const { name, value } = e.target;
     setNewInteractionData({ ...newInteractionData, [name]: value });
   };
 
-  const handleSaveNewInteraction = () => {
-    if (!newInteractionData.desc.trim()) {
-      alert("Please enter a description.");
-      return;
+  const handleSaveNewInteraction = async () => {
+
+    const payload = {
+      type: newInteractionData.type || "Note",
+      details: newInteractionData.desc,
+    };
+
+    try {
+      // 4. Hit the exact same Express endpoint to store it in MongoDB
+      await api.post(`/customers/${id}/interactions`, payload);
+      
+      await fetchCustomer(false);
+
+      setIsLoggingModalOpen(false);  
+      setNewInteractionData({ type: 'Note', desc: '' });
+    } catch (err) {
+      console.error("Failed to save new manual interaction to database:", err);
+      console.error("Backend response:", err.response?.data);
+      console.error("Status:", err.response?.status);
+      alert(err.response?.data?.message || "Server error: Could not save interaction.");
+    }
+  };
+
+  const handleInteraction = async (type) => {
+
+    try {
+      await api.post(`/customers/${id}/interactions`, {
+        type: type,
+        details: `Initiated ${type} contact from Customer Profile`
+      });
+      
+      fetchCustomer(false); // Silent refresh
+    } catch (err) {
+      console.error(`Failed to log ${type} interaction`, err);
+    }
+  };
+
+  const formatInteractionTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+
+    const time = date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).toLowerCase();
+
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const interactionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const diffDays = Math.floor((today - interactionDate) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return `Today ${time}`;
     }
 
-    const typeDetails = {
-      'Email': { icon: <FiMail />, className: 'icon-email', typeClass: 'type-email' },
-      'Call': { icon: <FiPhone />, className: 'icon-call', typeClass: 'type-call' },
-      'Task': { icon: <FiList />, className: 'icon-task', typeClass: 'type-task' },
-      'Note': { icon: <FiEdit3 />, className: 'icon-note', typeClass: 'type-note' },
-    };
+    if (diffDays === 1) {
+      return `Yesterday ${time}`;
+    }
 
-    const details = typeDetails[newInteractionData.type] || typeDetails['Note'];
-
-    const newId = allInteractions.length > 0 ? Math.max(...allInteractions.map(i => i.id)) + 1 : 1;
-    
-    const now = new Date();
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const timeStamp = `Today ${timeString}`;
-
-    const newInteraction = {
-      id: newId,
-      type: newInteractionData.type,
-      icon: details.icon,
-      author: 'Hiba Zaman',
-      desc: newInteractionData.desc,
-      time: timeStamp,
-      className: details.className,
-      typeClass: details.typeClass
-    };
-
-    setAllInteractions([newInteraction, ...allInteractions]);
-    setIsLoggingModalOpen(false);
+    return `${date.getDate()}/${date.getMonth() + 1} ${time}`;
   };
 
   //Logic to filter interactions based on tab
-  const filteredInteractions = allInteractions.filter(item => {
-    if (activeTab === 'Interactions') return true;
+  const filteredInteractions = allInteractions.filter((item) => {
     // Map plural tab names to singular types
     const tabMapping = {
       'Emails': 'Email',
@@ -184,8 +347,25 @@ function CustomerProfile() {
       'Tasks': 'Task',
       'Notes': 'Note'
     };
-    return item.type === tabMapping[activeTab];
+
+    const matchesTab =
+      activeTab === "Interactions" || item.type === tabMapping[activeTab];
+
+    const query = searchQuery.toLowerCase().trim();
+    
+    const matchesSearch =
+      query === "" ||
+      item.type?.toLowerCase().includes(query) ||
+      item.desc?.toLowerCase().includes(query) ||
+      item.author?.toLowerCase().includes(query);
+
+    // return item.type === tabMapping[activeTab];
+    return matchesTab && matchesSearch;
   });
+
+  const visibleInteractions = filteredInteractions.slice(0, visibleCount);
+  const hasMoreInteractions = visibleCount < filteredInteractions.length;
+  const canViewLess = visibleCount > 5;
 
   // Calculate dynamic stats
   const emailCount = allInteractions.filter(i => i.type === 'Email').length;
@@ -206,45 +386,67 @@ function CustomerProfile() {
   // Ensure recentInteractionTime is based on the first element (most recent)
   const recentInteractionTime = allInteractions.length > 0 ? allInteractions[0].time : 'No recent activity';
 
+  if (loading) return <div className="loading-msg">Loading...</div>;
+  if (error) return <div className="error-msg">{error}</div>;
+  if (!customer) return <div className="error-msg">Customer not found.</div>;
+
   return (
-    <div className="customer-profile-container">
+    <div className="customer-detail-page">
+      <div className="customer-detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div>
+          <Link to="/customers" className="back-link">← Back to Customers</Link>
+          <h1>Customer Profile</h1>
+        </div>
+      </div>
+      
+      <div className="customer-profile-container">
 
       {/* LEFT COLUMN */}
       <div className="left-column">
         {/* Profile Card */}
         <div className="profile-card">
-          <div className="avatar-placeholder">
+          {customer.companyLogo ? (
+            <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${customer.companyLogo}`} alt={`${customer.company} logo`} className="profile-logo" />
+          ) : (
             <FiUser className="avatar-icon" />
-          </div>
-          <h2 className="profile-name">John Smith</h2>
-          <p className="profile-subtitle">Procurement Manager ·<br/>GreenWatts Ltd</p>
+          )}
+          <h2 className="profile-name">{customer.fullName}</h2>
+          <p className="profile-subtitle">
+            {customer.designation} ·<br />
+            {customer.company}
+          </p>
           
           <div className="about-account">
             <h3>About account</h3>
             
             <div className="info-group">
               <span className="info-label">Email</span>
-              <span className="info-value email-link">john@greenwatts.com</span>
+              <span className="info-value email-link">{customer.email}</span>
             </div>
             
             <div className="info-group">
               <span className="info-label">Phone</span>
-              <span className="info-value">+60 12 345 6789</span>
+              <span className="info-value">{customer.phone}</span>
             </div>
             
             <div className="info-group">
               <span className="info-label">Company</span>
-              <span className="info-value">GreenWatts Ltd</span>
+              <span className="info-value">{customer.company}</span>
             </div>
             
             <div className="info-group">
               <span className="info-label">Department</span>
-              <span className="info-value">Operations</span>
+              <span className="info-value">{customer.department}</span>
             </div>
             
             <div className="info-group">
               <span className="info-label">Created</span>
-              <span className="info-value">April 1, 2026</span>
+              <span className="info-value">{new Date(customer.createdAt).toLocaleDateString()}</span>
+            </div>
+
+            <div className="profile-actions" style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
+              <button className="add-contact-btn" onClick={() => setIsComposingEmail(true)}>✉️ Email</button>
+              <a className="add-contact-btn" href={`tel:${customer.phone}`} onClick={() => handleInteraction('Call')} style={{flex: 1, textDecoration: 'none', textAlign: 'center', color: '#fff'}}>📞 Call</a>
             </div>
           </div>
         </div>
@@ -305,17 +507,22 @@ function CustomerProfile() {
               </div>
               <div className="insight-row">
                 <span className="insight-label">Last Active:</span>
-                <span className="insight-value">{recentInteractionTime}</span>
+                <span className="insight-value">{formatInteractionTime(recentInteractionTime)}</span>
               </div>
             </div>
           </div>
           
           <div className="header-actions">
             <div className="search-bar">
-              <input type="text" placeholder="Search interactions, notes, email and more..." />
+              <input 
+                type="text" 
+                placeholder="Search interactions, notes, email and more..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
               <FiSearch className="search-icon" />
             </div>
-            <button className="edit-profile-btn">
+            <button className="edit-profile-btn" onClick={() => setIsEditModalOpen(true)}>
               <FiEdit2 className="edit-icon" />
               Edit Profile
             </button>
@@ -343,101 +550,152 @@ function CustomerProfile() {
         <div className="interactions-card">
           <div className="interactions-header">
             <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
-            <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
+            <div style={{display: 'flex', gap: '10px'}}>
+              <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
+                <FiMail /> Send Email
+              </button>
+              <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
+            </div>
           </div>
           
           <div className="interactions-content-layout">
 
             <div className="interactions-list">
-              {filteredInteractions.map((item) => (
-                <div 
-                  className={`interaction-item clickable ${
-                    selectedInteraction?.id === item.id ? 'active-item' : ''
-                  }`}
-                  key={item.id} 
-                  onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
-                >
-                  <div className={`interaction-icon-wrapper ${item.className}`}>{item.icon}</div>
-                  
-                  <div className="interaction-content">
-                    <div className="interaction-meta">
-                      <span className={`interaction-type ${item.typeClass}`}>{item.type}</span>
-                      <span className="interaction-author">by {item.author}</span>
+              {visibleInteractions.map((item) => {
+
+                const config = getStyleConfig(item.type);
+
+                const itemId = item._id || item.id;
+
+                return (
+                  <div 
+                    className={`interaction-item clickable ${selectedInteraction?.id === itemId ? 'active-item' : ''}`}
+                    key={item.id} 
+                    onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
+                  >
+                    {/* Uses the generated icon background wrapper style */}
+                    <div className={`interaction-icon-wrapper ${config.className}`}>
+                      {config.icon}
                     </div>
-                    <p className="interaction-desc">{item.desc}</p>
+
+                    <div className="interaction-content">
+                      <div className="interaction-meta">
+                        <span className={`interaction-type ${config.typeClass}`}>{item.type}</span>
+                        <span className="interaction-author">by {item.author}</span>
+                      </div>
+                      <p className="interaction-desc">{item.desc}</p>
+                    </div>
+                    <div className="interaction-time">{formatInteractionTime(item.time)}</div>
                   </div>
-                  <div className="interaction-time">{item.time}</div>
-                </div>
-              ))}
-          </div> 
-
-          {/* DETAIL VIEW */}
-          {selectedInteraction && (
-            <div className="interaction-detail-inline">
-              <div className="detail-inline-header">
-                <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
-                <button onClick={() => { setSelectedInteraction(null); setIsEditing(false); }} className="close-btn"><FiX /></button>
-              </div>
-              
-              <div className="detail-inline-body">
-                <div className="detail-row">
-                  <strong>Activity:</strong> 
-                  {isEditing ? (
-                    <select name="type" className="edit-select" value={editedData.type} onChange={handleInputChange}>
-                      <option value="Email">Email</option>
-                      <option value="Call">Call</option>
-                      <option value="Task">Task</option>
-                      <option value="Note">Note</option>
-                    </select>
-                  ) : (
-                    <span>{selectedInteraction.type}</span>
-                  )}
-                </div>
-
-                <div className="detail-row">
-                  <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
-                </div>
-                <div className="detail-row">
-                  <strong>Logged:</strong> <span>{selectedInteraction.time}</span>
-                </div>
-                <div style={{ marginTop: '15px' }}>
-                  <strong>Notes:</strong>
-                  {isEditing ? (
-                    <textarea 
-                      name="desc"
-                      value={editedData.desc} 
-                      onChange={handleInputChange}
-                      className="edit-textarea"
-                    />
-                  ) : (
-                    <p style={{ color: '#555', marginTop: '8px', lineHeight: '1.4' }}>
-                      {selectedInteraction.desc}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="detail-inline-footer">
-                {isEditing ? (
-                  <>
-                    <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
-                    <button className="save-btn" onClick={handleSave}>Save Changes</button>
-                  </>
-                ) : (
-                  <>
-                    <button className="delete-btn-action" onClick={() => handleDelete(selectedInteraction.id)}>
-                      <FiTrash2 /> Delete
-                    </button>
-                    <button className="edit-btn-action" onClick={handleEditClick}>
-                      <FiEdit2 /> Edit
-                    </button>
-                  </>
-                )}
-              </div>
+                );
+              })}
             </div>
-          )}
+            
+            {isEditModalOpen && (
+              <AddCustomerModal 
+                onClose={() => setIsEditModalOpen(false)} 
+                onAdd={handleCustomerUpdated}
+                initialData={customer}
+              />
+            )}
+            {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
+            {isComposingEmail ? (
+              <EmailComposer 
+                customerEmail={customer.email}
+                onClose={() => setIsComposingEmail(false)}
+                onEmailSent={async ({ subject, message }) => {
+
+                  try {
+                    // Axios automatically serializes JSON objects
+                    await api.post(`/customers/${id}/interactions`, {
+                      type: "Email",
+                      details: `Sent Email - Subject: ${subject || ""}`,
+                    });
+
+                    await fetchCustomer(false);
+                    setIsComposingEmail(false);
+                  } catch (err) {
+                    console.error("Failed to log email interaction", err);
+                  }
+                }}
+              />
+              ) : selectedInteraction && (
+                <div className="side-panel">
+                  <div className="side-panel-header">
+                    <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
+                    <button onClick={() => { setSelectedInteraction(null); setIsEditing(false); }} className="close-btn"><FiX /></button>
+                  </div>
+              
+                <div className="side-panel-body">
+                  <div className="side-panel-row">
+                    <strong>Activity:</strong> 
+                    {isEditing ? (
+                      <select name="type" className="edit-select" value={editedData.type} onChange={handleInputChange}>
+                        <option value="Email">Email</option>
+                        <option value="Call">Call</option>
+                        <option value="Task">Task</option>
+                        <option value="Note">Note</option>
+                      </select>
+                    ) : (
+                      <span>{selectedInteraction.type}</span>
+                    )}
+                  </div>
+
+                  <div className="side-panel-row">
+                    <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
+                  </div>
+                  <div className="side-panel-row">
+                    <strong>Logged:</strong> <span>{formatInteractionTime(selectedInteraction.time)}</span>
+                  </div>
+                  <div style={{ marginTop: '15px' }}>
+                    <strong>Notes:</strong>
+                    {isEditing ? (
+                      <textarea 
+                        name="desc"
+                        value={editedData.desc} 
+                        onChange={handleInputChange}
+                        className="edit-textarea"
+                      />
+                    ) : (
+                      <p className="detail-notes-text">{selectedInteraction.desc}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="side-panel-footer">
+                  {isEditing ? (
+                    <>
+                      <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                      <button className="save-btn" onClick={handleSave}>Save Changes</button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="delete-btn-action" onClick={handleDelete}>
+                        <FiTrash2 /> Delete
+                      </button>
+                      <button className="edit-btn-action" onClick={handleEditClick}>
+                        <FiEdit2 /> Edit
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-          {activeTab === 'Interactions' && <button className="view-more-btn">View more</button>}
+          {filteredInteractions.length > 5 && (
+            <button
+              className="view-more-btn"
+              onClick={() => {
+                if (hasMoreInteractions) {
+                  setVisibleCount((prev) => prev + 5);
+                } else {
+                  setVisibleCount(5);
+                }
+              }}
+            >
+              {hasMoreInteractions ? "View more" : "View less"}
+            </button>
+          )}
         </div>
 
         
@@ -445,30 +703,51 @@ function CustomerProfile() {
         <div className="files-card">
           <div className="files-header">
             <h3>Files & Documents</h3>
-            <button className="upload-btn">
+            <label className="upload-btn">
               <FiUpload />
               Upload
-            </button>
+              <input type="file" hidden onChange={handleFileUpload} />
+            </label>
           </div>
           
           <div className="files-list">
-            <div className="file-item">
-              <div className="file-info">
-                <span className="file-name">GreenWatts_Proposal_v2.pdf</span>
-                <span className="file-meta">Uploaded Apr 20 - 1.2 MB</span>
-              </div>
-              <button className="download-btn">Download</button>
-            </div>
-            <div className="file-item">
-              <div className="file-info">
-                <span className="file-name">Contract_draft_Apr22.docx</span>
-                <span className="file-meta">Uploaded Apr 20 - 1.2 MB</span>
-              </div>
-              <button className="download-btn">Download</button>
-            </div>
+            {documents.length === 0 ? (
+              <p className="empty-state">No documents uploaded yet.</p>
+            ) : (
+              documents.map((doc) => (
+                <div className="file-item" key={doc._id}>
+                  <div className="file-info">
+                    <span className="file-name">{doc.originalName}</span>
+
+                    <span className="file-meta">
+                      Uploaded {formatInteractionTime(doc.createdAt)} -{" "}
+                      {(doc.fileSize / 1024 / 1024).toFixed(1)} MB
+                    </span>
+                  </div>
+
+                  <div className="file-actions">
+                    <a
+                      href={`${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/customers/${customer._id}/files/${doc._id}/download`}
+                      className="download-btn"
+                    >
+                      Download
+                    </a>
+
+                    <button
+                      type="button"
+                      className="delete-btn-action"
+                      onClick={() => handleDeleteDocument(doc._id)}
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
+    </div>
 
       {/* LOG INTERACTION MODAL */}
       {isLoggingModalOpen && (
