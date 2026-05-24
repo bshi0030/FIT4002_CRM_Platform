@@ -1,19 +1,47 @@
 .customer-profile-container {
   display: flex;
   flex-direction: row;
-  padding: 30px;
+  padding: 5px;
   gap: 20px;
-  height: 100%;
-  /* overflow-y: auto; */
 }
 
 .customer-detail-page {
-  min-height: 100vh;
-  overflow-y: auto;
+  min-height: 100%;
 }
 
 .customer-detail-header {
-  margin-bottom: 30px;
+  padding: 15px 10px 0 10px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Profile action buttons (Email / Call) */
+.profile-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+/* Call button inside profile-actions (anchor styled as button) */
+.call-btn {
+  flex: 1;
+  text-decoration: none;
+  text-align: center;
+  color: #fff;
+}
+
+/* Interaction card action buttons row */
+.interaction-action-btns {
+  display: flex;
+  gap: 10px;
+}
+
+/* Notes block in side panel */
+.side-panel-notes {
+  margin-top: 15px;
 }
 
 .add-contact-btn {
@@ -46,10 +74,10 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  overflow-y: auto;
 }
 
-.profile-card, .linked-deals-card {
+.profile-card,
+.linked-deals-card {
   background: rgba(255, 255, 255, 1);
   border-radius: 24px;
   padding: 30px;
@@ -89,7 +117,8 @@
   line-height: 1.4;
 }
 
-.about-account h3, .linked-deals-card h3 {
+.about-account h3,
+.linked-deals-card h3 {
   font-size: 16px;
   color: var(--text-h);
   margin-bottom: 20px;
@@ -126,7 +155,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border: 1px solid var(--border);
 }
 
@@ -156,8 +185,15 @@
   font-weight: bold;
 }
 
-.status-proposal { background: #ff9800; color: rgba(54, 44, 40, 1); }
-.status-won { background: #64dd17; color: rgba(54, 44, 40, 1); }
+.status-proposal {
+  background: #ff9800;
+  color: rgba(54, 44, 40, 1);
+}
+
+.status-won {
+  background: #64dd17;
+  color: rgba(54, 44, 40, 1);
+}
 
 .deal-arrow-btn {
   background: none;
@@ -186,8 +222,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 .activity-header-area {
@@ -203,7 +238,7 @@
   background: white;
   padding: 20px 25px;
   border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   flex: 1;
   min-width: 250px;
 }
@@ -242,9 +277,17 @@
   color: rgba(54, 44, 40, 1);
 }
 
-.pill-emails { background: #ebccaf; }
-.pill-calls { background: #ffea00; }
-.pill-tasks { background: #c6ff00; }
+.pill-emails {
+  background: #ebccaf;
+}
+
+.pill-calls {
+  background: #ffea00;
+}
+
+.pill-tasks {
+  background: #c6ff00;
+}
 
 .header-actions {
   display: flex;
@@ -299,7 +342,7 @@
 .tabs-container {
   display: flex;
   gap: 25px;
-  border-bottom: 2px solid rgba(0,0,0,0.1);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   padding-bottom: 10px;
 }
@@ -331,25 +374,29 @@
 }
 
 /* INTERACTIONS LIST */
-.interactions-card, .files-card {
+.interactions-card,
+.files-card {
   background: rgba(255, 255, 255, 0.6);
   border-radius: 20px;
   padding: 25px;
   margin-bottom: 20px;
 }
 
-.interactions-header, .files-header {
+.interactions-header,
+.files-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.interactions-header h3, .files-header h3 {
+.interactions-header h3,
+.files-header h3 {
   color: var(--text-h);
 }
 
-.log-interaction-btn, .upload-btn {
+.log-interaction-btn,
+.upload-btn {
   background: transparent;
   border: 1px solid var(--text-h);
   color: var(--text-h);
@@ -375,7 +422,7 @@
   background: white;
   border-radius: 12px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
 }
 
 
@@ -394,11 +441,30 @@
   height: 18px;
 }
 
-.icon-email { background: #ffe4cc; color: #d88133; }
-.icon-task { background: #e0f2c4; color: #7cb342; }
-.icon-stage { background: #dcdcdc; color: var(--text); }
-.icon-call { background: #fff59d; color: #fbc02d; }
-.icon-note { background: #fff9c4; color: #cddc39; }
+.icon-email {
+  background: #ffe4cc;
+  color: #d88133;
+}
+
+.icon-task {
+  background: #e0f2c4;
+  color: #7cb342;
+}
+
+.icon-stage {
+  background: #dcdcdc;
+  color: var(--text);
+}
+
+.icon-call {
+  background: #fff59d;
+  color: #fbc02d;
+}
+
+.icon-note {
+  background: #fff9c4;
+  color: #cddc39;
+}
 
 .interaction-content {
   flex: 1;
@@ -418,11 +484,30 @@
   font-weight: bold;
 }
 
-.type-email { background: #ffe4cc; color: rgba(54, 44, 40, 1); }
-.type-task { background: #e0f2c4; color: rgba(54, 44, 40, 1); }
-.type-stage { background: #dcdcdc; color: rgba(54, 44, 40, 1); }
-.type-call { background: #fff59d; color: rgba(54, 44, 40, 1); }
-.type-note { background: #fff9c4; color: rgba(54, 44, 40, 1); }
+.type-email {
+  background: #ffe4cc;
+  color: rgba(54, 44, 40, 1);
+}
+
+.type-task {
+  background: #e0f2c4;
+  color: rgba(54, 44, 40, 1);
+}
+
+.type-stage {
+  background: #dcdcdc;
+  color: rgba(54, 44, 40, 1);
+}
+
+.type-call {
+  background: #fff59d;
+  color: rgba(54, 44, 40, 1);
+}
+
+.type-note {
+  background: #fff9c4;
+  color: rgba(54, 44, 40, 1);
+}
 
 .interaction-author {
   font-size: 12px;
@@ -552,11 +637,15 @@
   gap: 5px;
 }
 
-.edit-input, .edit-textarea, .edit-select {
+.edit-input,
+.edit-textarea,
+.edit-select {
   font-family: inherit;
   font-size: inherit;
-  color: #555; /* Match the text color from image_1f7095.png */
-  background: #f9f9f9; /* Very light gray instead of black */
+  color: #555;
+  /* Match the text color from image_1f7095.png */
+  background: #f9f9f9;
+  /* Very light gray instead of black */
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 2px 6px;
@@ -568,7 +657,8 @@
   min-height: 80px;
   display: block;
   margin-top: 10px;
-  resize: none; /* Prevents user from breaking layout */
+  resize: none;
+  /* Prevents user from breaking layout */
 }
 
 .save-btn {
@@ -586,7 +676,8 @@
 
 .cancel-btn {
   background-color: white;
-  color: #d9534f; /* Red to match Delete theme */
+  color: #d9534f;
+  /* Red to match Delete theme */
   border: 1px solid #f8d7da;
   padding: 8px 20px;
   border-radius: 10px;
@@ -627,12 +718,12 @@
   flex: 0 0 40%;
   max-width: 650px;
   min-width: 350px;
-  
+
   background: white;
   border: 1px solid #ddd;
   border-radius: 15px;
   padding: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   animation: fadeIn 0.2s ease-in-out;
 }
 
@@ -666,7 +757,7 @@
   max-width: 500px;
   border-radius: 20px;
   padding: 25px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   animation: slideUp 0.3s ease-out;
 }
 
@@ -720,20 +811,32 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ENGAGEMENT INSIGHTS */
 .engagement-insights {
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -764,6 +867,21 @@
   font-weight: bold;
 }
 
-.engagement-high { background: #c6ff00; color: rgba(54, 44, 40, 1); } /* Matching tasks pill green */
-.engagement-medium { background: #ffea00; color: rgba(54, 44, 40, 1); } /* Matching calls pill yellow */
-.engagement-low { background: #ebccaf; color: rgba(54, 44, 40, 1); } /* Matching emails pill peach */
+.engagement-high {
+  background: #c6ff00;
+  color: rgba(54, 44, 40, 1);
+}
+
+/* Matching tasks pill green */
+.engagement-medium {
+  background: #ffea00;
+  color: rgba(54, 44, 40, 1);
+}
+
+/* Matching calls pill yellow */
+.engagement-low {
+  background: #ebccaf;
+  color: rgba(54, 44, 40, 1);
+}
+
+/* Matching emails pill peach */

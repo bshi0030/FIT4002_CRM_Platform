@@ -392,7 +392,7 @@ function CustomerProfile() {
 
   return (
     <div className="customer-detail-page">
-      <div className="customer-detail-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+      <div className="customer-detail-header">
         <div>
           <Link to="/customers" className="back-link">← Back to Customers</Link>
           <h1>Customer Profile</h1>
@@ -444,9 +444,9 @@ function CustomerProfile() {
               <span className="info-value">{new Date(customer.createdAt).toLocaleDateString()}</span>
             </div>
 
-            <div className="profile-actions" style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
+            <div className="profile-actions">
               <button className="add-contact-btn" onClick={() => setIsComposingEmail(true)}>✉️ Email</button>
-              <a className="add-contact-btn" href={`tel:${customer.phone}`} onClick={() => handleInteraction('Call')} style={{flex: 1, textDecoration: 'none', textAlign: 'center', color: '#fff'}}>📞 Call</a>
+              <a className="add-contact-btn call-btn" href={`tel:${customer.phone}`} onClick={() => handleInteraction('Call')}>📞 Call</a>
             </div>
           </div>
         </div>
@@ -550,7 +550,7 @@ function CustomerProfile() {
         <div className="interactions-card">
           <div className="interactions-header">
             <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
-            <div style={{display: 'flex', gap: '10px'}}>
+            <div className="interaction-action-btns">
               <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
                 <FiMail /> Send Email
               </button>
@@ -647,7 +647,7 @@ function CustomerProfile() {
                   <div className="side-panel-row">
                     <strong>Logged:</strong> <span>{formatInteractionTime(selectedInteraction.time)}</span>
                   </div>
-                  <div style={{ marginTop: '15px' }}>
+                  <div className="side-panel-notes">
                     <strong>Notes:</strong>
                     {isEditing ? (
                       <textarea 
