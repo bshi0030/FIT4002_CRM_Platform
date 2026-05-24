@@ -498,37 +498,43 @@
     color: #777;
 }
 
-/* NOTE SECTION */
-.note-controls {
+.pipeline-box {
+    background: #f4ef9d;
+    border-radius: 18px;
+    padding: 24px;
+
     display: flex;
-    gap: 14px;
+    justify-content: space-between;
     align-items: center;
+    gap: 20px;
+
+    flex-wrap: wrap;
 }
 
-.note-select {
-    min-width: 100px;
-    height: 46px;
-
-    border-radius: 12px;
-    border: 1px solid #d7b08a;
-
-    background: white;
-    padding: 0 14px;
-
-    font-size: 14px;
+.pipeline-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
-.note-input {
-    flex: 1;
-    height: 46px;
-
-    border-radius: 12px;
-    border: 1px solid #d7b08a;
-
+.pipeline-link {
     background: white;
-    padding: 0 16px;
+    padding: 10px 16px;
+    border-radius: 12px;
 
-    font-size: 14px;
+    text-decoration: none;
+    color: #222;
+    font-weight: 700;
+
+    border: 1px solid #ddd;
+
+    transition: 0.2s ease;
+}
+
+.pipeline-link:hover {
+    transform: translateY(-2px);
+    background: #fafafa;
 }
 
 /* TIMELINE */
