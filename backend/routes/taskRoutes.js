@@ -1,5 +1,6 @@
 const express = require("express");
 
+const Notification = require("../models/Notification");
 
 const router = express.Router();
 
@@ -13,6 +14,7 @@ router.get("/", requireAuth, async (req, res) => {
 
   try {
 
+    
     const tasks = await Task.find({
       assignedTo: req.user._id
     })
