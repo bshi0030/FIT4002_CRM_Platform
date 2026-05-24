@@ -70,6 +70,8 @@ app.use('/api/deals', dealRoutes)
 const taskRoutes = require('./routes/taskRoutes')
 app.use('/api/tasks', taskRoutes)
 
+app.use("/api/notifications", require("./routes/notificationsRoutes"));
+
 const PORT = process.env.PORT || 5001
 // Global Error Handler
 app.use((err, req, res, next) => {

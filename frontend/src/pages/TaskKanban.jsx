@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, Building2, Calendar, Users } from 'lucide-react';
+import NotificationPopup from "./NotificationPopup";
+import { getNotifications } from "../api/notifications";
 
 import {
   Select,
@@ -28,6 +30,12 @@ const TaskKanban = () => {
   const [filterPriority, setFilterPriority] = useState("all");
   const [selectedTask, setSelectedTask] = useState(null);
   const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+
+  
+  const unreadCount =
+  notifications.filter(n => !n.read).length;
 
 
   // PRIORITY COLORS
@@ -85,13 +93,19 @@ const TaskKanban = () => {
     return matchesSearch && matchesPriority;
   });
 
-  useEffect(() => {
+useEffect(() => {
+
   getTasks()
     .then(data => {
       console.log("TASKS FROM API:", data);
       setTasks(data);
     })
     .catch(err => console.error("API ERROR:", err));
+
+  getNotifications()
+    .then(data => setNotifications(data))
+    .catch(err => console.error(err));
+
 }, []);
 
   return (
@@ -104,6 +118,12 @@ const TaskKanban = () => {
           onClose={() => setSelectedTask(null)}
         />
       )}
+
+      {showNotifications && (
+  <NotificationPopup
+    onClose={() => setShowNotifications(false)}
+  />
+)}
 
       {/* NAVBAR */}
       <div className="task-navbar">
@@ -136,10 +156,15 @@ const TaskKanban = () => {
           </SelectContent>
         </Select>
 
-        <div className="notification-wrapper">
-          <Bell size={20} />
-          <span className="notif-indicator"></span>
-        </div>
+<div
+  className="notification-wrapper"
+  onClick={() => setShowNotifications(true)}
+>
+  <Bell size={20} />
+  {unreadCount > 0 && (
+  <span className="notif-indicator"></span>
+)}
+</div>
 
       </div>
 
