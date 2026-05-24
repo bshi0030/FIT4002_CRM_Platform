@@ -1,0 +1,637 @@
+.task-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    gap: 20px;
+    padding: 20px;
+}
+
+.task-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; 
+    gap: 15px;
+    width: 100%;
+    padding: 10px 20px; 
+    box-sizing: border-box;
+    position: relative; 
+    z-index: 50; 
+}
+
+[data-radix-select-content] {
+    padding: 8px !important;
+    min-width: 160px !important;
+    background-color: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+    z-index: 100;
+}
+
+.SelectItem {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.search-wrapper {
+    position: relative;
+    max-width: 600px;
+}
+
+.search-icon-svg {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+.search-input-field {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    border-radius: 25px;
+    background: #e0e0e0;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+/* Kanban Board Layout */
+.kanban-board-gradient {
+    flex-grow: 1;
+    border-radius: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, #e9ff6b 0%, #fdd780 40%, #ffffff 100%);
+    overflow: hidden;
+}
+
+.columns-wrapper {
+    display: flex;
+    gap: 25px;
+    height: 100%;
+    overflow-x: auto;
+}
+
+.kanban-column {
+    flex: 1;
+    min-width: 300px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.column-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.cards-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Task Card Styling */
+.task-card-item {
+    background: #fdf5d6;
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.task-text-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.prio-tag {
+    font-size: 9px;
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+}
+
+.prio-high { background: #d00000; color: white; }
+.prio-medium { background: #e67e22; color: white; }
+.prio-low { background: #2ecc71; color: black; }
+
+.card-body {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.date-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #888;
+}
+
+.date-overdue {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.collab-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #444;
+}
+
+.collab-plus {
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Notification Styling */
+.notification-wrapper {
+    position: relative;
+    background: #e0e0e0;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.notif-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: #ff4d4d;
+    border-radius: 50%;
+    border: 2px solid #e0e0e0;
+}
+
+
+.task-navbar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    position: relative; 
+    z-index: 50; 
+}
+
+
+.dropdown-trigger-custom {
+    width: 180px !important;
+    height: 42px !important;
+    border-radius: 9999px !important;
+    background-color: #e1e1e1 !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+
+.dropdown-content-custom {
+    background-color: white !important;
+    border-radius: 16px !important;
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    padding: 8px !important;
+    min-width: 180px !important;
+    z-index: 1000 !important;
+}
+
+/* Ensure items inside have room */
+[data-radix-collection-item] {
+    padding: 10px 12px !important;
+    margin: 2px 0 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Hover state for dropdown items */
+[data-radix-collection-item]:hover {
+    background-color: #f3f4f6 !important;
+    outline: none !important;
+}
+
+/* Search bar styling */
+.search-wrapper {
+    position: relative;
+    flex-grow: 1;
+}
+
+.search-input-field {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    border-radius: 25px;
+    background: #e0e0e0;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+/* The gradient board*/
+.kanban-board-gradient {
+    flex-grow: 1;
+    border-radius: 40px;
+    padding: 30px;
+    background: linear-gradient(135deg, #e9ff6b 0%, #fdd780 40%, #ffffff 100%);
+    overflow: hidden;
+    position: relative;
+    z-index: 1; 
+}
+/* The semi-transparent background that covers the board */
+.task-detail-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: flex-end; /* This pushes the content to the right */
+    z-index: 2000;
+}
+
+/* The actual white panel */
+.task-detail-panel {
+    width: 550px;
+    height: 100%;
+    background: #fdfdf7; /* Light cream to match your theme */
+    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    animation: slideLeft 0.3s ease-out; /* Smooth slide-in effect */
+}
+
+@keyframes slideLeft {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #888;
+}
+
+.detail-header h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 35px;
+}
+
+.detail-item label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    color: #999;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.item-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+/* OVERLAY */
+.task-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: flex-end;
+    z-index: 2000;
+}
+
+/* SIDE PANEL */
+.task-detail-panel {
+    width: 620px;
+    height: 100vh;
+    background: #f8f8f3;
+    padding: 38px;
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+
+    box-shadow: -10px 0 30px rgba(0,0,0,0.12);
+
+    animation: slideLeft 0.25s ease;
+}
+
+@keyframes slideLeft {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* CLOSE BUTTON */
+.close-btn {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #777;
+}
+
+/* HEADER */
+.detail-header {
+    padding-right: 40px;
+}
+
+.detail-header h2 {
+    font-size: 2rem;
+    line-height: 1.2;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+.subtitle {
+    font-size: 15px;
+    line-height: 1.5;
+    color: #666;
+}
+
+/* INFO GRID */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px 40px;
+}
+
+.detail-item label,
+.pipeline-section label,
+.activity-section label,
+.note-section label {
+    display: block;
+
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: #888;
+
+    margin-bottom: 10px;
+}
+
+/* CONTENT */
+.item-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+}
+
+/* ASSIGNEES */
+.assignee-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.assignee-pill {
+    background: #efe17b;
+    padding: 8px 14px;
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* PRIORITY */
+.priority-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px 12px;
+    border-radius: 8px;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* PIPELINE */
+.pipeline-box {
+    background: #f4ef9d;
+    border-radius: 18px;
+    padding: 24px;
+
+    font-size: 16px;
+    line-height: 1.7;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    flex-wrap: wrap;
+}
+
+.pipeline-arrow {
+    font-size: 22px;
+    color: #777;
+}
+
+.pipeline-box {
+    background: #f4ef9d;
+    border-radius: 18px;
+    padding: 24px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+
+    flex-wrap: wrap;
+}
+
+.pipeline-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pipeline-link {
+    background: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+
+    text-decoration: none;
+    color: #222;
+    font-weight: 700;
+
+    border: 1px solid #ddd;
+
+    transition: 0.2s ease;
+}
+
+.pipeline-link:hover {
+    transform: translateY(-2px);
+    background: #fafafa;
+}
+
+/* TIMELINE */
+.timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.timeline-card {
+    background: #f4efad;
+    border-radius: 18px;
+    padding: 18px;
+
+    display: flex;
+    gap: 16px;
+}
+
+.timeline-icon {
+    min-width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+    background: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #444;
+}
+
+.timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.timeline-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 12px;
+    color: #777;
+    font-weight: 700;
+}
+
+.timeline-message {
+    font-size: 15px;
+    font-weight: 600;
+    color: #222;
+}
+
+/* FOOTER */
+.detail-footer {
+    margin-top: auto;
+
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.btn-email,
+.btn-profile {
+    flex: 1;
+    height: 54px;
+
+    border-radius: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+.btn-email {
+    background: #efb37b;
+    border: none;
+}
+
+.btn-email:hover {
+    transform: translateY(-1px);
+}
+
+.btn-profile {
+    background: white;
+    border: 1px solid #d6d6d6;
+}
+
+.btn-profile:hover {
+    background: #fafafa;
+}

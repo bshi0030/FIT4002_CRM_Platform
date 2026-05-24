@@ -1,0 +1,84 @@
+.app-layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #cfcfcf;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.app-sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: hsl(0, 0%, 81%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: #cfcfcf;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-wrapper {
+  padding-top: 36px;
+  width: 100%;
+}
+
+.menu-title {
+  font-size: 22px;
+  color: #555;
+  margin-left: 16px;
+  margin-bottom: 34px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.menu-item {
+  height: 52px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding-left: 16px;
+  font-size: 18px;
+  color: #555;
+  cursor: pointer;
+  transition: 0.2s;
+  width: 100%;
+  display: block;
+}
+
+.menu-item:hover {
+  background: linear-gradient(to right, #e9ff6b, #d7e682, #bdbdbd);
+}
+
+.menu-item.active {
+  background: linear-gradient(to right, #e9ff6b, #d7e682, #bdbdbd);
+  color: #555;
+  font-weight: bold;
+}

@@ -1,0 +1,354 @@
+/* PIPELINE PAGE LAYOUT */
+.pipeline-page {
+  display: flex;
+  flex-direction: row;
+  gap: clamp(8px, 1.2vw, 14px);
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+/* LEFT WON/LOST PANEL */
+.wonlost-panel {
+  width: clamp(140px, 14vw, 200px);
+  flex-shrink: 0;
+  background: #e1e0e0;
+  border-radius: clamp(16px, 2vw, 30px);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
+  gap: clamp(10px, 1.5vw, 16px);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.wonlost-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.wonlost-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.wonlost-line {
+  flex: 1;
+  height: 1px;
+  background: #a0a0a0;
+}
+
+.wonlost-text {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: clamp(14px, 1.5vw, 20px);
+  color: #6a6a6a;
+  white-space: nowrap;
+}
+
+.wonlost-box {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  background: #c7c7c7;
+  border-radius: clamp(14px, 2vw, 30px);
+  width: 100%;
+}
+
+.wonlost-box .deal-card {
+  width: 80%;
+  margin: 0 auto;
+}
+
+.wonlost-arrow {
+  text-align: center;
+  font-size: clamp(14px, 1.5vw, 20px);
+  color: #a0a0a0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* MAIN GRADIENT BOX */
+.pipeline-gradient-box {
+  flex: 1;
+  border-radius: clamp(16px, 2vw, 30px);
+  padding: clamp(16px, 2vw, 28px) clamp(14px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2vw, 20px);
+  background: linear-gradient(
+    to bottom right,
+    #e9ff6b 0%,
+    #f0f8c3 15%,
+    #fdd780 40%,
+    #f7e99a 60%,
+    #f2ecab 75%,
+    #edebcf 88%,
+    #ffffff 100%
+  );
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* SALES PIPELINE TITLE */
+.pipeline-title {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+  font-size: clamp(26px, 3.5vw, 45px) !important;
+  color: #362c28 !important;
+  margin: 0 !important;
+  letter-spacing: normal !important;
+  flex-shrink: 0;
+}
+
+/* STAGE COLUMNS ROW */
+.pipeline-stages {
+  display: flex;
+  flex-direction: row;
+  gap: clamp(6px, 1vw, 12px);
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  align-items: stretch;
+}
+
+/* INDIVIDUAL STAGE COLUMN */
+.stage-column {
+  flex: 1;
+  min-width: 140px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: clamp(14px, 2vw, 30px);
+  display: flex;
+  flex-direction: column;
+  padding: clamp(10px, 1.5vw, 16px) clamp(8px, 1vw, 12px);
+  gap: clamp(8px, 1vw, 12px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* STAGE HEADER ROW */
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 0.8vw, 8px);
+  flex-shrink: 0;
+}
+
+/* STAGE DOT */
+.stage-dot {
+  width: clamp(12px, 1.2vw, 18px);
+  height: clamp(12px, 1.2vw, 18px);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* STAGE NAME */
+.stage-name {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: clamp(12px, 1.3vw, 18px);
+  color: #000000;
+  white-space: nowrap;
+}
+
+/* CARDS AREA INSIDE COLUMN */
+.stage-cards-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pipeline-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.btn-add-lead {
+  background: #362c28;
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  height: 42px;
+}
+
+.btn-add-lead:hover {
+  background: #1a1410;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 28px;
+  width: 400px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-title {
+  font-family: "Inter", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #362c28;
+  margin: 0;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-label {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555555;
+}
+
+.modal-input {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  outline: none;
+  color: #362c28;
+}
+
+.modal-input:focus {
+  border-color: #362c28;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid #cccccc;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555555;
+}
+
+.btn-submit {
+  background: #362c28;
+  color: #ffffff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Deal History button */
+.pipeline-title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.btn-deal-history {
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  color: #444;
+}
+
+.btn-deal-history:hover {
+  background: #f0f0f0;
+}
+
+/* History modal */
+.history-modal {
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.history-log-list {
+  overflow-y: auto;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.history-log-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #f7f7f7;
+  border-left: 3px solid #4dc9c9;
+}
+
+.history-log-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.history-log-deal {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.history-log-change {
+  font-size: 12px;
+  color: #555;
+}
