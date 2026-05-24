@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Bell, Building2, Calendar, Users } from 'lucide-react';
+
 import {
   Select,
   SelectContent,
@@ -7,9 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import "../styles/TaskBoard.css";
-import { getTasks } from "../api/tasks";
 
+import "../styles/TaskBoard.css";
+import TaskDetail from "./TaskDetail";
+import {
+  getTasks,
+  updateTaskStatus
+} from "../api/tasks";
 
 const COLUMNS = [
   { id: "todo", name: "To Do" },
@@ -21,36 +26,55 @@ const TaskKanban = () => {
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPriority, setFilterPriority] = useState("all");
+  const [selectedTask, setSelectedTask] = useState(null);
   const [draggedTaskId, setDraggedTaskId] = useState(null);
 
 
   // PRIORITY COLORS
   const getPriorityClass = (priority) => {
     switch (priority) {
-      case 'High': return 'prio-high';
-      case 'Medium': return 'prio-medium';
-      case 'Low': return 'prio-low';
-      default: return '';
+      case "High":
+        return "prio-high";
+
+      case "Medium":
+        return "prio-medium";
+
+      case "Low":
+        return "prio-low";
+
+      default:
+        return "";
     }
   };
 
-  // DRAG START
   const handleDragStart = (taskId) => {
     setDraggedTaskId(taskId);
   };
 
-  // DROP
-  const handleDrop = (newStatus) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task._id === draggedTaskId
-          ? { ...task, status: newStatus }
-          : task
-      )
-    );
-  };
+  const handleDrop = async (newStatus) => {
 
-  // FILTERING
+    try {
+      setTasks(prev =>
+        prev.map(task =>
+          task._id === draggedTaskId
+            ? { ...task, status: newStatus }
+            : task
+        )
+      )
+      await updateTaskStatus(
+        draggedTaskId,
+        newStatus
+      )
+    } catch (err) {
+      console.error(
+        "Failed to update task",
+        err
+      )
+
+    }
+
+  }
+
   const filteredTasks = tasks.filter(task => {
     const matchesSearch =
   (task.title ?? "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -73,11 +97,20 @@ const TaskKanban = () => {
   return (
     <div className="task-container">
 
-      {/* TOP NAVBAR */}
+      {/* POPUP */}
+      {selectedTask && (
+        <TaskDetail
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
+
+      {/* NAVBAR */}
       <div className="task-navbar">
 
         <div className="search-wrapper">
           <Search className="search-icon-svg" size={18} />
+
           <input
             type="text"
             placeholder="Search for task names..."
@@ -87,10 +120,14 @@ const TaskKanban = () => {
           />
         </div>
 
-        <Select onValueChange={(value) => setFilterPriority(value)} defaultValue="all">
+        <Select
+          onValueChange={(value) => setFilterPriority(value)}
+          defaultValue="all"
+        >
           <SelectTrigger className="dropdown-trigger-custom">
             <SelectValue placeholder="Priority" />
           </SelectTrigger>
+
           <SelectContent className="dropdown-content-custom">
             <SelectItem value="all">All Priorities</SelectItem>
             <SelectItem value="high">High</SelectItem>
@@ -100,13 +137,13 @@ const TaskKanban = () => {
         </Select>
 
         <div className="notification-wrapper">
-          <Bell size={20} className="bell-icon" />
+          <Bell size={20} />
           <span className="notif-indicator"></span>
         </div>
 
       </div>
 
-      {/* KANBAN BOARD */}
+      {/* BOARD */}
       <div className="kanban-board-gradient">
 
         <div className="columns-wrapper">
@@ -118,32 +155,44 @@ const TaskKanban = () => {
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(column.id)}
             >
-              <h2 className="column-title">{column.name}</h2>
+
+              <h2 className="column-title">
+                {column.name}
+              </h2>
 
               <div className="cards-stack">
 
                 {filteredTasks
                   .filter(task => task.status === column.id)
                   .map(task => (
+
                     <div
                       key={task._id}
                       className="task-card-item"
                       draggable
                       onDragStart={() => handleDragStart(task._id)}
+                      onClick={() => setSelectedTask(task)}
                     >
 
                       <div className="card-header">
-                        <h3 className="task-text-title">{task.title}</h3>
+
+                        <h3 className="task-text-title">
+                          {task.title}
+                        </h3>
+
                         <span className={`prio-tag ${getPriorityClass(task.priority)}`}>
                           {task.priority}
                         </span>
+
                       </div>
 
                       <div className="card-body">
-                        <Building2 size={14} /> {task.company}
+                        <Building2 size={14} />
+                        {task.company}
                       </div>
 
                       <div className="card-footer">
+
                         <div className={`date-info ${task.overdue ? 'date-overdue' : ''}`}>
                           <Calendar size={14} /> {new Date(task.dueDate).toLocaleDateString()} {task.overdue && "(Overdue)"}
                         </div>
@@ -156,23 +205,22 @@ const TaskKanban = () => {
                             </span>
                           </div>
                         )}
+
                       </div>
 
                     </div>
+
                   ))}
 
-                {filteredTasks.filter(t => t.status === column.id).length === 0 && (
-                  <p className="text-xs text-gray-400 italic text-center mt-4">
-                    No tasks found
-                  </p>
-                )}
-
               </div>
+
             </div>
           ))}
 
         </div>
+
       </div>
+
     </div>
   );
 };
