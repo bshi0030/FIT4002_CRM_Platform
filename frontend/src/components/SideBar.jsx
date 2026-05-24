@@ -1,12 +1,17 @@
 import Menu from "./Menu";
 
-function Sidebar({ currentPage, setCurrentPage }) {
+function Sidebar() {
   return (
     <aside className="sidebar">
+
       <div className="menu-wrapper">
+
         <h2 className="menu-title">Menu</h2>
-        <Menu currentPage={currentPage} setCurrentPage={setCurrentPage} />
+
+        <Menu />
+
       </div>
+
     </aside>
   );
 }
