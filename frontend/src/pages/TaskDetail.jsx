@@ -210,81 +210,74 @@ const TaskDetail = ({ task, onClose }) => {
 
         </div>
 
-        {/* TIMELINE */}
-        <div className="activity-section">
+{/* TIMELINE */}
+<div className="activity-section">
 
-          <label>ACTIVITY TIMELINE</label>
+  <label>ACTIVITY TIMELINE</label>
 
-          {task.activities?.length > 0 ? (
+  {task.customer?.interactions?.length > 0 ? (
+    <div className="timeline-list">
 
-            task.activities.map((activity, index) => (
+      {task.customer.interactions
+        .slice()
+        .reverse()
+        .map((activity, index) => (
 
-              <div
-                key={index}
-                className="activity-item" 
-              >
+          <div key={index} className="timeline-card">
 
-                <div className="activity-icon">
+            <div className="timeline-icon">
+              {activity.type === "Call" ? (
+                <Phone size={16} />
+              ) : (
+                <Mail size={16} />
+              )}
+            </div>
 
-                  {activity.type === "CALL" ? (
-                    <Phone size={14} />
-                  ) : (
-                    <Mail size={14} />
-                  )}
+            <div className="timeline-content">
 
-                </div>
-
-                <div className="activity-content">
-
-                  <div className="activity-top">
-
-                    <strong>{activity.type}</strong>
-
-                    <span className="activity-date">
-                      {activity.date}
-                    </span>
-
-                  </div>
-
-                  <div className="activity-text">
-                    {activity.text}
-                  </div>
-
-                </div>
-
+              <div className="timeline-top">
+                <span>{activity.type}</span>
+                <span>
+                  {new Date(activity.date).toLocaleDateString()}
+                </span>
               </div>
 
-            ))
+              <div className="timeline-message">
+                {activity.details}
+              </div>
 
-          ) : (
+            </div>
 
-            <p>No activities yet</p>
+          </div>
 
-          )}
+        ))}
 
-        </div>
+    </div>
 
-        {/* FOOTER */}
-        <footer className="detail-footer">
+  ) : (
+    <p>No activities yet</p>
+  )}
 
-          <button className="btn-email">
+</div>
+{/* FOOTER */}
+<footer className="detail-footer">
 
-            <Mail size={16} />
+  <button className="btn-email">
+    <Mail size={16} />
+    Send Email
+  </button>
 
-            Send Email
+  {task.customer && (
+    <Link
+      to={`/customers/${task.customer._id}`}
+      className="btn-profile"
+    >
+      <ExternalLink size={16} />
+      View Profile
+    </Link>
+  )}
 
-          </button>
-
-          <button className="btn-profile">
-
-            <ExternalLink size={16} />
-
-            View Profile
-
-          </button>
-
-        </footer>
-
+</footer>
       </div>
 
     </div>
