@@ -106,4 +106,24 @@ router.patch('/:id/outcome', requireAuth, async (req, res) => {
   }
 })
 
+// DELETE deal
+router.delete('/:id', requireAuth, requireRole('User', 'Admin'), async (req, res) => {
+  try {
+    const deal = await Deal.findById(req.params.id)
+    if (!deal) return res.status(404).json({ message: 'Deal not found' })
+
+    deal.statusLogs.push({
+      fromStage: deal.stage,
+      toStage: 'Deleted',
+      changedBy: req.user._id
+    })
+
+    await deal.save()
+    await Deal.findByIdAndDelete(req.params.id)
+    res.json({ message: 'Deal deleted', log: deal.statusLogs.at(-1), dealName: deal.name })
+  } catch {
+    res.status(500).json({ message: 'Failed to delete deal' })
+  }
+})
+
 module.exports = router
