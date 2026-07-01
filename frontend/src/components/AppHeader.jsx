@@ -17,7 +17,7 @@ export default function AppHeader({actions, className}) {
                 <img
                     src={logo}
                     alt="NexGen CRM"
-                    className="h-20 w-36 object-contain"
+                    className="h-22 w-36 object-contain"
                 />
                 <div className="h-12 w-px" style={{ background: 'rgba(234,246,255,0.25)' }}/>
                 <p className="text-base font-semibold" style={{ color: '#EAF6FF' }}>
