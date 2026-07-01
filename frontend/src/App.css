@@ -6,7 +6,8 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background: #cfcfcf;
+  background: #27284d url("/src/assets/crm-background.png") center center /
+    cover no-repeat fixed;
   height: 100vh;
   width: 100vw;
   overflow: auto;
@@ -17,14 +18,14 @@ body {
   display: flex;
   width: 100vw;
   min-height: 100vh;
-  background: #cfcfcf;
+  background: transparent;
   overflow: hidden;
 }
 
 /* SIDEBAR */
 .sidebar {
   width: 200px;
-  background: hsl(0, 0%, 81%);
+  background: transparent;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -60,7 +61,7 @@ body {
 
 .logo-text p {
   font-size: 16px;
-  color: #444;
+  color: #eaf6ff;
   margin-top: 0;
   white-space: nowrap;
   margin-left: -30px;
@@ -76,7 +77,7 @@ body {
 /* MENU TITLE */
 .menu-title {
   font-size: 22px;
-  color: #555;
+  color: #eaf6ff;
   margin-left: 16px;
   margin-bottom: 34px;
 }
@@ -97,7 +98,7 @@ body {
   text-align: left;
   padding-left: 16px;
   font-size: 18px;
-  color: #555;
+  color: #eaf6ff;
   cursor: pointer;
   transition: 0.2s;
   width: 100%;
@@ -105,17 +106,12 @@ body {
 }
 
 .menu-item:hover {
-  background: linear-gradient(to left, #e9ff6b, #d7e682, #bdbdbd);
+  background: linear-gradient(to right, #2d20ba, rgba(255, 255, 255, 0));
 }
 
 .menu-item.active {
-  background: linear-gradient(
-    90deg,
-    #e9ff6b 16.71%,
-    #d7e682 55.67%,
-    #bdbdbd 100%
-  );
-  color: #555;
+  background: linear-gradient(to right, #2d20ba, rgba(255, 255, 255, 0));
+  color: #ffffff;
   font-weight: bold;
 }
 
@@ -136,13 +132,14 @@ body {
   padding-right: 22px;
   flex-shrink: 0;
   gap: 15px;
+  background: transparent;
 }
 
 .user-icon-wrapper {
   width: 40px;
   height: 40px;
-  background: #fdf5d3;
-  border: 2px solid #333;
+  background: rgba(234, 246, 255, 0.15);
+  border: 2px solid rgba(234, 246, 255, 0.6);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -152,11 +149,12 @@ body {
 .topbar-user-icon {
   width: 24px;
   height: 24px;
+  filter: invert(1);
 }
 
 .logout-text {
   font-size: 14px;
-  color: #555;
+  color: #eaf6ff;
   font-weight: bold;
   cursor: pointer;
 }
@@ -171,7 +169,7 @@ body {
 /* CONTENT AREA */
 .content-area {
   flex: 1;
-  background: #cfcfcf;
+  background: transparent;
   overflow: hidden;
   min-height: 0;
   padding: clamp(10px, 1.5vh, 16px) clamp(10px, 1.5vw, 16px);
@@ -187,17 +185,17 @@ body {
 }
 
 .home-placeholder h1 {
-  color: #555;
+  color: #eaf6ff;
 }
 
 .home-btn {
   padding: 14px 28px;
   font-size: 16px;
   font-weight: bold;
-  background-color: #333;
-  color: white;
+  background-color: rgba(37, 57, 132, 0.7);
+  color: #eaf6ff;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
