@@ -28,6 +28,8 @@ function SalesPipeline() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [deleteMode, setDeleteMode] = useState(false);
   const [confirmDeal, setConfirmDeal] = useState(null);
+  const [priorityFilter, setPriorityFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     getDeals()
@@ -52,7 +54,12 @@ function SalesPipeline() {
     } catch (err) { console.error(err); }
   };
 
-  const getDealsForStage = (stageName) => deals.filter(d => d.stage === stageName);
+  const getDealsForStage = (stageName) => deals.filter(d => {
+  const matchesStage = d.stage === stageName;
+  const matchesPriority = priorityFilter === 'All' || d.priority === priorityFilter;
+  const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase());
+  return matchesStage && matchesPriority && matchesSearch;
+  });
 
   const handleDragStart = (e, deal) => {
     e.dataTransfer.setData('dealId', deal._id);
@@ -170,11 +177,32 @@ const handleConfirmDelete = async () => {
           <button
           className="btn-add-lead"
           onClick={() => setDeleteMode(prev => !prev)}
-          style={{ background: deleteMode ? 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' : 'linear-gradient(135deg, #253984 0%, #2A2A72 100%)' }}
+         style={{ background: deleteMode ? 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' : 'linear-gradient(135deg, #253984 0%, #2A2A72 100%)' }}
           >
-          {deleteMode ? 'Cancel Delete' : 'Delete'}
-          </button>
-        </div>
+        {deleteMode ? 'Cancel' : 'Delete'}
+        </button>
+
+       <select
+       className="btn-filter"
+       value={priorityFilter}
+       onChange={(e) => setPriorityFilter(e.target.value)}
+      >
+      <option value="All">Priority</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+     </select>
+
+      <div className="search-wrapper">
+      <input
+      className="btn-search"
+      type="text"
+      placeholder="Search deals..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+     />
+    </div>
+    </div>
 
         {loading && <p style={{ color: '#555', fontSize: '14px' }}>Loading deals...</p>}
         {error && <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>}
@@ -193,14 +221,19 @@ const handleConfirmDelete = async () => {
               </div>
               <div className="stage-cards-area">
                 {getDealsForStage(stage.name).map(deal => (
-                 <DealCard
-                 key={deal._id}
-                 deal={deal}
-                 onDragStart={(e) => handleDragStart(e, deal)}
-                 onClick={deleteMode ? () => handleDeleteClick(deal) : undefined}
-                style={deleteMode ? { cursor: 'pointer' } : {}}
-                />
-                ))}
+  <DealCard
+    key={deal._id}
+    deal={deal}
+    onDragStart={(e) => handleDragStart(e, deal)}
+    onClick={deleteMode ? () => handleDeleteClick(deal) : undefined}
+    style={deleteMode
+      ? { cursor: 'pointer' }
+      : searchQuery && deal.name.toLowerCase().includes(searchQuery.toLowerCase())
+        ? { boxShadow: '0 0 0 2px #253984', background: 'rgba(37,57,132,0.07)' }
+        : {}
+    }
+  />
+))}
               </div>
             </div>
           ))}
