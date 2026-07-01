@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "../styles/SalesPipeline.css";
 import DealCard from "../components/DealCard";
-import { getDeals, createDeal, updateDealStage, markDealOutcome, getDealLogs } from "../api/deals";
+import { getDeals, createDeal, updateDealStage, markDealOutcome, getDealLogs, deleteDeal } from "../api/deals";
 
 const STAGES = [
   { name: "Qualified", dot: "#A4A4A4" },
@@ -26,6 +26,8 @@ function SalesPipeline() {
   const [showHistory, setShowHistory] = useState(false);
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [confirmDeal, setConfirmDeal] = useState(null);
 
   useEffect(() => {
     getDeals()
@@ -103,6 +105,22 @@ function SalesPipeline() {
     return d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
   };
 
+
+  const handleDeleteClick = (deal) => {
+  setConfirmDeal(deal);
+};
+
+const handleConfirmDelete = async () => {
+  try {
+    await deleteDeal(confirmDeal._id);
+    setDeals(prev => prev.filter(d => d._id !== confirmDeal._id));
+    setConfirmDeal(null);
+    setDeleteMode(false);
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to delete deal');
+  }
+};
+
   return (
     <div className="pipeline-page">
 
@@ -149,6 +167,13 @@ function SalesPipeline() {
 
         <div className="pipeline-action-bar">
           <button className="btn-add-lead" onClick={handleAddLead}>+ Add Lead</button>
+          <button
+          className="btn-add-lead"
+          onClick={() => setDeleteMode(prev => !prev)}
+          style={{ background: deleteMode ? 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' : 'linear-gradient(135deg, #253984 0%, #2A2A72 100%)' }}
+          >
+          {deleteMode ? 'Cancel Delete' : 'Delete Deal'}
+          </button>
         </div>
 
         {loading && <p style={{ color: '#555', fontSize: '14px' }}>Loading deals...</p>}
@@ -168,7 +193,13 @@ function SalesPipeline() {
               </div>
               <div className="stage-cards-area">
                 {getDealsForStage(stage.name).map(deal => (
-                  <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)} />
+                 <DealCard
+                 key={deal._id}
+                 deal={deal}
+                 onDragStart={(e) => handleDragStart(e, deal)}
+                 onClick={deleteMode ? () => handleDeleteClick(deal) : undefined}
+                style={deleteMode ? { cursor: 'pointer', outline: '2px solid #C0392B' } : {}}
+                />
                 ))}
               </div>
             </div>
@@ -249,6 +280,27 @@ function SalesPipeline() {
           </div>
         </div>
       )}
+
+      {confirmDeal && (
+      <div className="modal-overlay" onClick={() => setConfirmDeal(null)}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+      <h2 className="modal-title">Delete Deal</h2>
+      <p style={{ fontSize: '14px', color: '#555' }}>
+        Are you sure you want to permanently delete <strong>{confirmDeal.name}</strong>? This cannot be undone.
+      </p>
+      <div className="modal-actions">
+        <button className="btn-cancel" onClick={() => setConfirmDeal(null)}>Cancel</button>
+        <button
+          className="btn-submit"
+          style={{ background: 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' }}
+          onClick={handleConfirmDelete}
+        >
+          Delete
+        </button>
+        </div>
+      </div>
+     </div>
+)}
 
     </div>
   );
