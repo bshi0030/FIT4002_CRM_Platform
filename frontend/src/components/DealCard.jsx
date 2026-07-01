@@ -6,7 +6,7 @@ const PRIORITY_STYLES = {
   Low: { bg: "#F0F8FF", border: "#66B3FF", color: "#0066CC" },
 };
 
-function DealCard({ deal }) {
+function DealCard({ deal, onClick, style }) {
   const priorityStyle = PRIORITY_STYLES[deal.priority] || PRIORITY_STYLES.Medium;
 
   const handleDragStart = (e) => {
@@ -15,9 +15,11 @@ function DealCard({ deal }) {
 
   return (
     <div
-      className="deal-card"
-      draggable
-      onDragStart={handleDragStart}
+    className="deal-card"
+    draggable
+    onDragStart={handleDragStart}
+    onClick={onClick}
+    style={style}
     >
       <div className="deal-days-badge">
         <span className="deal-days-text">{deal.daysAgo}d</span>

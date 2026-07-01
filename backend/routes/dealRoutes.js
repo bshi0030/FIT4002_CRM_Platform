@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const Deal = require('../models/Deal')
 const { requireAuth, requireRole } = require('../middleware/auth')
+const DealLog = require('../models/DealLog')
 
 const STAGE_ORDER = [
   'Qualified', 'Contact Made', 'Demo Scheduled', 'Proposal Made', 'Negotiation', 'Won', 'Lost'
@@ -32,6 +33,18 @@ router.get('/logs', requireAuth, async (req, res) => {
         })
       })
     })
+
+    // Also pull deleted deal logs
+    const deletedLogs = await DealLog.find().lean()
+    deletedLogs.forEach(log => {
+      logs.push({
+        dealName: log.dealName,
+        fromStage: log.fromStage,
+        toStage: log.toStage,
+        changedAt: log.changedAt
+      })
+    })
+
     logs.sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt))
     res.json(logs)
   } catch {
@@ -103,6 +116,26 @@ router.patch('/:id/outcome', requireAuth, async (req, res) => {
     res.json(deal)
   } catch {
     res.status(500).json({ message: 'Failed to update deal outcome' })
+  }
+})
+
+// DELETE deal
+router.delete('/:id', requireAuth, requireRole('User', 'Admin'), async (req, res) => {
+  try {
+    const deal = await Deal.findById(req.params.id)
+    if (!deal) return res.status(404).json({ message: 'Deal not found' })
+
+    await DealLog.create({
+      dealName: deal.name,
+      fromStage: deal.stage,
+      toStage: 'Deleted',
+      changedBy: req.user._id
+    })
+
+    await Deal.findByIdAndDelete(req.params.id)
+    res.json({ message: 'Deal deleted', dealName: deal.name })
+  } catch {
+    res.status(500).json({ message: 'Failed to delete deal' })
   }
 })
 
