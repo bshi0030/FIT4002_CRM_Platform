@@ -5,3 +5,4 @@ export const createDeal = (payload) => api.post('/deals', payload).then(r => r.d
 export const updateDealStage = (dealId, stage) => api.patch(`/deals/${dealId}/stage`, { stage }).then(r => r.data)
 export const markDealOutcome = (dealId, outcome) => api.patch(`/deals/${dealId}/outcome`, { outcome }).then(r => r.data)
 export const getDealLogs = () => api.get('/deals/logs').then(r => r.data)
+export const deleteDeal = (dealId) => api.delete(`/deals/${dealId}`).then(r => r.data)
