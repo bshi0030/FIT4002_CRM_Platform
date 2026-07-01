@@ -5,9 +5,13 @@ export default function AppHeader({actions, className}) {
     return (
         <header
             className={cn(
-                'flex items-center justify-between gap-4 bg-stone-300/90 px-6 py-3',
+                'flex items-center justify-between gap-4 px-6 py-3',
                 className
             )}
+            style={{
+                background: 'transparent',
+                borderBottom: '1px solid rgba(234,246,255,0.12)',
+            }}
         >
             <div className="flex items-center gap-4">
                 <img
@@ -15,8 +19,8 @@ export default function AppHeader({actions, className}) {
                     alt="NexGen CRM"
                     className="h-20 w-36 object-contain"
                 />
-                <div className="h-12 w-px bg-stone-500/40"/>
-                <p className="text-base font-semibold text-stone-700">
+                <div className="h-12 w-px" style={{ background: 'rgba(234,246,255,0.25)' }}/>
+                <p className="text-base font-semibold" style={{ color: '#EAF6FF' }}>
                     Next Generation CRM Platform
                 </p>
             </div>
