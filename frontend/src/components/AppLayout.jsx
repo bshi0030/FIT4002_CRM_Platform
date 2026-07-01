@@ -20,7 +20,14 @@ function AppLayout({ children }) {
                     <Button
                         onClick={logout}
                         size="lg"
-                        className="rounded-full bg-amber-300 text-stone-800 hover:bg-amber-400"
+                        className="rounded-full"
+                        style={{
+                            background: '#253984',
+                            color: '#EAF6FF',
+                            border: '1px solid rgba(234,246,255,0.25)',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = '#2A2A72'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#253984'}
                     >
                         <LogOut className="h-4 w-4" />
                         Log out

@@ -4,7 +4,8 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #cfcfcf;
+  background: #27284d url("/src/assets/crm-background.png") center center /
+    cover no-repeat;
 }
 
 .app-body {
@@ -17,7 +18,7 @@
 .app-sidebar {
   width: 200px;
   min-width: 200px;
-  background: hsl(0, 0%, 81%);
+  background: transparent;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -35,7 +36,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  background: #cfcfcf;
+  background: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -47,7 +48,7 @@
 
 .menu-title {
   font-size: 22px;
-  color: #555;
+  color: #eaf6ff;
   margin-left: 16px;
   margin-bottom: 34px;
 }
@@ -66,7 +67,7 @@
   text-align: left;
   padding-left: 16px;
   font-size: 18px;
-  color: #555;
+  color: #eaf6ff;
   cursor: pointer;
   transition: 0.2s;
   width: 100%;
@@ -74,11 +75,11 @@
 }
 
 .menu-item:hover {
-  background: linear-gradient(to right, #e9ff6b, #d7e682, #bdbdbd);
+  background: linear-gradient(to right, #2d20ba, rgba(255, 255, 255, 0));
 }
 
 .menu-item.active {
-  background: linear-gradient(to right, #e9ff6b, #d7e682, #bdbdbd);
-  color: #555;
+  background: linear-gradient(to right, #2d20ba, rgba(255, 255, 255, 0));
+  color: #ffffff;
   font-weight: bold;
 }
