@@ -114,9 +114,7 @@ function SalesPipeline() {
           onDrop={(e) => handleOutcomeDrop(e, 'Won')}
         >
           <div className="wonlost-label-row">
-            <div className="wonlost-line" />
             <span className="wonlost-text">Won</span>
-            <div className="wonlost-line" />
           </div>
           <div className="wonlost-box">
             {getDealsForStage('Won').map(deal => (
@@ -132,9 +130,7 @@ function SalesPipeline() {
           onDrop={(e) => handleOutcomeDrop(e, 'Lost')}
         >
           <div className="wonlost-label-row">
-            <div className="wonlost-line" />
             <span className="wonlost-text">Lost</span>
-            <div className="wonlost-line" />
           </div>
           <div className="wonlost-box">
             {getDealsForStage('Lost').map(deal => (
