@@ -172,7 +172,7 @@ const handleConfirmDelete = async () => {
           onClick={() => setDeleteMode(prev => !prev)}
           style={{ background: deleteMode ? 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' : 'linear-gradient(135deg, #253984 0%, #2A2A72 100%)' }}
           >
-          {deleteMode ? 'Cancel Delete' : 'Delete Deal'}
+          {deleteMode ? 'Cancel Delete' : 'Delete'}
           </button>
         </div>
 
@@ -198,7 +198,7 @@ const handleConfirmDelete = async () => {
                  deal={deal}
                  onDragStart={(e) => handleDragStart(e, deal)}
                  onClick={deleteMode ? () => handleDeleteClick(deal) : undefined}
-                style={deleteMode ? { cursor: 'pointer', outline: '2px solid #C0392B' } : {}}
+                style={deleteMode ? { cursor: 'pointer' } : {}}
                 />
                 ))}
               </div>
