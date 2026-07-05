@@ -21,9 +21,11 @@ import {
 } from '@dnd-kit/core';
 import {
     arrayMove,
+    arraySwap,
     SortableContext,
     sortableKeyboardCoordinates,
     rectSortingStrategy,
+    rectSwappingStrategy,
     useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -159,7 +161,7 @@ export default function Dashboard() {
                 setKpiLayoutOrder((items) => {
                     const oldIndex = items.indexOf(active.id);
                     const newIndex = items.indexOf(over.id);
-                    const newOrder = arrayMove(items, oldIndex, newIndex);
+                    const newOrder = arraySwap(items, oldIndex, newIndex);
                     localStorage.setItem('dashboard-kpi-layout', JSON.stringify(newOrder));
                     return newOrder;
                 });
@@ -167,7 +169,7 @@ export default function Dashboard() {
                 setLayoutOrder((items) => {
                     const oldIndex = items.indexOf(active.id);
                     const newIndex = items.indexOf(over.id);
-                    const newOrder = arrayMove(items, oldIndex, newIndex);
+                    const newOrder = arraySwap(items, oldIndex, newIndex);
                     localStorage.setItem('dashboard-layout', JSON.stringify(newOrder));
                     return newOrder;
                 });
@@ -290,15 +292,15 @@ export default function Dashboard() {
                         isEditing={isEditing}
                         headerRight={pipeline && <span className="total-badge">{pipeline.total} Total</span>}
                     >
-                        <div className="pipeline-body">
+                        <div className="pipeline-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', gap: '20px', padding: '10px 0' }}>
                             <div className="donut-wrap">
-                                {loading ? <Skeleton w={200} h={200} /> : (
-                                    <PieChart width={220} height={220}>
-                                        <Pie data={pieData} cx={110} cy={110} innerRadius={68} outerRadius={100} startAngle={90} endAngle={-270} dataKey="value" paddingAngle={3}>
+                                {loading ? <Skeleton w={180} h={180} /> : (
+                                    <PieChart width={180} height={180}>
+                                        <Pie data={pieData} cx={90} cy={90} innerRadius={55} outerRadius={80} startAngle={90} endAngle={-270} dataKey="value" paddingAngle={3}>
                                             <Cell fill={ACCENT} stroke="none" />
                                             <Cell fill={CHART_GREY} stroke="none" />
                                         </Pie>
-                                        <DonutLabel cx={110} cy={110} pct={pct} />
+                                        <DonutLabel cx={90} cy={90} pct={pct} />
                                     </PieChart>
                                 )}
                                 <div className="donut-legend">
@@ -306,7 +308,7 @@ export default function Dashboard() {
                                     <span className="dot" style={{ background: CHART_GREY }} /><span>Ongoing Deals</span><strong>{pipeline?.ongoingDeals ?? '—'}</strong>
                                 </div>
                             </div>
-                            <div className="stage-breakdown">
+                            <div className="stage-breakdown" style={{ width: '100%' }}>
                                 <p className="stage-title">Pipeline Stages</p>
                                 {loading ? [1,2,3,4,5].map(i => <Skeleton key={i} h={14} />) : pipeline?.stages.map((s) => (
                                     <div key={s.name} className="stage-row">
@@ -333,32 +335,36 @@ export default function Dashboard() {
                             </div>
                         }
                     >
-                        {loading ? <Skeleton h={200} /> : salesChartType === 'area' ? (
-                            <ResponsiveContainer width="100%" height={220}>
-                                <AreaChart data={data?.salesTrends ?? []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="gradSales" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor={ACCENT} stopOpacity={0.6} />
-                                            <stop offset="95%" stopColor={ACCENT} stopOpacity={0.05} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                                    <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
-                                    <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
-                                    <Tooltip content={<ChartTooltip />} />
-                                    <Area type="monotone" dataKey="sales" name="sales" stroke={ACCENT_DIM} strokeWidth={2} fill="url(#gradSales)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
+                        {loading ? <Skeleton h={160} /> : salesChartType === 'area' ? (
+                            <div style={{ flex: 1, minHeight: 160 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={data?.salesTrends ?? []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="gradSales" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor={ACCENT} stopOpacity={0.6} />
+                                                <stop offset="95%" stopColor={ACCENT} stopOpacity={0.05} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                                        <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
+                                        <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
+                                        <Tooltip content={<ChartTooltip />} />
+                                        <Area type="monotone" dataKey="sales" name="sales" stroke={ACCENT_DIM} strokeWidth={2} fill="url(#gradSales)" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
                         ) : (
-                            <ResponsiveContainer width="100%" height={220}>
-                                <BarChart data={data?.salesTrends ?? []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
-                                    <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
-                                    <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
-                                    <Tooltip content={<ChartTooltip />} />
-                                    <Bar dataKey="sales" name="sales" fill={ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div style={{ flex: 1, minHeight: 160 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={data?.salesTrends ?? []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
+                                        <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
+                                        <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
+                                        <Tooltip content={<ChartTooltip />} />
+                                        <Bar dataKey="sales" name="sales" fill={ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         )}
                     </SortableCard>
                 );
@@ -371,40 +377,42 @@ export default function Dashboard() {
                         subTitle="All team activities"
                         isEditing={isEditing}
                     >
-                        <div className="activity-grid">
-                            {[
-                                { icon: <FiPhone size={20} />, label: 'Calls Made', key: 'callsMade', changeKey: 'callsChange' },
-                                { icon: <FiUsers size={20} />, label: 'Meetings Held', key: 'meetingsHeld', changeKey: 'meetingsChange' },
-                                { icon: <FiMail size={20} />, label: 'Emails Sent', key: 'emailsSent', changeKey: 'emailsChange' },
-                                { icon: <FiAward size={20} />, label: 'Deals Closed', key: 'dealsClosed', changeKey: 'dealsChange' },
-                            ].map(({ icon, label, key, changeKey }) => {
-                                const val = data?.activitySummary?.[key]
-                                const chg = data?.activitySummary?.[changeKey] ?? 0
-                                const pos = chg >= 0
-                                return (
-                                    <div key={key} className="activity-tile">
-                                        <div className="activity-tile-top">
-                                            <span className="activity-icon">{icon}</span>
-                                            <span className={`kpi-badge ${pos ? 'badge-up' : 'badge-down'}`} style={{ fontSize: 11 }}>{pos ? '+' : ''}{chg}%</span>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <div className="activity-grid">
+                                {[
+                                    { icon: <FiPhone size={20} />, label: 'Calls Made', key: 'callsMade', changeKey: 'callsChange' },
+                                    { icon: <FiUsers size={20} />, label: 'Meetings Held', key: 'meetingsHeld', changeKey: 'meetingsChange' },
+                                    { icon: <FiMail size={20} />, label: 'Emails Sent', key: 'emailsSent', changeKey: 'emailsChange' },
+                                    { icon: <FiAward size={20} />, label: 'Deals Closed', key: 'dealsClosed', changeKey: 'dealsChange' },
+                                ].map(({ icon, label, key, changeKey }) => {
+                                    const val = data?.activitySummary?.[key]
+                                    const chg = data?.activitySummary?.[changeKey] ?? 0
+                                    const pos = chg >= 0
+                                    return (
+                                        <div key={key} className="activity-tile">
+                                            <div className="activity-tile-top">
+                                                <span className="activity-icon">{icon}</span>
+                                                <span className={`kpi-badge ${pos ? 'badge-up' : 'badge-down'}`} style={{ fontSize: 11 }}>{pos ? '+' : ''}{chg}%</span>
+                                            </div>
+                                            {loading ? <Skeleton h={28} w="50%" /> : <div className="activity-val">{val ?? '—'}</div>}
+                                            <div className="activity-label">{label}</div>
                                         </div>
-                                        {loading ? <Skeleton h={28} w="50%" /> : <div className="activity-val">{val ?? '—'}</div>}
-                                        <div className="activity-label">{label}</div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                        <div className="recent-activities">
-                            <h4 className="recent-activities-title">Recent Activities</h4>
-                            <div className="recent-activities-list">
-                                {recentActivities.map(act => (
-                                    <div key={act.id} className="recent-activity-item" style={{ backgroundColor: act.id === 1 ? '#eaf6ff' : '#fff' }}>
-                                        <div className="recent-activity-icon" style={{ backgroundColor: act.bg, color: act.color }}>{act.icon}</div>
-                                        <div className="recent-activity-details">
-                                            <span className="recent-activity-company">{act.company}</span>
-                                            <span className="recent-activity-desc">{act.desc}</span>
+                                    )
+                                })}
+                            </div>
+                            <div className="recent-activities" style={{ marginTop: 'auto' }}>
+                                <h4 className="recent-activities-title">Recent Activities</h4>
+                                <div className="recent-activities-list">
+                                    {recentActivities.map(act => (
+                                        <div key={act.id} className="recent-activity-item" style={{ backgroundColor: act.id === 1 ? '#eaf6ff' : '#fff' }}>
+                                            <div className="recent-activity-icon" style={{ backgroundColor: act.bg, color: act.color }}>{act.icon}</div>
+                                            <div className="recent-activity-details">
+                                                <span className="recent-activity-company">{act.company}</span>
+                                                <span className="recent-activity-desc">{act.desc}</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </SortableCard>
@@ -420,16 +428,18 @@ export default function Dashboard() {
                         headerRight={topMember && <span className="top-badge"><FiAward size={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />Top: {topMember}</span>}
                     >
                         {loading ? <Skeleton h={160} /> : (
-                            <ResponsiveContainer width="100%" height={160}>
-                                <BarChart data={teamMembers} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#777' }} axisLine={false} tickLine={false} />
-                                    <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 10, fill: '#777' }} axisLine={false} tickLine={false} />
-                                    <Tooltip formatter={(v, n) => n === 'sales' ? fmtMoney(v) : v} />
-                                    <Bar dataKey="sales" name="Sales" fill={ACCENT} radius={[4,4,0,0]} maxBarSize={30} />
-                                    <Bar dataKey="deals" name="Deals" fill={CHART_GREEN} radius={[4,4,0,0]} maxBarSize={30} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div style={{ flex: 1, minHeight: 160 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={teamMembers} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
+                                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#777' }} axisLine={false} tickLine={false} />
+                                        <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 10, fill: '#777' }} axisLine={false} tickLine={false} />
+                                        <Tooltip formatter={(v, n) => n === 'sales' ? fmtMoney(v) : v} />
+                                        <Bar dataKey="sales" name="Sales" fill={ACCENT} radius={[4,4,0,0]} maxBarSize={30} />
+                                        <Bar dataKey="deals" name="Deals" fill={CHART_GREEN} radius={[4,4,0,0]} maxBarSize={30} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         )}
                         <table className="team-table">
                             <thead><tr><th>Team Member</th><th>Sales</th><th>Deals</th><th>Activities</th></tr></thead>
@@ -495,7 +505,7 @@ export default function Dashboard() {
                 <div className="kpi-row">
                     <SortableContext 
                         items={kpiLayoutOrder}
-                        strategy={rectSortingStrategy}
+                        strategy={rectSwappingStrategy}
                     >
                         {kpiLayoutOrder.map(id => renderKpi(id))}
                     </SortableContext>
@@ -504,7 +514,7 @@ export default function Dashboard() {
                 <div className="chart-grid">
                     <SortableContext 
                         items={layoutOrder}
-                        strategy={rectSortingStrategy}
+                        strategy={rectSwappingStrategy}
                     >
                         {layoutOrder.map(id => renderChart(id))}
                     </SortableContext>
