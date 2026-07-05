@@ -229,11 +229,12 @@ export default function Dashboard() {
     const teamTotal = teamMembers.reduce((s, m) => s + m.sales, 0)
     const teamDeals = teamMembers.reduce((s, m) => s + m.deals, 0)
     const teamAvg = teamMembers.length ? Math.round(teamTotal / teamMembers.length) : 0
-    const recentActivities = [
-        { id: 1, company: 'Arom Inc', desc: 'Sarah • 2 hours ago', icon: <FiPhone size={14} />, bg: '#eaf6ff', color: '#253984' },
-        { id: 2, company: 'GlobalTech', desc: 'Mike Waterson • 1 day ago', icon: <FiMail size={14} />, bg: '#e8f5e9', color: '#2e7d32' },
-        { id: 3, company: 'TechCorp', desc: 'You • 1 day ago', icon: <FiVideo size={14} />, bg: '#e8f5e9', color: '#2e7d32' }
-    ]
+    const recentActivities = data?.recentActivities?.map(act => ({
+        ...act,
+        icon: act.iconType === 'phone' ? <FiPhone size={14} /> :
+              act.iconType === 'mail' ? <FiMail size={14} /> :
+              <FiVideo size={14} />
+    })) ?? []
 
     const renderKpi = (id) => {
         switch (id) {
