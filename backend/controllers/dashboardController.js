@@ -59,14 +59,13 @@ exports.getDashboardData = async (req, res) => {
             { $match: { "interactions.0": { $exists: true } } },
             { $unwind: "$interactions" },
             { $sort: { "interactions.date": -1 } },
-            { $group: {
-                _id: "$_id",
-                companyName: { $first: { $cond: [{ $not: ["$companyName"] }, "$fullName", "$companyName"] } },
-                createdBy: { $first: "$createdBy" },
-                latest: { $first: "$interactions" }
-            }},
-            { $sort: { "latest.date": -1 } },
-            { $limit: 3 }
+            { $limit: 3 },
+            { $project: {
+                _id: "$interactions._id",
+                companyName: { $cond: [{ $ifNull: ["$company", false] }, "$company", "$fullName"] },
+                createdBy: "$interactions.createdBy",
+                latest: "$interactions"
+            }}
         ]);
 
         const timeAgo = (date) => {
@@ -161,15 +160,52 @@ exports.getDashboardData = async (req, res) => {
             { week: 'W4', sales: dealTotals.totalSales * 0.40 }
         ];
 
+        const User = require('../models/User');
+        const isSupervisor = req.user && ['Admin', 'Supervisor'].includes(req.user.role);
+        
+        let usersQuery = isSupervisor ? {} : { _id: req.user?._id };
+        const users = req.user ? await User.find(usersQuery).select('fullName _id role') : [];
+
+        const dealUserStats = await Deal.aggregate([
+            { $match: { stage: "Won" } },
+            { $group: {
+                _id: "$createdBy",
+                sales: { $sum: { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } } },
+                deals: { $sum: 1 }
+            }}
+        ]);
+
+        const activityUserStats = await Customer.aggregate([
+            { $unwind: "$interactions" },
+            { $match: { "interactions.createdBy": { $exists: true, $ne: null } } },
+            { $group: {
+                _id: "$interactions.createdBy",
+                activities: { $sum: 1 }
+            }}
+        ]);
+
+        let members = users.map(u => {
+            const dStat = dealUserStats.find(d => d._id?.toString() === u._id.toString()) || { sales: 0, deals: 0 };
+            const aStat = activityUserStats.find(a => a._id?.toString() === u._id.toString()) || { activities: 0 };
+            return {
+                name: (req.user && u._id.toString() === req.user._id.toString()) ? 'You' : u.fullName,
+                sales: dStat.sales,
+                deals: dStat.deals,
+                activities: aStat.activities
+            };
+        });
+
+        // Sort members by sales descending
+        members.sort((a, b) => b.sales - a.sales);
+
+        // Fallback for no users
+        if (members.length === 0) {
+            members = [{ name: 'You', sales: 0, deals: 0, activities: 0 }];
+        }
+
         const teamPerformance = {
-            topMember: 'Sarah J.',
-            members: [
-                { name: 'You', sales: dealTotals.totalSales * 0.3, deals: dealTotals.dealsCompleted, activities: iStats.callsMade + iStats.emailsSent },
-                { name: 'Sarah J.', sales: 83000, deals: 27, activities: 176 },
-                { name: 'Mike C.', sales: 63000, deals: 22, activities: 140 },
-                { name: 'Emma D.', sales: 73000, deals: 26, activities: 165 },
-                { name: 'James W.', sales: 57000, deals: 20, activities: 125 }
-            ]
+            topMember: members[0].name,
+            members: members
         };
 
         res.json({

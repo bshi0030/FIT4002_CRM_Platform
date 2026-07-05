@@ -28,6 +28,7 @@ router.get('/:id/files/:fileId/download', downloadCustomerFile);
 router.delete('/:id/files/:fileId', deleteCustomerFile);
 
 // Interactions endpoint
-router.post('/:id/interactions', addInteraction);
+const { requireAuth } = require('../middleware/auth');
+router.post('/:id/interactions', requireAuth, addInteraction);
 
 module.exports = router;

@@ -418,17 +418,19 @@ export default function Dashboard() {
                                 </ResponsiveContainer>
                             </div>
                         )}
-                        <table className="team-table">
-                            <thead><tr><th>Team Member</th><th>Sales</th><th>Deals</th><th>Activities</th></tr></thead>
-                            <tbody>
-                                {loading ? [1,2,3].map(i => (<tr key={i}>{[1,2,3,4].map(j => <td key={j}><Skeleton h={12} /></td>)}</tr>))
-                                    : teamMembers.map((m) => (
-                                        <tr key={m.name} className={m.name === topMember ? 'top-row' : ''}>
-                                            <td>{m.name}</td><td>{fmtMoney(m.sales)}</td><td>{m.deals}</td><td>{m.activities}</td>
-                                        </tr>
-                                    ))}
-                            </tbody>
-                        </table>
+                        <div style={{ maxHeight: '150px', overflowY: 'auto', marginTop: '10px', paddingRight: '5px' }}>
+                            <table className="team-table">
+                                <thead><tr><th>Team Member</th><th>Sales</th><th>Deals</th><th>Activities</th></tr></thead>
+                                <tbody>
+                                    {loading ? [1,2,3].map(i => (<tr key={i}>{[1,2,3,4].map(j => <td key={j}><Skeleton h={12} /></td>)}</tr>))
+                                        : teamMembers.map((m) => (
+                                            <tr key={m.name} className={m.name === topMember ? 'top-row' : ''}>
+                                                <td>{m.name}</td><td>{fmtMoney(m.sales)}</td><td>{m.deals}</td><td>{m.activities}</td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
                         {!loading && (
                             <div className="team-footer">
                                 <div className="team-footer-item"><span className="tf-icon" style={{ background: ACCENT }}><FiBarChart2 size={16} /></span><span>Total Sales</span><strong>{fmtMoney(teamTotal)}</strong></div>

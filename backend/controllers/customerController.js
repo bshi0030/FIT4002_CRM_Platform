@@ -160,7 +160,11 @@ const addInteraction = async (req, res) => {
     const customer = await Customer.findById(req.params.id);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
 
-    customer.interactions.push({ type, details });
+    customer.interactions.push({ 
+      type, 
+      details,
+      createdBy: req.user ? req.user._id : null
+    });
     await customer.save();
 
     res.status(201).json(customer);
