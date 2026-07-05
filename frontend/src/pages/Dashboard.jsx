@@ -11,6 +11,7 @@ import {
     FiArrowUp, FiArrowDown, FiUser, FiVideo, FiMove
 } from 'react-icons/fi'
 import { useAuth } from '@/context/auth'
+import { fetchDashboardData } from '@/api/dashboard'
 import {
     DndContext,
     closestCenter,
@@ -191,67 +192,36 @@ export default function Dashboard() {
         return () => clearInterval(id)
     }, [])
 
-    const generateMockData = useCallback(() => {
-        const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
-        const completedDeals = rand(218, 226)
-        const ongoingDeals = rand(38, 46)
-        const totalDeals = completedDeals + ongoingDeals
-        const totalSales = 625000 + rand(-3000, 5000)
-        const avgDeal = Math.round(totalSales / completedDeals)
-        const newData = {
-            totalSales: { value: totalSales, changePercent: parseFloat((rand(108, 130) / 10).toFixed(1)) },
-            dealsCompleted: { value: completedDeals, changePercent: parseFloat((rand(55, 95) / 10).toFixed(1)) },
-            ongoingDeals: { value: ongoingDeals, changePercent: parseFloat((rand(30, 60) / 10).toFixed(1)) },
-            avgDealValue: { value: avgDeal, changePercent: parseFloat((rand(140, 165) / 10).toFixed(1)) },
-            pipeline: {
-                stages: [
-                    { name: 'Qualified', count: rand(6, 10) },
-                    { name: 'Contact Made', count: rand(48, 56) },
-                    { name: 'Demo Scheduled', count: rand(3, 7) },
-                    { name: 'Proposal Sent', count: rand(3, 6) },
-                    { name: 'Negotiation', count: rand(3, 7) }
-                ],
-                completedDeals, ongoingDeals, total: totalDeals
-            },
-            salesTrends: [
-                { week: 'Week 1', sales: rand(80000, 100000) },
-                { week: 'Week 2', sales: rand(95000, 120000) },
-                { week: 'Week 3', sales: rand(105000, 135000) },
-                { week: 'Week 4', sales: rand(130000, 160000) }
-            ],
-            activitySummary: {
-                callsMade: rand(40, 50), meetingsHeld: rand(15, 22),
-                emailsSent: rand(120, 135), dealsClosed: rand(10, 15),
-                callsChange: 12, meetingsChange: 12, emailsChange: -9, dealsChange: 12
-            },
-            teamPerformance: {
-                topMember: 'Sarah J.',
-                members: [
-                    { name: 'You', sales: rand(60000, 70000), deals: rand(20, 25), activities: rand(138, 152) },
-                    { name: 'Sarah J.', sales: rand(73000, 83000), deals: rand(23, 27), activities: rand(160, 176) },
-                    { name: 'Mike C.', sales: rand(54000, 63000), deals: rand(17, 22), activities: rand(126, 140) },
-                    { name: 'Emma D.', sales: rand(64000, 73000), deals: rand(20, 26), activities: rand(148, 165) },
-                    { name: 'James W.', sales: rand(48000, 57000), deals: rand(15, 20), activities: rand(110, 125) }
-                ]
-            },
-            lastUpdated: new Date().toISOString()
-        }
-        setData(newData)
-        setLastUpdated(fmtTime(newData.lastUpdated))
-        setError(null)
-        setLoading(false)
-    }, [])
-
     useEffect(() => {
-        generateMockData()
-        const id = setInterval(generateMockData, POLL_MS)
-        return () => clearInterval(id)
-    }, [generateMockData])
+        let mounted = true;
+        const loadData = async () => {
+            try {
+                const result = await fetchDashboardData();
+                if (mounted) {
+                    setData(result);
+                    setLoading(false);
+                    setLastUpdated(new Date().toLocaleTimeString());
+                }
+            } catch (err) {
+                console.error("Failed to fetch dashboard data:", err);
+                if (mounted) setLoading(false);
+            }
+        };
+
+        loadData();
+        const id = setInterval(loadData, 5000); // Poll every 5 seconds
+
+        return () => {
+            mounted = false;
+            clearInterval(id);
+        };
+    }, []);
 
     const pipeline = data?.pipeline
     const pieData = pipeline ? [
         { name: 'Completed Deals', value: pipeline.completedDeals },
-        { name: 'Ongoing Deals', value: pipeline.ongoingDeals }
+        { name: 'Ongoing Deals', value: pipeline.ongoingDeals },
+        { name: 'Lost Deals', value: pipeline.lostDeals }
     ] : []
     const pct = pipeline ? Math.round((pipeline.completedDeals / pipeline.total) * 100) : 0
     const teamMembers = data?.teamPerformance?.members ?? []
@@ -299,6 +269,7 @@ export default function Dashboard() {
                                         <Pie data={pieData} cx={90} cy={90} innerRadius={55} outerRadius={80} startAngle={90} endAngle={-270} dataKey="value" paddingAngle={3}>
                                             <Cell fill={ACCENT} stroke="none" />
                                             <Cell fill={CHART_GREY} stroke="none" />
+                                            <Cell fill="#e74c3c" stroke="none" />
                                         </Pie>
                                         <DonutLabel cx={90} cy={90} pct={pct} />
                                     </PieChart>
@@ -306,6 +277,7 @@ export default function Dashboard() {
                                 <div className="donut-legend">
                                     <span className="dot" style={{ background: ACCENT }} /><span>Completed Deals</span><strong>{pipeline?.completedDeals ?? '—'}</strong>
                                     <span className="dot" style={{ background: CHART_GREY }} /><span>Ongoing Deals</span><strong>{pipeline?.ongoingDeals ?? '—'}</strong>
+                                    <span className="dot" style={{ background: '#e74c3c' }} /><span>Lost Deals</span><strong>{pipeline?.lostDeals ?? '—'}</strong>
                                 </div>
                             </div>
                             <div className="stage-breakdown" style={{ width: '100%' }}>
