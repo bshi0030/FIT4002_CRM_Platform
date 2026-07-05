@@ -37,8 +37,8 @@
 }
 
 .dashboard-user-avatar {
-  background: #E9FF6B;
-  color: #333;
+  background: #253984;
+  color: #fff;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -253,8 +253,8 @@
 
 /* ── Pipeline ──────────────────────────────────────────────────────────────── */
 .total-badge {
-  background: #E9FF6B;
-  color: #3a3a00;
+  background: #253984;
+  color: #fff;
   font-size: 12px;
   font-weight: 700;
   padding: 3px 10px;
@@ -366,8 +366,8 @@
 }
 
 .toggle-btn.active {
-  background: #F7D060; /* Matches mockup active yellow */
-  color: #333;
+  background: #253984; /* Matches mockup active blue */
+  color: #fff;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
@@ -499,8 +499,8 @@
 
 /* ── Team Performance ──────────────────────────────────────────────────────── */
 .top-badge {
-  background: #E9FF6B;
-  color: #3a3a00;
+  background: #253984;
+  color: #fff;
   font-size: 12px;
   font-weight: 700;
   padding: 3px 10px;
@@ -531,7 +531,7 @@
 }
 
 .team-table tr.top-row td {
-  background: rgba(233, 255, 107, 0.18);
+  background: rgba(37, 57, 132, 0.08);
   font-weight: 600;
   color: #222;
 }

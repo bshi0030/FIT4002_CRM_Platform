@@ -12,10 +12,10 @@ import {
 } from 'react-icons/fi'
 
 const POLL_MS     = 30000
-const ACCENT      = '#E9FF6B'
-const ACCENT_DIM  = '#b8cc3a'
-const CHART_GREEN = '#8bc34a'
-const CHART_GREY  = '#9e9e9e'
+const ACCENT      = '#253984'
+const ACCENT_DIM  = '#2A2A72'
+const CHART_GREEN = '#4DC9C9'
+const CHART_GREY  = '#A4A4A4'
 
 const fmtCurrency = (v) => v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`
 const fmtMoney = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
@@ -147,7 +147,7 @@ export default function Dashboard() {
     const teamDeals = teamMembers.reduce((s, m) => s + m.deals, 0)
     const teamAvg = teamMembers.length ? Math.round(teamTotal / teamMembers.length) : 0
     const recentActivities = [
-        { id: 1, company: 'Arom Inc', desc: 'Sarah • 2 hours ago', icon: <FiPhone size={14} />, bg: '#fff9c4', color: '#f57f17' },
+        { id: 1, company: 'Arom Inc', desc: 'Sarah • 2 hours ago', icon: <FiPhone size={14} />, bg: '#eaf6ff', color: '#253984' },
         { id: 2, company: 'GlobalTech', desc: 'Mike Waterson • 1 day ago', icon: <FiMail size={14} />, bg: '#e8f5e9', color: '#2e7d32' },
         { id: 3, company: 'TechCorp', desc: 'You • 1 day ago', icon: <FiVideo size={14} />, bg: '#e8f5e9', color: '#2e7d32' }
     ]
@@ -290,7 +290,7 @@ export default function Dashboard() {
                         <h4 className="recent-activities-title">Recent Activities</h4>
                         <div className="recent-activities-list">
                             {recentActivities.map(act => (
-                                <div key={act.id} className="recent-activity-item" style={{ backgroundColor: act.id === 1 ? '#F7E99A' : '#fff' }}>
+                                <div key={act.id} className="recent-activity-item" style={{ backgroundColor: act.id === 1 ? '#eaf6ff' : '#fff' }}>
                                     <div className="recent-activity-icon" style={{ backgroundColor: act.bg, color: act.color }}>{act.icon}</div>
                                     <div className="recent-activity-details">
                                         <span className="recent-activity-company">{act.company}</span>
