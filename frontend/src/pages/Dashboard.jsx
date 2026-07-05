@@ -10,6 +10,7 @@ import {
     FiBarChart2, FiGitMerge, FiActivity,
     FiArrowUp, FiArrowDown, FiUser, FiVideo, FiMove
 } from 'react-icons/fi'
+import { useAuth } from '@/context/auth'
 import {
     DndContext,
     closestCenter,
@@ -134,6 +135,7 @@ export default function Dashboard() {
     const [lastUpdated, setLastUpdated] = useState('')
     const [salesChartType, setSalesChartType] = useState('area')
     const [isEditing, setIsEditing] = useState(false)
+    const { user } = useAuth()
 
     const [kpiLayoutOrder, setKpiLayoutOrder] = useState(() => {
         const saved = localStorage.getItem('dashboard-kpi-layout');
@@ -461,8 +463,8 @@ export default function Dashboard() {
                 <div className="dashboard-user">
                     <div className="dashboard-user-avatar"><FiUser size={20} /></div>
                     <div className="dashboard-user-info">
-                        <span className="dashboard-user-name">YOU</span>
-                        <span className="dashboard-user-role">PL Supervisor</span>
+                        <span className="dashboard-user-name">{user?.fullName?? + ' (You)'}</span>
+                        <span className="dashboard-user-role">{user?.role}</span>
                     </div>
                 </div>
                 <div className="dashboard-filters">
