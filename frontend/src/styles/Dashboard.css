@@ -168,6 +168,9 @@
   font-weight: 700;
   padding: 3px 8px;
   border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .badge-up {
@@ -342,7 +345,7 @@
 
 .chart-toggle {
   display: flex;
-  background: #fdf5d3;
+  background: #eaf6ff;
   border-radius: 8px;
   padding: 4px;
   gap: 2px;
@@ -503,8 +506,11 @@
   color: #fff;
   font-size: 12px;
   font-weight: 700;
-  padding: 3px 10px;
+  padding: 7px 20px;
   border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .team-table {
@@ -573,6 +579,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
+  color: #fff;
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
