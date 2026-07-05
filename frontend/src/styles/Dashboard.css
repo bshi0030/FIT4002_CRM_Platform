@@ -247,11 +247,27 @@
   margin: 2px 0 0;
 }
 
-/* ── Middle Row ────────────────────────────────────────────────────────────── */
-.mid-row {
+/* ── Draggable Chart Grid ─────────────────────────────────────────────────── */
+.chart-grid {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: 0.2s;
+}
+
+.drag-handle:hover {
+  background: #f0f0f0;
+  color: #555;
 }
 
 /* ── Pipeline ──────────────────────────────────────────────────────────────── */
@@ -390,12 +406,6 @@
   margin-bottom: 4px;
 }
 
-/* ── Bottom Row ────────────────────────────────────────────────────────────── */
-.bottom-row {
-  display: grid;
-  grid-template-columns: 1fr 1.6fr;
-  gap: 14px;
-}
 
 /* ── Activity Summary ──────────────────────────────────────────────────────── */
 .activity-grid {
@@ -585,8 +595,7 @@
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .kpi-row      { grid-template-columns: repeat(2, 1fr); }
-  .mid-row      { grid-template-columns: 1fr; }
-  .bottom-row   { grid-template-columns: 1fr; }
+  .chart-grid   { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 700px) {
