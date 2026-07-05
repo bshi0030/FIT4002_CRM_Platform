@@ -8,7 +8,8 @@ import {
     FiTrendingUp, FiCheckCircle, FiClock, FiDollarSign,
     FiPhone, FiUsers, FiMail, FiAward,
     FiBarChart2, FiGitMerge, FiActivity,
-    FiArrowUp, FiArrowDown, FiUser, FiVideo, FiMove
+    FiArrowUp, FiArrowDown, FiUser, FiVideo, FiMove,
+    FiFileText, FiPaperclip, FiEdit2, FiList, FiFile, FiEdit3, FiFolder
 } from 'react-icons/fi'
 import { useAuth } from '@/context/auth'
 import { fetchDashboardData } from '@/api/dashboard'
@@ -233,6 +234,9 @@ export default function Dashboard() {
         ...act,
         icon: act.iconType === 'phone' ? <FiPhone size={14} /> :
               act.iconType === 'mail' ? <FiMail size={14} /> :
+              act.iconType === 'task' ? <FiList size={14} /> :
+              act.iconType === 'note' ? <FiEdit3 size={14} /> :
+              act.iconType === 'file' ? <FiFolder size={14} /> :
               <FiVideo size={14} />
     })) ?? []
 

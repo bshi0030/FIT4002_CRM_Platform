@@ -104,10 +104,22 @@ exports.getDashboardData = async (req, res) => {
                 iconType = 'mail';
                 bg = '#e8f5e9';
                 color = '#2e7d32';
-            } else if (t === 'meeting' || t === 'task') {
+            } else if (t === 'meeting') {
                 iconType = 'video';
                 bg = '#fff3e0';
                 color = '#e65100';
+            } else if (t === 'task') {
+                iconType = 'task';
+                bg = '#f3e5f5';
+                color = '#7b1fa2';
+            } else if (t === 'note') {
+                iconType = 'note';
+                bg = '#fffde7';
+                color = '#fbc02d';
+            } else if (t === 'file') {
+                iconType = 'file';
+                bg = '#eceff1';
+                color = '#455a64';
             }
 
             const displayTime = timeAgo(inter.latest.date);
