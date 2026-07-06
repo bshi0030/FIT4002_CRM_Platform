@@ -418,7 +418,7 @@ export default function Dashboard() {
                                 </ResponsiveContainer>
                             </div>
                         )}
-                        <div style={{ maxHeight: '150px', overflowY: 'auto', marginTop: '10px', paddingRight: '5px' }}>
+                        <div className="team-table-container">
                             <table className="team-table">
                                 <thead><tr><th>Team Member</th><th>Sales</th><th>Deals</th><th>Activities</th></tr></thead>
                                 <tbody>

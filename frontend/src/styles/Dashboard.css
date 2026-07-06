@@ -529,6 +529,13 @@
   font-size: 12px;
 }
 
+.team-table-container {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-top: 10px;
+  padding-right: 5px;
+}
+
 .team-table th {
   text-align: left;
   color: #999;
@@ -538,6 +545,10 @@
   letter-spacing: 0.4px;
   padding: 6px 8px;
   border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
 }
 
 .team-table td {
