@@ -9,7 +9,7 @@ import {
     FiPhone, FiUsers, FiMail, FiAward,
     FiBarChart2, FiGitMerge, FiActivity,
     FiArrowUp, FiArrowDown, FiUser, FiVideo, FiMove,
-    FiFileText, FiPaperclip, FiEdit2, FiList, FiFile, FiEdit3, FiFolder
+    FiFileText, FiPaperclip, FiEdit2, FiList, FiFile, FiEdit3, FiFolder, FiAlertTriangle
 } from 'react-icons/fi'
 import { useAuth } from '@/context/auth'
 import { fetchDashboardData } from '@/api/dashboard'
@@ -513,6 +513,23 @@ export default function Dashboard() {
                 <span className="live-text">Live · Updated {lastUpdated || clock}</span>
                 {error && <span className="live-error"> · {error}</span>}
             </div>
+
+            {timeFilter === 'custom' && customStartDate && customEndDate && new Date(customEndDate) < new Date(customStartDate) && (
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', borderRadius: '12px' }}>
+                    <div style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', padding: '20px 40px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '25px', fontWeight: 500, fontSize: '1.1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <FiAlertTriangle size={24} color="#dc2626" />
+                            Invalid Date Range: End date cannot be earlier than start date.
+                        </div>
+                        <button 
+                            onClick={() => setCustomEndDate('')}
+                            style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
 
             <DndContext 
                 sensors={sensors}
