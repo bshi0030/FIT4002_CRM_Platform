@@ -4,8 +4,52 @@ const mongoose = require('mongoose');
 
 exports.getDashboardData = async (req, res) => {
     try {
+        const memberId = req.query.memberId;
+        const dealMatch = memberId && mongoose.isValidObjectId(memberId) 
+            ? [{ $match: { createdBy: new mongoose.Types.ObjectId(memberId) } }] 
+            : [];
+            
+        const interactionMatch = memberId && mongoose.isValidObjectId(memberId) 
+            ? [{ $match: { "interactions.createdBy": new mongoose.Types.ObjectId(memberId) } }] 
+            : [];
+
+        const timeFilter = req.query.timeFilter || 'thisMonth';
+        let startDate = null;
+        let endDate = null;
+        if (timeFilter === 'thisWeek') {
+            startDate = new Date();
+            startDate.setDate(startDate.getDate() - 7);
+        } else if (timeFilter === 'thisMonth') {
+            startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 1);
+        } else if (timeFilter === 'thisYear') {
+            startDate = new Date();
+            startDate.setFullYear(startDate.getFullYear() - 1);
+        } else if (timeFilter === 'custom') {
+            if (req.query.startDate) startDate = new Date(req.query.startDate);
+            if (req.query.endDate) endDate = new Date(req.query.endDate);
+        }
+        
+        let dateMatchDeal = [];
+        let dealDateCondition = {};
+        if (startDate) dealDateCondition.$gte = startDate;
+        if (endDate) dealDateCondition.$lte = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+        if (Object.keys(dealDateCondition).length > 0) {
+            dateMatchDeal = [{ $match: { createdAt: dealDateCondition } }];
+        }
+
+        let dateMatchInteraction = [];
+        let interactionDateCondition = {};
+        if (startDate) interactionDateCondition.$gte = startDate;
+        if (endDate) interactionDateCondition.$lte = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+        if (Object.keys(interactionDateCondition).length > 0) {
+            dateMatchInteraction = [{ $match: { "interactions.date": interactionDateCondition } }];
+        }
+
         // 1. Aggregation for Deals
         const dealAgg = await Deal.aggregate([
+            ...dealMatch,
+            ...dateMatchDeal,
             {
                 $facet: {
                     totals: [
@@ -45,6 +89,8 @@ exports.getDashboardData = async (req, res) => {
         // 2. Aggregation for Interactions (Summary Counts)
         const interactionStats = await Customer.aggregate([
             { $unwind: "$interactions" },
+            ...interactionMatch,
+            ...dateMatchInteraction,
             { $group: {
                 _id: null,
                 callsMade: { $sum: { $cond: [{ $eq: [{ $toLower: "$interactions.type" }, "call"] }, 1, 0] } },
@@ -58,11 +104,14 @@ exports.getDashboardData = async (req, res) => {
         const recentInteractions = await Customer.aggregate([
             { $match: { "interactions.0": { $exists: true } } },
             { $unwind: "$interactions" },
+            ...interactionMatch,
+            ...dateMatchInteraction,
             { $sort: { "interactions.date": -1 } },
             { $limit: 3 },
             { $project: {
                 _id: "$interactions._id",
-                companyName: { $cond: [{ $ifNull: ["$company", false] }, "$company", "$fullName"] },
+                fullName: "$fullName",
+                company: "$company",
                 createdBy: "$interactions.createdBy",
                 latest: "$interactions"
             }}
@@ -124,9 +173,14 @@ exports.getDashboardData = async (req, res) => {
             const displayTime = timeAgo(inter.latest.date);
             const author = inter.createdBy ? 'Sales Rep' : 'You';
 
+            let displayTitle = inter.fullName || 'Unknown Customer';
+            if (inter.company) {
+                displayTitle = `${inter.fullName} (${inter.company})`;
+            }
+
             return {
                 id: inter._id,
-                company: inter.companyName || 'Unknown Company',
+                company: displayTitle,
                 desc: `${inter.latest.details || ''} • ${displayTime}`,
                 iconType,
                 bg,
@@ -153,12 +207,136 @@ exports.getDashboardData = async (req, res) => {
             dealsChange: 0
         };
 
-        const salesTrends = [
-            { week: 'W1', sales: dealTotals.totalSales * 0.15 },
-            { week: 'W2', sales: dealTotals.totalSales * 0.25 },
-            { week: 'W3', sales: dealTotals.totalSales * 0.20 },
-            { week: 'W4', sales: dealTotals.totalSales * 0.40 }
-        ];
+        const fmtDate = (d) => {
+            if (!d) return '?';
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            return `${d.getDate()} ${months[d.getMonth()]}`;
+        };
+
+        let formatFormat = '';
+        if (timeFilter === 'thisWeek' || timeFilter === 'thisMonth' || timeFilter === 'custom') {
+            formatFormat = '%Y-%m-%d';
+        } else if (timeFilter === 'thisYear' || timeFilter === 'all') {
+            formatFormat = '%Y-%m';
+        }
+
+        const salesTrendsRaw = await Deal.aggregate([
+            ...dealMatch,
+            ...dateMatchDeal,
+            { $match: { stage: "Won" } },
+            {
+                $group: {
+                    _id: formatFormat === 'single_point' ? "single_point" : { $dateToString: { format: formatFormat, date: "$createdAt" } },
+                    sales: { $sum: { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } } }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        let salesTrends = [];
+        if (timeFilter === 'thisWeek') {
+            const days = [];
+            const curDate = new Date(startDate);
+            const endD = endDate ? new Date(endDate) : new Date();
+            while (curDate <= endD) {
+                days.push({
+                    id: curDate.toISOString().split('T')[0],
+                    label: fmtDate(curDate),
+                    sales: 0
+                });
+                curDate.setDate(curDate.getDate() + 1);
+            }
+            salesTrendsRaw.forEach(t => {
+                const dayObj = days.find(d => d.id === t._id);
+                if (dayObj) dayObj.sales = t.sales;
+            });
+            salesTrends = days.map(d => ({ week: d.label, sales: d.sales }));
+        } else if (timeFilter === 'custom') {
+            let curDate = startDate ? new Date(startDate) : new Date(new Date().setDate(new Date().getDate() - 30));
+            const endD = endDate ? new Date(endDate) : new Date();
+            
+            salesTrendsRaw.forEach(t => {
+                salesTrends.push({ id: t._id, week: fmtDate(new Date(t._id)), sales: t.sales });
+            });
+
+            const startId = curDate.toISOString().split('T')[0];
+            if (!salesTrends.find(d => d.id === startId)) {
+                salesTrends.push({ id: startId, week: fmtDate(curDate), sales: 0 });
+            }
+
+            const endId = endD.toISOString().split('T')[0];
+            if (!salesTrends.find(d => d.id === endId)) {
+                salesTrends.push({ id: endId, week: fmtDate(endD), sales: 0 });
+            }
+
+            salesTrends.sort((a, b) => a.id.localeCompare(b.id));
+            salesTrends = salesTrends.map(d => ({ week: d.week, sales: d.sales }));
+        } else if (timeFilter === 'thisMonth') {
+            const weeks = { 'W1': 0, 'W2': 0, 'W3': 0, 'W4': 0, 'W5': 0 };
+            salesTrendsRaw.forEach(t => {
+                if (!t._id) return;
+                const day = parseInt(t._id.split('-')[2]);
+                if (day <= 7) weeks['W1'] += t.sales;
+                else if (day <= 14) weeks['W2'] += t.sales;
+                else if (day <= 21) weeks['W3'] += t.sales;
+                else if (day <= 28) weeks['W4'] += t.sales;
+                else weeks['W5'] += t.sales;
+            });
+            salesTrends = Object.keys(weeks).map(k => ({ week: k, sales: weeks[k] }));
+            if (salesTrends[4].sales === 0) salesTrends.pop(); // hide W5 if empty
+        } else if (timeFilter === 'thisYear') {
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const yearData = {};
+            monthNames.forEach(m => yearData[m] = 0);
+            
+            salesTrendsRaw.forEach(t => {
+                if (!t._id) return;
+                const monthIdx = parseInt(t._id.split('-')[1]) - 1;
+                if (monthIdx >= 0 && monthIdx < 12) {
+                    yearData[monthNames[monthIdx]] += t.sales;
+                }
+            });
+            
+            salesTrends = monthNames.map(m => ({ week: m, sales: yearData[m] }));
+        } else {
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            
+            salesTrends = salesTrendsRaw.map(t => {
+                if (!t._id) return { id: '0000-00', week: 'Unknown', sales: t.sales };
+                const parts = t._id.split('-');
+                const year = parts[0].slice(2);
+                const monthIdx = parseInt(parts[1]) - 1;
+                return {
+                    id: t._id,
+                    week: `${monthNames[monthIdx]} '${year}`,
+                    sales: t.sales
+                };
+            });
+
+            const now = new Date();
+            const currentMonthId = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            if (!salesTrends.find(d => d.id === currentMonthId)) {
+                salesTrends.push({ 
+                    id: currentMonthId, 
+                    week: `${monthNames[now.getMonth()]} '${String(now.getFullYear()).slice(2)}`, 
+                    sales: 0 
+                });
+            }
+
+            if (salesTrends.length === 1) {
+                const prev = new Date();
+                prev.setMonth(prev.getMonth() - 1);
+                const prevId = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+                salesTrends.unshift({ 
+                    id: prevId, 
+                    week: `${monthNames[prev.getMonth()]} '${String(prev.getFullYear()).slice(2)}`, 
+                    sales: 0 
+                });
+            }
+
+            salesTrends.sort((a, b) => a.id.localeCompare(b.id));
+            salesTrends = salesTrends.map(d => ({ week: d.week, sales: d.sales }));
+        }
 
         const User = require('../models/User');
         const isSupervisor = req.user && ['Admin', 'Supervisor'].includes(req.user.role);
@@ -167,6 +345,7 @@ exports.getDashboardData = async (req, res) => {
         const users = req.user ? await User.find(usersQuery).select('fullName _id role') : [];
 
         const dealUserStats = await Deal.aggregate([
+            ...dateMatchDeal,
             { $match: { stage: "Won" } },
             { $group: {
                 _id: "$createdBy",
@@ -178,13 +357,19 @@ exports.getDashboardData = async (req, res) => {
         const activityUserStats = await Customer.aggregate([
             { $unwind: "$interactions" },
             { $match: { "interactions.createdBy": { $exists: true, $ne: null } } },
+            ...dateMatchInteraction,
             { $group: {
                 _id: "$interactions.createdBy",
                 activities: { $sum: 1 }
             }}
         ]);
 
-        let members = users.map(u => {
+        let tableUsers = users;
+        if (memberId && mongoose.isValidObjectId(memberId)) {
+            tableUsers = users.filter(u => u._id.toString() === memberId);
+        }
+
+        let members = tableUsers.map(u => {
             const dStat = dealUserStats.find(d => d._id?.toString() === u._id.toString()) || { sales: 0, deals: 0 };
             const aStat = activityUserStats.find(a => a._id?.toString() === u._id.toString()) || { activities: 0 };
             return {
@@ -208,7 +393,10 @@ exports.getDashboardData = async (req, res) => {
             members: members
         };
 
+        const membersList = users.map(u => ({ id: u._id.toString(), name: u.fullName }));
+
         res.json({
+            membersList,
             totalSales: { value: dealTotals.totalSales, changePercent: 12.5 },
             dealsCompleted: { value: dealTotals.dealsCompleted, changePercent: 8.2 },
             ongoingDeals: { value: dealTotals.ongoingDeals, changePercent: -2.4 },

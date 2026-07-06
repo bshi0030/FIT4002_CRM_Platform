@@ -37,7 +37,6 @@ const ACCENT      = '#253984'
 const ACCENT_DIM  = '#2A2A72'
 const CHART_GREEN = '#4DC9C9'
 const CHART_GREY  = '#A4A4A4'
-
 const fmtCurrency = (v) => v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`
 const fmtMoney = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v)
 const fmtTime = (iso) => { const d = new Date(iso); return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }
@@ -139,6 +138,11 @@ export default function Dashboard() {
     const [lastUpdated, setLastUpdated] = useState('')
     const [salesChartType, setSalesChartType] = useState('area')
     const [isEditing, setIsEditing] = useState(false)
+    const [membersList, setMembersList] = useState([])
+    const [selectedMemberId, setSelectedMemberId] = useState('')
+    const [timeFilter, setTimeFilter] = useState('thisMonth')
+    const [customStartDate, setCustomStartDate] = useState('')
+    const [customEndDate, setCustomEndDate] = useState('')
     const { user } = useAuth()
 
     const [kpiLayoutOrder, setKpiLayoutOrder] = useState(() => {
@@ -197,9 +201,10 @@ export default function Dashboard() {
         let mounted = true;
         const loadData = async () => {
             try {
-                const result = await fetchDashboardData();
+                const result = await fetchDashboardData(selectedMemberId, timeFilter, customStartDate, customEndDate);
                 if (mounted) {
                     setData(result);
+                    setMembersList(prev => prev.length === 0 && result.membersList ? result.membersList : prev);
                     setLoading(false);
                     setLastUpdated(new Date().toLocaleTimeString());
                 }
@@ -209,6 +214,7 @@ export default function Dashboard() {
             }
         };
 
+        setLoading(true);
         loadData();
         const id = setInterval(loadData, 5000); // Poll every 5 seconds
 
@@ -216,7 +222,7 @@ export default function Dashboard() {
             mounted = false;
             clearInterval(id);
         };
-    }, []);
+    }, [selectedMemberId, timeFilter, customStartDate, customEndDate]);
 
     const pipeline = data?.pipeline
     const pieData = pipeline ? [
@@ -312,37 +318,44 @@ export default function Dashboard() {
                             </div>
                         }
                     >
-                        {loading ? <Skeleton h={160} /> : salesChartType === 'area' ? (
-                            <div style={{ flex: 1, minHeight: 160 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={data?.salesTrends ?? []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="gradSales" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor={ACCENT} stopOpacity={0.6} />
-                                                <stop offset="95%" stopColor={ACCENT} stopOpacity={0.05} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                                        <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
-                                        <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
-                                        <Tooltip content={<ChartTooltip />} />
-                                        <Area type="monotone" dataKey="sales" name="sales" stroke={ACCENT_DIM} strokeWidth={2} fill="url(#gradSales)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        ) : (
-                            <div style={{ flex: 1, minHeight: 160 }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={data?.salesTrends ?? []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
-                                        <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
-                                        <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
-                                        <Tooltip content={<ChartTooltip />} />
-                                        <Bar dataKey="sales" name="sales" fill={ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        )}
+                        {(() => {
+                            let chartData = data?.salesTrends?.length > 0 ? [...data.salesTrends] : [{ week: 'No Data', sales: 0 }];
+                            if (chartData.length === 1 && chartData[0].week !== 'No Data') {
+                                chartData = [{ week: '', sales: 0 }, chartData[0], { week: ' ', sales: 0 }];
+                            }
+                            return loading ? <Skeleton h={160} /> : 
+                                salesChartType === 'area' ? (
+                                    <div style={{ flex: 1, minHeight: 160, width: '100%', minWidth: 0 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                                <defs>
+                                                    <linearGradient id="gradSales" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor={ACCENT} stopOpacity={0.6} />
+                                                        <stop offset="95%" stopColor={ACCENT} stopOpacity={0.05} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                                                <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
+                                                <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
+                                                <Tooltip content={<ChartTooltip />} />
+                                                <Area type="monotone" dataKey="sales" name="sales" stroke={ACCENT_DIM} strokeWidth={2} fill="url(#gradSales)" dot={{ r: 3, fill: ACCENT_DIM }} activeDot={{ r: 5 }} />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                ) : (
+                                    <div style={{ flex: 1, minHeight: 160, width: '100%', minWidth: 0 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
+                                                <XAxis dataKey="week" tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} />
+                                                <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 11, fill: '#777' }} axisLine={false} tickLine={false} width={48} />
+                                                <Tooltip content={<ChartTooltip />} />
+                                                <Bar dataKey="sales" name="sales" fill={ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                );
+                        })()}
                     </SortableCard>
                 );
             case 'activity':
@@ -405,7 +418,7 @@ export default function Dashboard() {
                         headerRight={topMember && <span className="top-badge"><FiAward size={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />Top: {topMember}</span>}
                     >
                         {loading ? <Skeleton h={160} /> : (
-                            <div style={{ flex: 1, minHeight: 160 }}>
+                            <div style={{ flex: 1, minHeight: 160, width: '100%', minWidth: 0 }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={teamMembers} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
@@ -457,12 +470,28 @@ export default function Dashboard() {
                     </div>
                 </div>
                 <div className="dashboard-filters">
-                    <select className="dashboard-select" defaultValue="This Month">
-                        <option>This Month</option>
+                    {timeFilter === 'custom' && (
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <input type="date" className="dashboard-select" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} />
+                            <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 500 }}>to</span>
+                            <input type="date" className="dashboard-select" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} />
+                        </div>
+                    )}
+                    <select className="dashboard-select" value={timeFilter} onChange={(e) => setTimeFilter(e.target.value)}>
+                        <option value="thisWeek">This Week</option>
+                        <option value="thisMonth">This Month</option>
+                        <option value="thisYear">This Year</option>
+                        <option value="all">All Time</option>
+                        <option value="custom">Custom Date Range</option>
                     </select>
-                    <select className="dashboard-select" defaultValue="All Team Members">
-                        <option>All Team Members</option>
-                    </select>
+                    {user?.role === 'Admin' || user?.role === 'Supervisor' ? (
+                        <select className="dashboard-select" value={selectedMemberId} onChange={(e) => setSelectedMemberId(e.target.value)}>
+                            <option value="">All Team Members</option>
+                            {membersList.map(m => (
+                                <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                        </select>
+                    ) : null}
                     <button className="dashboard-reset-btn" onClick={() => setIsEditing(!isEditing)} style={{ background: isEditing ? '#253984' : '#fff', color: isEditing ? '#fff' : '#444' }}>
                         {isEditing ? 'Done Editing' : 'Edit Layout'}
                     </button>
@@ -492,10 +521,10 @@ export default function Dashboard() {
 
                 <div className="chart-grid">
                     <SortableContext 
-                        items={layoutOrder}
+                        items={layoutOrder.filter(id => id !== 'team' || user?.role === 'Admin' || user?.role === 'Supervisor')}
                         strategy={rectSwappingStrategy}
                     >
-                        {layoutOrder.map(id => renderChart(id))}
+                        {layoutOrder.filter(id => id !== 'team' || user?.role === 'Admin' || user?.role === 'Supervisor').map(id => renderChart(id))}
                     </SortableContext>
                 </div>
             </DndContext>

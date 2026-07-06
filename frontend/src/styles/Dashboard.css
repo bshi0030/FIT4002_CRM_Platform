@@ -254,6 +254,10 @@
   gap: 14px;
 }
 
+.chart-grid > .chart-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .drag-handle {
   cursor: grab;
   color: #ccc;
