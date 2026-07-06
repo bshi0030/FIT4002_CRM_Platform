@@ -148,14 +148,26 @@ export default function Dashboard() {
     const { user } = useAuth()
 
     const [kpiLayoutOrder, setKpiLayoutOrder] = useState(() => {
-        const saved = localStorage.getItem('dashboard-kpi-layout');
+        const saved = localStorage.getItem(`dashboard-kpi-layout-${user?.id || 'guest'}`);
         return saved ? JSON.parse(saved) : DEFAULT_KPI_LAYOUT;
     });
 
     const [layoutOrder, setLayoutOrder] = useState(() => {
-        const saved = localStorage.getItem('dashboard-layout');
+        const saved = localStorage.getItem(`dashboard-layout-${user?.id || 'guest'}`);
         return saved ? JSON.parse(saved) : DEFAULT_LAYOUT;
     });
+
+    useEffect(() => {
+        if (user?.id) {
+            const savedKpi = localStorage.getItem(`dashboard-kpi-layout-${user.id}`);
+            if (savedKpi) setKpiLayoutOrder(JSON.parse(savedKpi));
+            else setKpiLayoutOrder(DEFAULT_KPI_LAYOUT);
+
+            const savedLayout = localStorage.getItem(`dashboard-layout-${user.id}`);
+            if (savedLayout) setLayoutOrder(JSON.parse(savedLayout));
+            else setLayoutOrder(DEFAULT_LAYOUT);
+        }
+    }, [user?.id]);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -170,7 +182,7 @@ export default function Dashboard() {
                     const oldIndex = items.indexOf(active.id);
                     const newIndex = items.indexOf(over.id);
                     const newOrder = arraySwap(items, oldIndex, newIndex);
-                    localStorage.setItem('dashboard-kpi-layout', JSON.stringify(newOrder));
+                    localStorage.setItem(`dashboard-kpi-layout-${user?.id || 'guest'}`, JSON.stringify(newOrder));
                     return newOrder;
                 });
             } else {
@@ -178,7 +190,7 @@ export default function Dashboard() {
                     const oldIndex = items.indexOf(active.id);
                     const newIndex = items.indexOf(over.id);
                     const newOrder = arraySwap(items, oldIndex, newIndex);
-                    localStorage.setItem('dashboard-layout', JSON.stringify(newOrder));
+                    localStorage.setItem(`dashboard-layout-${user?.id || 'guest'}`, JSON.stringify(newOrder));
                     return newOrder;
                 });
             }
@@ -188,8 +200,8 @@ export default function Dashboard() {
     const resetLayout = () => {
         setKpiLayoutOrder(DEFAULT_KPI_LAYOUT);
         setLayoutOrder(DEFAULT_LAYOUT);
-        localStorage.removeItem('dashboard-kpi-layout');
-        localStorage.removeItem('dashboard-layout');
+        localStorage.removeItem(`dashboard-kpi-layout-${user?.id || 'guest'}`);
+        localStorage.removeItem(`dashboard-layout-${user?.id || 'guest'}`);
     };
 
     useEffect(() => {
@@ -371,7 +383,7 @@ export default function Dashboard() {
                         key="activity" 
                         id="activity" 
                         title="Activity Summary" 
-                        subTitle="All team activities"
+                        subTitle={user?.role === 'User' ? 'Your activities' : (selectedMemberId ? 'Team member activities' : 'All team activities')}
                         isEditing={isEditing}
                     >
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -400,7 +412,7 @@ export default function Dashboard() {
                                 })}
                             </div>
                             <div className="recent-activities" style={{ marginTop: 'auto' }}>
-                                <h4 className="recent-activities-title">Recent Activities</h4>
+                                <h4 className="recent-activities-title">{user?.role === 'User' ? 'Your Recent Activities' : 'Recent Activities'}</h4>
                                 <div className="recent-activities-list">
                                     {recentActivities.map(act => (
                                         <div key={act.id} className="recent-activity-item" style={{ backgroundColor: act.id === 1 ? '#eaf6ff' : '#fff' }}>
@@ -474,8 +486,8 @@ export default function Dashboard() {
                 <div className="dashboard-user">
                     <div className="dashboard-user-avatar"><FiUser size={20} /></div>
                     <div className="dashboard-user-info">
-                        <span className="dashboard-user-name">{user?.fullName?? + ' (You)'}</span>
-                        <span className="dashboard-user-role">{user?.role}</span>
+                        <span className="dashboard-user-name">{user?.fullName ? `${user.fullName} (You)` : 'You'}</span>
+                        <span className="dashboard-user-role">{user?.role === 'User' ? 'Salesperson' : user?.role}</span>
                     </div>
                 </div>
                 <div className="dashboard-filters">

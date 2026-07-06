@@ -2,15 +2,23 @@ const Deal = require('../models/Deal');
 const Customer = require('../models/Customer');
 const mongoose = require('mongoose');
 
+const User = require('../models/User');
+
 exports.getDashboardData = async (req, res) => {
     try {
-        const memberId = req.query.memberId;
-        const dealMatch = memberId && mongoose.isValidObjectId(memberId) 
-            ? [{ $match: { createdBy: new mongoose.Types.ObjectId(memberId) } }] 
+        const isSupervisor = req.user && ['Admin', 'Supervisor'].includes(req.user.role);
+        
+        let effectiveMemberId = req.query.memberId;
+        if (!isSupervisor) {
+            effectiveMemberId = req.user?._id;
+        }
+
+        const dealMatch = effectiveMemberId && mongoose.isValidObjectId(effectiveMemberId) 
+            ? [{ $match: { createdBy: new mongoose.Types.ObjectId(effectiveMemberId) } }] 
             : [];
             
-        const interactionMatch = memberId && mongoose.isValidObjectId(memberId) 
-            ? [{ $match: { "interactions.createdBy": new mongoose.Types.ObjectId(memberId) } }] 
+        const interactionMatch = effectiveMemberId && mongoose.isValidObjectId(effectiveMemberId) 
+            ? [{ $match: { "interactions.createdBy": new mongoose.Types.ObjectId(effectiveMemberId) } }] 
             : [];
 
         const timeFilter = req.query.timeFilter || 'thisMonth';
@@ -181,11 +189,19 @@ exports.getDashboardData = async (req, res) => {
             ...dateMatchInteraction,
             { $sort: { "interactions.date": -1 } },
             { $limit: 3 },
+            { $lookup: {
+                from: "users",
+                localField: "interactions.createdBy",
+                foreignField: "_id",
+                as: "creatorInfo"
+            }},
+            { $unwind: { path: "$creatorInfo", preserveNullAndEmptyArrays: true } },
             { $project: {
                 _id: "$interactions._id",
                 fullName: "$fullName",
                 company: "$company",
                 createdBy: "$interactions.createdBy",
+                creatorName: "$creatorInfo.fullName",
                 latest: "$interactions"
             }}
         ]);
@@ -251,10 +267,15 @@ exports.getDashboardData = async (req, res) => {
                 displayTitle = `${inter.fullName} (${inter.company})`;
             }
 
+            let desc = `${inter.latest.details || ''} • ${displayTime}`;
+            if (isSupervisor && inter.creatorName) {
+                desc = `${inter.creatorName}: ${inter.latest.details || ''} • ${displayTime}`;
+            }
+
             return {
                 id: inter._id,
                 company: displayTitle,
-                desc: `${inter.latest.details || ''} • ${displayTime}`,
+                desc,
                 iconType,
                 bg,
                 color
@@ -411,9 +432,6 @@ exports.getDashboardData = async (req, res) => {
             salesTrends = salesTrends.map(d => ({ week: d.week, sales: d.sales }));
         }
 
-        const User = require('../models/User');
-        const isSupervisor = req.user && ['Admin', 'Supervisor'].includes(req.user.role);
-        
         let usersQuery = isSupervisor ? {} : { _id: req.user?._id };
         const users = req.user ? await User.find(usersQuery).select('fullName _id role') : [];
 
@@ -438,8 +456,8 @@ exports.getDashboardData = async (req, res) => {
         ]);
 
         let tableUsers = users;
-        if (memberId && mongoose.isValidObjectId(memberId)) {
-            tableUsers = users.filter(u => u._id.toString() === memberId);
+        if (effectiveMemberId && mongoose.isValidObjectId(effectiveMemberId)) {
+            tableUsers = users.filter(u => u._id.toString() === effectiveMemberId.toString());
         }
 
         let members = tableUsers.map(u => {
