@@ -479,8 +479,10 @@ export default function Dashboard() {
         }
     }
 
+    const isCustomDateError = timeFilter === 'custom' && customStartDate && customEndDate && new Date(customEndDate) < new Date(customStartDate);
+
     return (
-        <div className="dashboard">
+        <div className="dashboard" style={{ overflowY: isCustomDateError ? 'hidden' : 'auto' }}>
 
             <div className="dashboard-topbar">
                 <div className="dashboard-user">
@@ -526,7 +528,7 @@ export default function Dashboard() {
                 {error && <span className="live-error"> · {error}</span>}
             </div>
 
-            {timeFilter === 'custom' && customStartDate && customEndDate && new Date(customEndDate) < new Date(customStartDate) && (
+            {isCustomDateError && (
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(3px)', borderRadius: '12px' }}>
                     <div style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', padding: '20px 40px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '25px', fontWeight: 500, fontSize: '1.1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
