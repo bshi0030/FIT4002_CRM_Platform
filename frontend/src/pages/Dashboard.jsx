@@ -45,7 +45,7 @@ function Skeleton({ w = '100%', h = 20 }) {
     return <div className="skeleton" style={{ width: w, height: h }} />
 }
 
-function SortableKpiCard({ id, icon, label, value, change, sub, loading, isEditing }) {
+function SortableKpiCard({ id, icon, label, value, change, showChange, sub, loading, isEditing }) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -63,13 +63,15 @@ function SortableKpiCard({ id, icon, label, value, change, sub, loading, isEditi
                     {isEditing && <FiMove size={14} style={{ marginRight: '6px', opacity: 0.4 }} />}
                     {icon}
                 </span>
-                <span className={`kpi-badge ${positive ? 'badge-up' : 'badge-down'}`}>
-                    {positive ? <FiArrowUp size={10} /> : <FiArrowDown size={10} />} {Math.abs(change)}%
-                </span>
+                {showChange !== false && change !== null ? (
+                    <span className={`kpi-badge ${positive ? 'badge-up' : 'badge-down'}`}>
+                        {positive ? <FiArrowUp size={10} /> : <FiArrowDown size={10} />} {Math.abs(change)}%
+                    </span>
+                ) : null}
             </div>
             <div className="kpi-label">{label}</div>
             {loading ? <Skeleton h={36} w="70%" /> : <div className="kpi-value">{value}</div>}
-            {loading ? <Skeleton h={14} w="50%" /> : <div className="kpi-sub">{sub}</div>}
+            {loading ? <Skeleton h={14} w="50%" /> : (showChange !== false && sub ? <div className="kpi-sub">{sub}</div> : null)}
         </div>
     )
 }
@@ -230,7 +232,7 @@ export default function Dashboard() {
         { name: 'Ongoing Deals', value: pipeline.ongoingDeals },
         { name: 'Lost Deals', value: pipeline.lostDeals }
     ] : []
-    const pct = pipeline ? Math.round((pipeline.completedDeals / pipeline.total) * 100) : 0
+    const pct = pipeline && pipeline.total > 0 ? Math.round((pipeline.completedDeals / pipeline.total) * 100) : 0
     const teamMembers = data?.teamPerformance?.members ?? []
     const topMember = data?.teamPerformance?.topMember ?? ''
     const teamTotal = teamMembers.reduce((s, m) => s + m.sales, 0)
@@ -246,16 +248,21 @@ export default function Dashboard() {
               <FiVideo size={14} />
     })) ?? []
 
+    const subText = timeFilter === 'thisWeek' ? 'vs last week' 
+                  : timeFilter === 'thisMonth' ? 'vs last month' 
+                  : timeFilter === 'thisYear' ? 'vs last year' 
+                  : '';
+
     const renderKpi = (id) => {
         switch (id) {
             case 'totalSales':
-                return <SortableKpiCard key="totalSales" id="totalSales" isEditing={isEditing} icon={<FiTrendingUp size={20} />} label="TOTAL SALES" value={data ? fmtMoney(data.totalSales.value) : '—'} change={data?.totalSales.changePercent ?? 0} sub="vs last month" loading={loading} />
+                return <SortableKpiCard key="totalSales" id="totalSales" isEditing={isEditing} icon={<FiTrendingUp size={20} />} label="TOTAL SALES" value={data ? fmtMoney(data.totalSales.value) : '—'} change={data?.totalSales.changePercent ?? 0} showChange={data?.totalSales.showChange} sub={subText} loading={loading} />
             case 'dealsCompleted':
-                return <SortableKpiCard key="dealsCompleted" id="dealsCompleted" isEditing={isEditing} icon={<FiCheckCircle size={20} />} label="DEALS COMPLETED" value={data?.dealsCompleted.value ?? '—'} change={data?.dealsCompleted.changePercent ?? 0} sub="vs last month" loading={loading} />
+                return <SortableKpiCard key="dealsCompleted" id="dealsCompleted" isEditing={isEditing} icon={<FiCheckCircle size={20} />} label="DEALS COMPLETED" value={data?.dealsCompleted.value ?? '—'} change={data?.dealsCompleted.changePercent ?? 0} showChange={data?.dealsCompleted.showChange} sub={subText} loading={loading} />
             case 'ongoingDeals':
-                return <SortableKpiCard key="ongoingDeals" id="ongoingDeals" isEditing={isEditing} icon={<FiClock size={20} />} label="ONGOING DEALS" value={data?.ongoingDeals.value ?? '—'} change={data?.ongoingDeals.changePercent ?? 0} sub="vs last month" loading={loading} />
+                return <SortableKpiCard key="ongoingDeals" id="ongoingDeals" isEditing={isEditing} icon={<FiClock size={20} />} label="ONGOING DEALS" value={data?.ongoingDeals.value ?? '—'} change={data?.ongoingDeals.changePercent ?? 0} showChange={data?.ongoingDeals.showChange} sub={subText} loading={loading} />
             case 'avgDealValue':
-                return <SortableKpiCard key="avgDealValue" id="avgDealValue" isEditing={isEditing} icon={<FiDollarSign size={20} />} label="AVG DEAL VALUE" value={data ? fmtMoney(data.avgDealValue.value) : '—'} change={data?.avgDealValue.changePercent ?? 0} sub="vs last month" loading={loading} />
+                return <SortableKpiCard key="avgDealValue" id="avgDealValue" isEditing={isEditing} icon={<FiDollarSign size={20} />} label="AVG DEAL VALUE" value={data ? fmtMoney(data.avgDealValue.value) : '—'} change={data?.avgDealValue.changePercent ?? 0} showChange={data?.avgDealValue.showChange} sub={subText} loading={loading} />
             default:
                 return null;
         }
@@ -382,7 +389,9 @@ export default function Dashboard() {
                                         <div key={key} className="activity-tile">
                                             <div className="activity-tile-top">
                                                 <span className="activity-icon">{icon}</span>
-                                                <span className={`kpi-badge ${pos ? 'badge-up' : 'badge-down'}`} style={{ fontSize: 11 }}>{pos ? '+' : ''}{chg}%</span>
+                                                {data?.totalSales?.showChange !== false && chg !== null && (
+                                                    <span className={`kpi-badge ${pos ? 'badge-up' : 'badge-down'}`} style={{ fontSize: 11 }}>{pos ? '+' : ''}{chg}%</span>
+                                                )}
                                             </div>
                                             {loading ? <Skeleton h={28} w="50%" /> : <div className="activity-val">{val ?? '—'}</div>}
                                             <div className="activity-label">{label}</div>

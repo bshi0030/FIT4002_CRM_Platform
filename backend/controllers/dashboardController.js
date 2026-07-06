@@ -46,6 +46,40 @@ exports.getDashboardData = async (req, res) => {
             dateMatchInteraction = [{ $match: { "interactions.date": interactionDateCondition } }];
         }
 
+        // Calculate previous period for KPIs
+        let prevStartDate = null;
+        let prevEndDate = null;
+        let showChange = false;
+        
+        if (timeFilter === 'thisWeek') {
+            prevEndDate = new Date(startDate);
+            prevStartDate = new Date(startDate);
+            prevStartDate.setDate(prevStartDate.getDate() - 7);
+            showChange = true;
+        } else if (timeFilter === 'thisMonth') {
+            prevEndDate = new Date(startDate);
+            prevStartDate = new Date(startDate);
+            prevStartDate.setMonth(prevStartDate.getMonth() - 1);
+            showChange = true;
+        } else if (timeFilter === 'thisYear') {
+            prevEndDate = new Date(startDate);
+            prevStartDate = new Date(startDate);
+            prevStartDate.setFullYear(prevStartDate.getFullYear() - 1);
+            showChange = true;
+        }
+
+        let prevDateMatchDeal = [];
+        let prevDateMatchInteraction = [];
+        if (showChange) {
+            let pDealDateCond = {};
+            if (prevStartDate) pDealDateCond.$gte = prevStartDate;
+            if (prevEndDate) pDealDateCond.$lte = new Date(new Date(prevEndDate).setHours(23, 59, 59, 999));
+            if (Object.keys(pDealDateCond).length > 0) {
+                prevDateMatchDeal = [{ $match: { createdAt: pDealDateCond } }];
+                prevDateMatchInteraction = [{ $match: { "interactions.date": pDealDateCond } }];
+            }
+        }
+
         // 1. Aggregation for Deals
         const dealAgg = await Deal.aggregate([
             ...dealMatch,
@@ -99,6 +133,45 @@ exports.getDashboardData = async (req, res) => {
             }}
         ]);
         const iStats = interactionStats[0] || { callsMade: 0, emailsSent: 0, meetingsHeld: 0 };
+
+        // 2b. Aggregation for Previous Period
+        let prevDealTotals = { totalSales: 0, dealsCompleted: 0, ongoingDeals: 0, avgDealValue: 0 };
+        let prevIStats = { callsMade: 0, emailsSent: 0, meetingsHeld: 0 };
+        if (showChange) {
+            const prevDealAgg = await Deal.aggregate([
+                ...dealMatch,
+                ...prevDateMatchDeal,
+                { $group: {
+                    _id: null,
+                    totalSales: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } }, 0] } },
+                    dealsCompleted: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
+                    ongoingDeals: { $sum: { $cond: [{ $in: ["$stage", ["Won", "Lost"]] }, 0, 1] } }
+                }}
+            ]);
+            if (prevDealAgg.length > 0) {
+                prevDealTotals = prevDealAgg[0];
+                prevDealTotals.avgDealValue = prevDealTotals.dealsCompleted > 0 ? (prevDealTotals.totalSales / prevDealTotals.dealsCompleted) : 0;
+            }
+
+            const prevInteractionAgg = await Customer.aggregate([
+                { $unwind: "$interactions" },
+                ...interactionMatch,
+                ...prevDateMatchInteraction,
+                { $group: {
+                    _id: null,
+                    callsMade: { $sum: { $cond: [{ $eq: [{ $toLower: "$interactions.type" }, "call"] }, 1, 0] } },
+                    emailsSent: { $sum: { $cond: [{ $eq: [{ $toLower: "$interactions.type" }, "email"] }, 1, 0] } },
+                    meetingsHeld: { $sum: { $cond: [{ $in: [{ $toLower: "$interactions.type" }, ["meeting", "task"]] }, 1, 0] } }
+                }}
+            ]);
+            if (prevInteractionAgg.length > 0) prevIStats = prevInteractionAgg[0];
+        }
+
+        const calcChange = (curr, prev) => {
+            if (!showChange) return null;
+            if (prev === 0) return curr > 0 ? 100 : 0;
+            return parseFloat((((curr - prev) / prev) * 100).toFixed(1));
+        };
 
         // 3. Aggregation for Recent Activities (Top 3 recent interactions, grouped by Customer)
         const recentInteractions = await Customer.aggregate([
@@ -198,13 +271,13 @@ exports.getDashboardData = async (req, res) => {
 
         const activitySummary = {
             callsMade: iStats.callsMade,
-            callsChange: 0,
+            callsChange: calcChange(iStats.callsMade, prevIStats.callsMade),
             meetingsHeld: iStats.meetingsHeld,
-            meetingsChange: 0,
+            meetingsChange: calcChange(iStats.meetingsHeld, prevIStats.meetingsHeld),
             emailsSent: iStats.emailsSent,
-            emailsChange: 0,
+            emailsChange: calcChange(iStats.emailsSent, prevIStats.emailsSent),
             dealsClosed: dealTotals.dealsCompleted,
-            dealsChange: 0
+            dealsChange: calcChange(dealTotals.dealsCompleted, prevDealTotals.dealsCompleted)
         };
 
         const fmtDate = (d) => {
@@ -397,10 +470,10 @@ exports.getDashboardData = async (req, res) => {
 
         res.json({
             membersList,
-            totalSales: { value: dealTotals.totalSales, changePercent: 12.5 },
-            dealsCompleted: { value: dealTotals.dealsCompleted, changePercent: 8.2 },
-            ongoingDeals: { value: dealTotals.ongoingDeals, changePercent: -2.4 },
-            avgDealValue: { value: avgDealValue, changePercent: 5.1 },
+            totalSales: { value: dealTotals.totalSales, changePercent: calcChange(dealTotals.totalSales, prevDealTotals.totalSales), showChange },
+            dealsCompleted: { value: dealTotals.dealsCompleted, changePercent: calcChange(dealTotals.dealsCompleted, prevDealTotals.dealsCompleted), showChange },
+            ongoingDeals: { value: dealTotals.ongoingDeals, changePercent: calcChange(dealTotals.ongoingDeals, prevDealTotals.ongoingDeals), showChange },
+            avgDealValue: { value: avgDealValue, changePercent: calcChange(avgDealValue, prevDealTotals.avgDealValue), showChange },
             salesTrends,
             pipeline,
             activitySummary,
