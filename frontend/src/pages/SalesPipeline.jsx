@@ -130,10 +130,10 @@ const handleConfirmDelete = async () => {
 
 const openStages = ['Qualified', 'Contact Made', 'Demo Scheduled', 'Proposal Made', 'Negotiation'];
 const openDeals = deals.filter(d => openStages.includes(d.stage));
-const totalValue = deals.filter(d => [...openStages, 'Won', 'Lost'].includes(d.stage))
-  .reduce((sum, d) => sum + (parseFloat(d.price) || 0), 0);
+const totalValue = deals
+  .reduce((sum, d) => sum + (parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 0), 0);
 const closedWon = deals.filter(d => d.stage === 'Won')
-  .reduce((sum, d) => sum + (parseFloat(d.price) || 0), 0);
+  .reduce((sum, d) => sum + (parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 0), 0);
 const avgProbability = deals.length > 0
   ? Math.round(deals.reduce((sum, d) => sum + (d.probability || 0), 0) / deals.length)
   : 0;
