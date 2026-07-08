@@ -51,7 +51,10 @@ function SalesPipeline() {
       });
       setDeals([...deals, newDeal]);
       handleCloseModal();
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to add lead');
+    }
   };
 
   const getDealsForStage = (stageName) => deals.filter(d => {
