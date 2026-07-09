@@ -260,7 +260,8 @@ export default function Dashboard() {
               <FiVideo size={14} />
     })) ?? []
 
-    const subText = timeFilter === 'thisWeek' ? 'vs last week' 
+    const subText = timeFilter === 'today' ? 'vs yesterday'
+                  : timeFilter === 'thisWeek' ? 'vs last week' 
                   : timeFilter === 'thisMonth' ? 'vs last month' 
                   : timeFilter === 'thisYear' ? 'vs last year' 
                   : '';
@@ -501,6 +502,7 @@ export default function Dashboard() {
                         </div>
                     )}
                     <select className="dashboard-select" value={timeFilter} onChange={(e) => setTimeFilter(e.target.value)}>
+                        <option value="today">Today</option>
                         <option value="thisWeek">This Week</option>
                         <option value="thisMonth">This Month</option>
                         <option value="thisYear">This Year</option>

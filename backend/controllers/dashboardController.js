@@ -9,9 +9,6 @@ exports.getDashboardData = async (req, res) => {
         const isSupervisor = req.user && ['Admin', 'Supervisor'].includes(req.user.role);
         
         let effectiveMemberId = req.query.memberId;
-        if (!isSupervisor) {
-            effectiveMemberId = req.user?._id;
-        }
 
         const dealMatch = effectiveMemberId && mongoose.isValidObjectId(effectiveMemberId) 
             ? [{ $match: { createdBy: new mongoose.Types.ObjectId(effectiveMemberId) } }] 
@@ -24,15 +21,19 @@ exports.getDashboardData = async (req, res) => {
         const timeFilter = req.query.timeFilter || 'thisMonth';
         let startDate = null;
         let endDate = null;
-        if (timeFilter === 'thisWeek') {
+        if (timeFilter === 'today') {
+            startDate = new Date();
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+        } else if (timeFilter === 'thisWeek') {
             startDate = new Date();
             startDate.setDate(startDate.getDate() - 7);
         } else if (timeFilter === 'thisMonth') {
             startDate = new Date();
             startDate.setMonth(startDate.getMonth() - 1);
         } else if (timeFilter === 'thisYear') {
-            startDate = new Date();
-            startDate.setFullYear(startDate.getFullYear() - 1);
+            startDate = new Date(new Date().getFullYear(), 0, 1);
         } else if (timeFilter === 'custom') {
             if (req.query.startDate) startDate = new Date(req.query.startDate);
             if (req.query.endDate) endDate = new Date(req.query.endDate);
@@ -42,8 +43,11 @@ exports.getDashboardData = async (req, res) => {
         let dealDateCondition = {};
         if (startDate) dealDateCondition.$gte = startDate;
         if (endDate) dealDateCondition.$lte = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+        let dateMatchDealCreated = [];
+        let dateMatchDealUpdated = [];
         if (Object.keys(dealDateCondition).length > 0) {
-            dateMatchDeal = [{ $match: { createdAt: dealDateCondition } }];
+            dateMatchDealCreated = [{ $match: { createdAt: dealDateCondition } }];
+            dateMatchDealUpdated = [{ $match: { updatedAt: dealDateCondition } }];
         }
 
         let dateMatchInteraction = [];
@@ -59,7 +63,13 @@ exports.getDashboardData = async (req, res) => {
         let prevEndDate = null;
         let showChange = false;
         
-        if (timeFilter === 'thisWeek') {
+        if (timeFilter === 'today') {
+            prevStartDate = new Date(startDate);
+            prevStartDate.setDate(prevStartDate.getDate() - 1);
+            prevEndDate = new Date(endDate);
+            prevEndDate.setDate(prevEndDate.getDate() - 1);
+            showChange = true;
+        } else if (timeFilter === 'thisWeek') {
             prevEndDate = new Date(startDate);
             prevStartDate = new Date(startDate);
             prevStartDate.setDate(prevStartDate.getDate() - 7);
@@ -76,40 +86,30 @@ exports.getDashboardData = async (req, res) => {
             showChange = true;
         }
 
-        let prevDateMatchDeal = [];
+        let prevDateMatchDealCreated = [];
+        let prevDateMatchDealUpdated = [];
         let prevDateMatchInteraction = [];
         if (showChange) {
             let pDealDateCond = {};
             if (prevStartDate) pDealDateCond.$gte = prevStartDate;
             if (prevEndDate) pDealDateCond.$lte = new Date(new Date(prevEndDate).setHours(23, 59, 59, 999));
             if (Object.keys(pDealDateCond).length > 0) {
-                prevDateMatchDeal = [{ $match: { createdAt: pDealDateCond } }];
+                prevDateMatchDealCreated = [{ $match: { createdAt: pDealDateCond } }];
+                prevDateMatchDealUpdated = [{ $match: { updatedAt: pDealDateCond } }];
                 prevDateMatchInteraction = [{ $match: { "interactions.date": pDealDateCond } }];
             }
         }
 
-        // 1. Aggregation for Deals
-        const dealAgg = await Deal.aggregate([
+                // 1. Aggregation for Deals
+        const ongoingAgg = await Deal.aggregate([
             ...dealMatch,
-            ...dateMatchDeal,
+            ...dateMatchDealCreated,
             {
                 $facet: {
                     totals: [
                         { $group: {
                             _id: null,
-                            totalSales: { 
-                                $sum: { 
-                                    $cond: [
-                                        { $eq: ["$stage", "Won"] }, 
-                                        { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } }, 
-                                        0
-                                    ] 
-                                } 
-                            },
-                            dealsCompleted: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
-                            ongoingDeals: { $sum: { $cond: [{ $in: ["$stage", ["Won", "Lost"]] }, 0, 1] } },
-                            lostDeals: { $sum: { $cond: [{ $eq: ["$stage", "Lost"] }, 1, 0] } },
-                            totalCount: { $sum: 1 }
+                            ongoingDeals: { $sum: { $cond: [{ $in: ["$stage", ["Won", "Lost"]] }, 0, 1] } }
                         }}
                     ],
                     stages: [
@@ -120,12 +120,42 @@ exports.getDashboardData = async (req, res) => {
             }
         ]);
 
-        const dealTotals = dealAgg[0].totals[0] || { totalSales: 0, dealsCompleted: 0, ongoingDeals: 0, lostDeals: 0, totalCount: 0 };
+        const completedAgg = await Deal.aggregate([
+            ...dealMatch,
+            ...dateMatchDealUpdated,
+            {
+                $group: {
+                    _id: null,
+                    totalSales: { 
+                        $sum: { 
+                            $cond: [
+                                { $eq: ["$stage", "Won"] }, 
+                                { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } }, 
+                                0
+                            ] 
+                        } 
+                    },
+                    dealsCompleted: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
+                    lostDeals: { $sum: { $cond: [{ $eq: ["$stage", "Lost"] }, 1, 0] } }
+                }
+            }
+        ]);
+
+        const ongoingTotals = ongoingAgg[0].totals[0] || { ongoingDeals: 0 };
+        const completedTotals = completedAgg[0] || { totalSales: 0, dealsCompleted: 0, lostDeals: 0 };
+
+        const dealTotals = {
+            totalSales: completedTotals.totalSales,
+            dealsCompleted: completedTotals.dealsCompleted,
+            ongoingDeals: ongoingTotals.ongoingDeals,
+            lostDeals: completedTotals.lostDeals,
+            totalCount: completedTotals.dealsCompleted + ongoingTotals.ongoingDeals + completedTotals.lostDeals
+        };
         const avgDealValue = dealTotals.dealsCompleted > 0 ? (dealTotals.totalSales / dealTotals.dealsCompleted) : 0;
         
         // Ensure standard pipeline stages exist
         const defaultStages = { 'Qualified': 0, 'Contact Made': 0, 'Demo Scheduled': 0, 'Proposal Made': 0, 'Negotiation': 0 };
-        dealAgg[0].stages.forEach(s => { defaultStages[s._id] = s.count; });
+        ongoingAgg[0].stages.forEach(s => { defaultStages[s._id] = s.count; });
         const stagesArray = Object.keys(defaultStages).map(k => ({ name: k, count: defaultStages[k] }));
 
         // 2. Aggregation for Interactions (Summary Counts)
@@ -146,20 +176,29 @@ exports.getDashboardData = async (req, res) => {
         let prevDealTotals = { totalSales: 0, dealsCompleted: 0, ongoingDeals: 0, avgDealValue: 0 };
         let prevIStats = { callsMade: 0, emailsSent: 0, meetingsHeld: 0 };
         if (showChange) {
-            const prevDealAgg = await Deal.aggregate([
+            const prevOngoingAgg = await Deal.aggregate([
                 ...dealMatch,
-                ...prevDateMatchDeal,
+                ...prevDateMatchDealCreated,
                 { $group: {
                     _id: null,
-                    totalSales: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } }, 0] } },
-                    dealsCompleted: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
                     ongoingDeals: { $sum: { $cond: [{ $in: ["$stage", ["Won", "Lost"]] }, 0, 1] } }
                 }}
             ]);
-            if (prevDealAgg.length > 0) {
-                prevDealTotals = prevDealAgg[0];
-                prevDealTotals.avgDealValue = prevDealTotals.dealsCompleted > 0 ? (prevDealTotals.totalSales / prevDealTotals.dealsCompleted) : 0;
-            }
+
+            const prevCompletedAgg = await Deal.aggregate([
+                ...dealMatch,
+                ...prevDateMatchDealUpdated,
+                { $group: {
+                    _id: null,
+                    totalSales: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } }, 0] } },
+                    dealsCompleted: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } }
+                }}
+            ]);
+            
+            prevDealTotals.ongoingDeals = prevOngoingAgg[0]?.ongoingDeals || 0;
+            prevDealTotals.totalSales = prevCompletedAgg[0]?.totalSales || 0;
+            prevDealTotals.dealsCompleted = prevCompletedAgg[0]?.dealsCompleted || 0;
+            prevDealTotals.avgDealValue = prevDealTotals.dealsCompleted > 0 ? (prevDealTotals.totalSales / prevDealTotals.dealsCompleted) : 0;
 
             const prevInteractionAgg = await Customer.aggregate([
                 { $unwind: "$interactions" },
@@ -282,12 +321,38 @@ exports.getDashboardData = async (req, res) => {
             };
         });
 
+        const pipelineAgg = await Deal.aggregate([
+            ...dealMatch,
+            {
+                $facet: {
+                    totals: [
+                        { $group: {
+                            _id: null,
+                            completedDeals: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
+                            lostDeals: { $sum: { $cond: [{ $eq: ["$stage", "Lost"] }, 1, 0] } },
+                            ongoingDeals: { $sum: { $cond: [{ $in: ["$stage", ["Won", "Lost"]] }, 0, 1] } },
+                            total: { $sum: 1 }
+                        }}
+                    ],
+                    stages: [
+                        { $match: { stage: { $nin: ["Won", "Lost"] } } },
+                        { $group: { _id: "$stage", count: { $sum: 1 } } }
+                    ]
+                }
+            }
+        ]);
+
+        const pipeTotals = pipelineAgg[0]?.totals[0] || { completedDeals: 0, lostDeals: 0, ongoingDeals: 0, total: 0 };
+        const pipeDefaultStages = { 'Qualified': 0, 'Contact Made': 0, 'Demo Scheduled': 0, 'Proposal Made': 0, 'Negotiation': 0 };
+        pipelineAgg[0]?.stages?.forEach(s => { pipeDefaultStages[s._id] = s.count; });
+        const pipeStagesArray = Object.keys(pipeDefaultStages).map(k => ({ name: k, count: pipeDefaultStages[k] }));
+
         const pipeline = {
-            total: dealTotals.totalCount,
+            total: dealTotals.dealsCompleted + pipeTotals.ongoingDeals + dealTotals.lostDeals,
             completedDeals: dealTotals.dealsCompleted,
-            ongoingDeals: dealTotals.ongoingDeals,
+            ongoingDeals: pipeTotals.ongoingDeals,
             lostDeals: dealTotals.lostDeals,
-            stages: stagesArray
+            stages: pipeStagesArray
         };
 
         const activitySummary = {
@@ -316,11 +381,11 @@ exports.getDashboardData = async (req, res) => {
 
         const salesTrendsRaw = await Deal.aggregate([
             ...dealMatch,
-            ...dateMatchDeal,
+            ...dateMatchDealUpdated,
             { $match: { stage: "Won" } },
             {
                 $group: {
-                    _id: formatFormat === 'single_point' ? "single_point" : { $dateToString: { format: formatFormat, date: "$createdAt" } },
+                    _id: formatFormat === 'single_point' ? "single_point" : { $dateToString: { format: formatFormat, date: "$updatedAt" } },
                     sales: { $sum: { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } } }
                 }
             },
@@ -436,7 +501,7 @@ exports.getDashboardData = async (req, res) => {
         const users = req.user ? await User.find(usersQuery).select('fullName _id role') : [];
 
         const dealUserStats = await Deal.aggregate([
-            ...dateMatchDeal,
+            ...dateMatchDealUpdated,
             { $match: { stage: "Won" } },
             { $group: {
                 _id: "$createdBy",
