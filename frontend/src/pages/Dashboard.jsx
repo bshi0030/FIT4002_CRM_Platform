@@ -446,9 +446,8 @@ export default function Dashboard() {
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
                                         <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#777' }} axisLine={false} tickLine={false} />
                                         <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 10, fill: '#777' }} axisLine={false} tickLine={false} />
-                                        <Tooltip formatter={(v, n) => n === 'sales' ? fmtMoney(v) : v} />
-                                        <Bar dataKey="sales" name="Sales" fill={ACCENT} radius={[4,4,0,0]} maxBarSize={30} />
-                                        <Bar dataKey="deals" name="Deals" fill={CHART_GREEN} radius={[4,4,0,0]} maxBarSize={30} />
+                                        <Tooltip formatter={(v) => [fmtMoney(v), 'Total Sales']} />
+                                        <Bar dataKey="sales" name="Total Sales" fill={ACCENT} radius={[4,4,0,0]} maxBarSize={36} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
