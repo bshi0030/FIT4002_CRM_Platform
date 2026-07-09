@@ -527,6 +527,19 @@
   white-space: nowrap;
 }
 
+.team-chart-scroll-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+.team-chart-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+.team-chart-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
 .team-table {
   width: 100%;
   border-collapse: collapse;

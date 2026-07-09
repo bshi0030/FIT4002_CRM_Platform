@@ -440,11 +440,11 @@ export default function Dashboard() {
                         headerRight={topMember && <span className="top-badge"><FiAward size={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />Top: {topMember}</span>}
                     >
                         {loading ? <Skeleton h={160} /> : (
-                            <div style={{ flex: 1, minHeight: 160, width: '100%', minWidth: 0 }}>
+                            <div style={{ flex: 1, minHeight: 185, width: '100%', minWidth: 0 }}>
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={teamMembers} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                                    <BarChart data={teamMembers} margin={{ top: 5, right: 10, left: -15, bottom: 25 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" vertical={false} />
-                                        <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#777' }} axisLine={false} tickLine={false} />
+                                        <XAxis dataKey="name" interval={0} angle={-25} textAnchor="end" tick={{ fontSize: 10, fill: '#555' }} height={40} axisLine={false} tickLine={false} />
                                         <YAxis tickFormatter={fmtCurrency} tick={{ fontSize: 10, fill: '#777' }} axisLine={false} tickLine={false} />
                                         <Tooltip formatter={(v) => [fmtMoney(v), 'Total Sales']} />
                                         <Bar dataKey="sales" name="Total Sales" fill={ACCENT} radius={[4,4,0,0]} maxBarSize={36} />

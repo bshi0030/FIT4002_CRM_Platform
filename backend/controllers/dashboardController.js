@@ -9,6 +9,9 @@ exports.getDashboardData = async (req, res) => {
         const isSupervisor = req.user && ['Admin', 'Supervisor'].includes(req.user.role);
         
         let effectiveMemberId = req.query.memberId;
+        if (!isSupervisor && req.user) {
+            effectiveMemberId = req.user._id;
+        }
 
         const dealMatch = effectiveMemberId && mongoose.isValidObjectId(effectiveMemberId) 
             ? [{ $match: { createdBy: new mongoose.Types.ObjectId(effectiveMemberId) } }] 
@@ -529,7 +532,7 @@ exports.getDashboardData = async (req, res) => {
             const dStat = dealUserStats.find(d => d._id?.toString() === u._id.toString()) || { sales: 0, deals: 0 };
             const aStat = activityUserStats.find(a => a._id?.toString() === u._id.toString()) || { activities: 0 };
             return {
-                name: (req.user && u._id.toString() === req.user._id.toString()) ? 'You' : u.fullName,
+                name: u.fullName,
                 sales: dStat.sales,
                 deals: dStat.deals,
                 activities: aStat.activities
@@ -541,7 +544,7 @@ exports.getDashboardData = async (req, res) => {
 
         // Fallback for no users
         if (members.length === 0) {
-            members = [{ name: 'You', sales: 0, deals: 0, activities: 0 }];
+            members = [{ name: req.user?.fullName || 'Team Member', sales: 0, deals: 0, activities: 0 }];
         }
 
         const teamPerformance = {
