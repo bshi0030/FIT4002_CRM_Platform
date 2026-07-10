@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { uploadLogo, uploadDocument } = require('../middleware/uploadMiddleware');
+const { requireAuth } = require("../middleware/auth");
 const {
   createCustomer,
   getCustomers,
@@ -10,7 +11,9 @@ const {
   viewCustomerFile,
   downloadCustomerFile,
   deleteCustomerFile,
-  addInteraction
+  addInteraction,
+  deleteInteraction,
+  editInteraction
 } = require('../controllers/customerController');
 
 router.route('/')
@@ -28,6 +31,8 @@ router.get('/:id/files/:fileId/download', downloadCustomerFile);
 router.delete('/:id/files/:fileId', deleteCustomerFile);
 
 // Interactions endpoint
-router.post('/:id/interactions', addInteraction);
+router.post('/:id/interactions', requireAuth, addInteraction);
+router.delete('/:id/interactions/:interactionId', requireAuth, deleteInteraction);
+router.put('/:id/interactions/:interactionId', requireAuth, editInteraction);
 
 module.exports = router;

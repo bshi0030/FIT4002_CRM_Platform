@@ -1,4 +1,6 @@
+const mongoose = require('mongoose');
 const Interaction = require('../models/Interaction');
+const Task = require('../models/Task');
 
 // Fetch all logs for a customer (GET)
 const getInteractions = async (req, res) => {
@@ -13,7 +15,28 @@ const getInteractions = async (req, res) => {
 // Log a brand new interaction (POST)
 const createInteraction = async (req, res) => {
   try {
-    const newLog = new Interaction(req.body);
+    const { type, details, companyName, priority, dueDate } = req.body;
+    const customerId = req.params.id;
+    const authorName = req.user?.fullName
+
+    const normalizedType = type?.trim();
+
+    if (normalizedType === 'Task') {
+      const newTaskCard = await Task.create({
+        title: details,                       
+        company: companyName || "",       
+        status: "todo",                   
+        priority: priority || "Medium",
+        dueDate: dueDate ? new Date(dueDate) : null,               
+        customer: new mongoose.Types.ObjectId(customerId),                
+        assignedTo: [new mongoose.Types.ObjectId(req.user._id)],        
+        collaborative: false
+      });
+
+    } else {
+    }
+
+    const newLog = new Interaction({ entityId: customerId, type, desc: details, author: authorName });
     await newLog.save();
     res.status(201).json({ status: 'success', data: newLog });
   } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../services/api';
+import api from '../api/client';
 import '../styles/CustomerProfile.css';
 import '../styles/InteractionSidePanel.css'
 import AddCustomerModal from '../components/AddCustomerModal';
@@ -53,7 +53,7 @@ function CustomerProfile() {
     _id: interaction._id,
     type: interaction.type,
     desc: interaction.details || interaction.desc || "",
-    author: interaction.author || "Hiba Zaman",
+    author: interaction.author || "",
     createdAt: interaction.date || interaction.createdAt,
     time: interaction.date || interaction.createdAt,
   });
@@ -149,7 +149,7 @@ function CustomerProfile() {
     if (window.confirm("Are you sure you want to delete this log?")) {
 
       try{
-        const res = await api.delete(`/interactions/${selectedInteraction._id}`);
+        const res = await api.delete(`/customers/${id}/interactions/${selectedInteraction._id}`);
         if (res.data.status === "success") {
           setAllInteractions((prev) =>
             prev.filter((interaction) => interaction._id !== selectedInteraction._id)
@@ -177,7 +177,7 @@ function CustomerProfile() {
   const handleSave = async () => {
 
     try {
-      const res = await api.put(`/interactions/${selectedInteraction._id}`, {
+      const res = await api.put(`/customers/${id}/interactions/${selectedInteraction._id}`, {
         type: editedData.type,
         desc: editedData.desc,
       });
@@ -280,6 +280,8 @@ function CustomerProfile() {
     const payload = {
       type: newInteractionData.type || "Note",
       details: newInteractionData.desc,
+      priority: newInteractionData.priority || "Medium",
+      dueDate: newInteractionData.dueDate || null
     };
 
     try {
@@ -289,7 +291,7 @@ function CustomerProfile() {
       await fetchCustomer(false);
 
       setIsLoggingModalOpen(false);  
-      setNewInteractionData({ type: 'Note', desc: '' });
+      setNewInteractionData({ type: 'Note', desc: '', priority: 'Medium', dueDate: ''});
     } catch (err) {
       console.error("Failed to save new manual interaction to database:", err);
       console.error("Backend response:", err.response?.data);
@@ -547,205 +549,211 @@ function CustomerProfile() {
         </div>
         
         {/* Interactions List */}
-        <div className="interactions-card">
-          <div className="interactions-header">
-            <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
-            <div className="interaction-action-btns">
-              <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
-                <FiMail /> Send Email
-              </button>
-              <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
-            </div>
-          </div>
-          
-          <div className="interactions-content-layout">
-
-            <div className="interactions-list">
-              {visibleInteractions.map((item) => {
-
-                const config = getStyleConfig(item.type);
-
-                const itemId = item._id || item.id;
-
-                return (
-                  <div 
-                    className={`interaction-item clickable ${selectedInteraction?.id === itemId ? 'active-item' : ''}`}
-                    key={item.id} 
-                    onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
-                  >
-                    {/* Uses the generated icon background wrapper style */}
-                    <div className={`interaction-icon-wrapper ${config.className}`}>
-                      {config.icon}
-                    </div>
-
-                    <div className="interaction-content">
-                      <div className="interaction-meta">
-                        <span className={`interaction-type ${config.typeClass}`}>{item.type}</span>
-                        <span className="interaction-author">by {item.author}</span>
-                      </div>
-                      <p className="interaction-desc">{item.desc}</p>
-                    </div>
-                    <div className="interaction-time">{formatInteractionTime(item.time)}</div>
-                  </div>
-                );
-              })}
+        {activeTab !== 'Files' && (
+          <div className="interactions-card">
+            <div className="interactions-header">
+              <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
+              <div className="interaction-action-btns">
+                {activeTab !== 'Notes' && (
+                  <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
+                    <FiMail /> Send Email
+                  </button>
+                )}
+                <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
+              </div>
             </div>
             
-            {isEditModalOpen && (
-              <AddCustomerModal 
-                onClose={() => setIsEditModalOpen(false)} 
-                onAdd={handleCustomerUpdated}
-                initialData={customer}
-              />
-            )}
-            {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
-            {isComposingEmail ? (
-              <EmailComposer 
-                customerEmail={customer.email}
-                onClose={() => setIsComposingEmail(false)}
-                onEmailSent={async ({ subject, message }) => {
+            <div className="interactions-content-layout">
 
-                  try {
-                    // Axios automatically serializes JSON objects
-                    await api.post(`/customers/${id}/interactions`, {
-                      type: "Email",
-                      details: `Sent Email - Subject: ${subject || ""}`,
-                    });
+              <div className="interactions-list">
+                {visibleInteractions.map((item) => {
 
-                    await fetchCustomer(false);
-                    setIsComposingEmail(false);
-                  } catch (err) {
-                    console.error("Failed to log email interaction", err);
+                  const config = getStyleConfig(item.type);
+
+                  const itemId = item._id || item.id;
+
+                  return (
+                    <div 
+                      className={`interaction-item clickable ${selectedInteraction?.id === itemId ? 'active-item' : ''}`}
+                      key={item.id} 
+                      onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
+                    >
+                      {/* Uses the generated icon background wrapper style */}
+                      <div className={`interaction-icon-wrapper ${config.className}`}>
+                        {config.icon}
+                      </div>
+
+                      <div className="interaction-content">
+                        <div className="interaction-meta">
+                          <span className={`interaction-type ${config.typeClass}`}>{item.type}</span>
+                          <span className="interaction-author">by {item.author}</span>
+                        </div>
+                        <p className="interaction-desc">{item.desc}</p>
+                      </div>
+                      <div className="interaction-time">{formatInteractionTime(item.time)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {isEditModalOpen && (
+                <AddCustomerModal 
+                  onClose={() => setIsEditModalOpen(false)} 
+                  onAdd={handleCustomerUpdated}
+                  initialData={customer}
+                />
+              )}
+              {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
+              {isComposingEmail ? (
+                <EmailComposer 
+                  customerEmail={customer.email}
+                  onClose={() => setIsComposingEmail(false)}
+                  onEmailSent={async ({ subject, message }) => {
+
+                    try {
+                      // Axios automatically serializes JSON objects
+                      await api.post(`/customers/${id}/interactions`, {
+                        type: "Email",
+                        details: `Sent Email - Subject: ${subject || ""}`,
+                      });
+
+                      await fetchCustomer(false);
+                      setIsComposingEmail(false);
+                    } catch (err) {
+                      console.error("Failed to log email interaction", err);
+                    }
+                  }}
+                />
+                ) : selectedInteraction && (
+                  <div className="side-panel">
+                    <div className="side-panel-header">
+                      <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
+                      <button onClick={() => { setSelectedInteraction(null); setIsEditing(false); }} className="close-btn"><FiX /></button>
+                    </div>
+                
+                  <div className="side-panel-body">
+                    <div className="side-panel-row">
+                      <strong>Activity:</strong> 
+                      {isEditing ? (
+                        <select name="type" className="edit-select" value={editedData.type} onChange={handleInputChange}>
+                          <option value="Email">Email</option>
+                          <option value="Call">Call</option>
+                          <option value="Task">Task</option>
+                          <option value="Note">Note</option>
+                        </select>
+                      ) : (
+                        <span>{selectedInteraction.type}</span>
+                      )}
+                    </div>
+
+                    <div className="side-panel-row">
+                      <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
+                    </div>
+                    <div className="side-panel-row">
+                      <strong>Logged:</strong> <span>{formatInteractionTime(selectedInteraction.time)}</span>
+                    </div>
+                    <div className="side-panel-notes">
+                      <strong>Notes:</strong>
+                      {isEditing ? (
+                        <textarea 
+                          name="desc"
+                          value={editedData.desc} 
+                          onChange={handleInputChange}
+                          className="edit-textarea"
+                        />
+                      ) : (
+                        <p className="detail-notes-text">{selectedInteraction.desc}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="side-panel-footer">
+                    {isEditing ? (
+                      <>
+                        <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                        <button className="save-btn" onClick={handleSave}>Save Changes</button>
+                      </>
+                    ) : (
+                      <>
+                        <button className="delete-btn-action" onClick={handleDelete}>
+                          <FiTrash2 /> Delete
+                        </button>
+                        <button className="edit-btn-action" onClick={handleEditClick}>
+                          <FiEdit2 /> Edit
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            {filteredInteractions.length > 5 && (
+              <button
+                className="view-more-btn"
+                onClick={() => {
+                  if (hasMoreInteractions) {
+                    setVisibleCount((prev) => prev + 5);
+                  } else {
+                    setVisibleCount(5);
                   }
                 }}
-              />
-              ) : selectedInteraction && (
-                <div className="side-panel">
-                  <div className="side-panel-header">
-                    <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
-                    <button onClick={() => { setSelectedInteraction(null); setIsEditing(false); }} className="close-btn"><FiX /></button>
-                  </div>
-              
-                <div className="side-panel-body">
-                  <div className="side-panel-row">
-                    <strong>Activity:</strong> 
-                    {isEditing ? (
-                      <select name="type" className="edit-select" value={editedData.type} onChange={handleInputChange}>
-                        <option value="Email">Email</option>
-                        <option value="Call">Call</option>
-                        <option value="Task">Task</option>
-                        <option value="Note">Note</option>
-                      </select>
-                    ) : (
-                      <span>{selectedInteraction.type}</span>
-                    )}
-                  </div>
-
-                  <div className="side-panel-row">
-                    <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
-                  </div>
-                  <div className="side-panel-row">
-                    <strong>Logged:</strong> <span>{formatInteractionTime(selectedInteraction.time)}</span>
-                  </div>
-                  <div className="side-panel-notes">
-                    <strong>Notes:</strong>
-                    {isEditing ? (
-                      <textarea 
-                        name="desc"
-                        value={editedData.desc} 
-                        onChange={handleInputChange}
-                        className="edit-textarea"
-                      />
-                    ) : (
-                      <p className="detail-notes-text">{selectedInteraction.desc}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="side-panel-footer">
-                  {isEditing ? (
-                    <>
-                      <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
-                      <button className="save-btn" onClick={handleSave}>Save Changes</button>
-                    </>
-                  ) : (
-                    <>
-                      <button className="delete-btn-action" onClick={handleDelete}>
-                        <FiTrash2 /> Delete
-                      </button>
-                      <button className="edit-btn-action" onClick={handleEditClick}>
-                        <FiEdit2 /> Edit
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
+              >
+                {hasMoreInteractions ? "View more" : "View less"}
+              </button>
             )}
           </div>
-          {filteredInteractions.length > 5 && (
-            <button
-              className="view-more-btn"
-              onClick={() => {
-                if (hasMoreInteractions) {
-                  setVisibleCount((prev) => prev + 5);
-                } else {
-                  setVisibleCount(5);
-                }
-              }}
-            >
-              {hasMoreInteractions ? "View more" : "View less"}
-            </button>
-          )}
-        </div>
+        )}
 
         
         {/* Files & Documents */}
-        <div className="files-card">
-          <div className="files-header">
-            <h3>Files & Documents</h3>
-            <label className="upload-btn">
-              <FiUpload />
-              Upload
-              <input type="file" hidden onChange={handleFileUpload} />
-            </label>
-          </div>
-          
-          <div className="files-list">
-            {documents.length === 0 ? (
-              <p className="empty-state">No documents uploaded yet.</p>
-            ) : (
-              documents.map((doc) => (
-                <div className="file-item" key={doc._id}>
-                  <div className="file-info">
-                    <span className="file-name">{doc.originalName}</span>
+        {activeTab !== 'Notes' && (
+          <div className="files-card">
+            <div className="files-header">
+              <h3>Files & Documents</h3>
+              <label className="upload-btn">
+                <FiUpload />
+                Upload
+                <input type="file" hidden onChange={handleFileUpload} />
+              </label>
+            </div>
+            
+            <div className="files-list">
+              {documents.length === 0 ? (
+                <p className="empty-state">No documents uploaded yet.</p>
+              ) : (
+                documents.map((doc) => (
+                  <div className="file-item" key={doc._id}>
+                    <div className="file-info">
+                      <span className="file-name">{doc.originalName}</span>
 
-                    <span className="file-meta">
-                      Uploaded {formatInteractionTime(doc.createdAt)} -{" "}
-                      {(doc.fileSize / 1024 / 1024).toFixed(1)} MB
-                    </span>
+                      <span className="file-meta">
+                        Uploaded {formatInteractionTime(doc.createdAt)} -{" "}
+                        {(doc.fileSize / 1024 / 1024).toFixed(1)} MB
+                      </span>
+                    </div>
+
+                    <div className="file-actions">
+                      <a
+                        href={`${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/customers/${customer._id}/files/${doc._id}/download`}
+                        className="download-btn"
+                      >
+                        Download
+                      </a>
+
+                      <button
+                        type="button"
+                        className="delete-btn-action"
+                        onClick={() => handleDeleteDocument(doc._id)}
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="file-actions">
-                    <a
-                      href={`${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/customers/${customer._id}/files/${doc._id}/download`}
-                      className="download-btn"
-                    >
-                      Download
-                    </a>
-
-                    <button
-                      type="button"
-                      className="delete-btn-action"
-                      onClick={() => handleDeleteDocument(doc._id)}
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
 
@@ -784,6 +792,35 @@ function CustomerProfile() {
                   placeholder="Enter details about this interaction..."
                 />
               </div>
+
+              {newInteractionData.type === 'Task' && (
+                <div className="task-extra-fields" style={{ marginTop: '15px', display: 'flex', gap: '15px' }}>
+                  
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Priority</label>
+                    <select 
+                      className="form-control"
+                      value={newInteractionData.priority || 'Medium'}
+                      onChange={(e) => setNewInteractionData({ ...newInteractionData, priority: e.target.value })}
+                    >
+                      <option value="Low">Low</option>
+                      <option value="Medium">Medium</option>
+                      <option value="High">High</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Due Date</label>
+                    <input 
+                      type="date" 
+                      className="form-control"
+                      value={newInteractionData.dueDate || ''}
+                      onChange={(e) => setNewInteractionData({ ...newInteractionData, dueDate: e.target.value })}
+                    />
+                  </div>
+
+                </div>
+              )}
             </div>
 
             <div className="modal-footer">
