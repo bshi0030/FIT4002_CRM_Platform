@@ -192,20 +192,25 @@ const deleteInteraction = async (req, res) => {
   try {
     const { id, interactionId } = req.params;
 
-    // $pull searches the 'interactions' array and removes the item matching the interactionId
+    const customer = await Customer.findById(id);
+    if (!customer) {
+      return res.status(404).json({ status: "fail", message: "Customer not found." });
+    }
+
+    const targetInteraction = customer.interactions.id(interactionId);
+
+    if (targetInteraction && targetInteraction.type === 'Task') {
+      await Task.findOneAndDelete({
+        customer: new mongoose.Types.ObjectId(id),
+        title: targetInteraction.details
+      });
+    }
+
     const updatedCustomer = await Customer.findByIdAndUpdate(
       id,
       { $pull: { interactions: { _id: interactionId } } },
       { new: true } // returns the document after the deletion takes effect
     );
-
-    // If the customer ID itself doesn't match anything in the DB
-    if (!updatedCustomer) {
-      return res.status(404).json({ 
-        status: "fail", 
-        message: "Customer not found." 
-      });
-    }
 
     // Success response matching your frontend's 'res.data.status === "success"' check
     return res.status(200).json({
@@ -228,6 +233,30 @@ const editInteraction = async (req, res) => {
     const { id, interactionId } = req.params;
     const { type, desc } = req.body; // Incoming updated data from your frontend form
 
+    const customer = await Customer.findById(id);
+    if (!customer) {
+      return res.status(404).json({ status: "fail", message: "Customer not found." });
+    }
+
+    const oldInteraction = customer.interactions.id(interactionId);
+    const oldDetails = oldInteraction ? oldInteraction.details : "";
+
+    if (type === 'Task') {
+      await Task.findOneAndUpdate(
+        {
+          customer: new mongoose.Types.ObjectId(id),
+          title: oldDetails // Finds the task using the previous description text
+        },
+        {
+          $set: {
+            title: desc, // Updates the task title on the Kanban board
+            priority: req.body.priority || "Medium",
+            dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null
+          }
+        }
+      );
+    }
+    
     const updatedCustomer = await Customer.findOneAndUpdate(
       { _id: id, "interactions._id": interactionId },
       {
