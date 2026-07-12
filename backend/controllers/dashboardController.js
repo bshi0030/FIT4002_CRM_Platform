@@ -324,8 +324,8 @@ exports.getDashboardData = async (req, res) => {
             };
         });
 
+        // No user/time filter — Sales Pipeline page shows ALL deals; this card must match exactly.
         const pipelineAgg = await Deal.aggregate([
-            ...dealMatch,
             {
                 $facet: {
                     totals: [
@@ -351,10 +351,10 @@ exports.getDashboardData = async (req, res) => {
         const pipeStagesArray = Object.keys(pipeDefaultStages).map(k => ({ name: k, count: pipeDefaultStages[k] }));
 
         const pipeline = {
-            total: dealTotals.dealsCompleted + pipeTotals.ongoingDeals + dealTotals.lostDeals,
-            completedDeals: dealTotals.dealsCompleted,
+            total: pipeTotals.total,
+            completedDeals: pipeTotals.completedDeals,
             ongoingDeals: pipeTotals.ongoingDeals,
-            lostDeals: dealTotals.lostDeals,
+            lostDeals: pipeTotals.lostDeals,
             stages: pipeStagesArray
         };
 
