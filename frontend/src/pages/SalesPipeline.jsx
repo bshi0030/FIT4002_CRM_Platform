@@ -51,7 +51,10 @@ function SalesPipeline() {
       });
       setDeals([...deals, newDeal]);
       handleCloseModal();
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to add lead');
+    }
   };
 
   const getDealsForStage = (stageName) => deals.filter(d => {
@@ -128,6 +131,17 @@ const handleConfirmDelete = async () => {
   }
 };
 
+const openStages = ['Qualified', 'Contact Made', 'Demo Scheduled', 'Proposal Made', 'Negotiation'];
+const openDeals = deals.filter(d => openStages.includes(d.stage));
+const totalValue = deals
+  .reduce((sum, d) => sum + (parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 0), 0);
+const closedWon = deals.filter(d => d.stage === 'Won')
+  .reduce((sum, d) => sum + (parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 0), 0);
+const avgProbability = deals.length > 0
+  ? Math.round(deals.reduce((sum, d) => sum + (d.probability || 0), 0) / deals.length)
+  : 0;
+
+
   return (
     <div className="pipeline-page">
 
@@ -171,6 +185,25 @@ const handleConfirmDelete = async () => {
           <h1 className="pipeline-title">Sales Pipeline</h1>
           <button className="btn-deal-history" onClick={handleOpenHistory}>Deal History</button>
         </div>
+      
+        <div className="pipeline-stats-row">
+  <div className="pipeline-stat-box">
+    <span className="pipeline-stat-label">Open Deals</span>
+    <span className="pipeline-stat-value">{openDeals.length}</span>
+  </div>
+  <div className="pipeline-stat-box">
+    <span className="pipeline-stat-label">Total Value</span>
+    <span className="pipeline-stat-value">${totalValue >= 1000 ? (totalValue/1000).toFixed(0) + 'k' : totalValue}</span>
+  </div>
+  <div className="pipeline-stat-box">
+    <span className="pipeline-stat-label">Closed Won</span>
+    <span className="pipeline-stat-value">${closedWon >= 1000 ? (closedWon/1000).toFixed(0) + 'k' : closedWon}</span>
+  </div>
+  <div className="pipeline-stat-box">
+    <span className="pipeline-stat-label">Avg Probability</span>
+    <span className="pipeline-stat-value">{avgProbability}%</span>
+  </div>
+</div>
 
         <div className="pipeline-action-bar">
           <button className="btn-add-lead" onClick={handleAddLead}>+ Add Lead</button>

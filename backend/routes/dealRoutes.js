@@ -3,10 +3,14 @@ const router = express.Router()
 const Deal = require('../models/Deal')
 const { requireAuth, requireRole } = require('../middleware/auth')
 const DealLog = require('../models/DealLog')
+const Customer = require('../models/Customer')
+const User = require('../models/User')
 
 const STAGE_ORDER = [
   'Qualified', 'Contact Made', 'Demo Scheduled', 'Proposal Made', 'Negotiation', 'Won', 'Lost'
 ]
+
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 // GET all deals
 router.get('/', requireAuth, async (req, res) => {
@@ -53,11 +57,31 @@ router.get('/logs', requireAuth, async (req, res) => {
 })
 
 // CREATE deal
+// CREATE deal
 router.post('/', requireAuth, requireRole('User', 'Admin'), async (req, res) => {
   try {
-    const { name, company, price, priority, probability } = req.body
+    const { name, company, price, priority, probability, assignee, customer } = req.body
+
+    if (customer) {
+      const existingCustomer = await Customer.findOne({
+        fullName: { $regex: `^${escapeRegex(customer)}$`, $options: 'i' }
+      })
+      if (!existingCustomer) {
+        return res.status(400).json({ message: 'Customer does not exist in the system' })
+      }
+    }
+
+    if (assignee) {
+      const existingUser = await User.findOne({
+        fullName: { $regex: `^${escapeRegex(assignee)}$`, $options: 'i' }
+      })
+      if (!existingUser) {
+        return res.status(400).json({ message: 'Assignee is not a registered user' })
+      }
+    }
+
     const deal = new Deal({
-      name, company, price, priority, probability,
+      name, company, price, priority, probability, assignee, customer,
       stage: 'Qualified',
       createdBy: req.user._id
     })

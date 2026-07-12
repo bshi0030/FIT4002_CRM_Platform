@@ -6,6 +6,8 @@ const router = express.Router();
 
 const Task = require("../models/Task");
 
+const mongoose = require("mongoose");
+
 require("../models/Stage");
 const { requireAuth } = require("../middleware/auth");
 
@@ -13,10 +15,9 @@ const { requireAuth } = require("../middleware/auth");
 router.get("/", requireAuth, async (req, res) => {
 
   try {
-
-    
+    const userId = new mongoose.Types.ObjectId(req.user._id);
     const tasks = await Task.find({
-      assignedTo: req.user._id
+      assignedTo: userId
     })
 
       .populate("assignedTo", "fullName")
