@@ -324,37 +324,50 @@ exports.getDashboardData = async (req, res) => {
             };
         });
 
-        // No user/time filter — Sales Pipeline page shows ALL deals; this card must match exactly.
+        // Sales Pipeline card: no user filter (shows all team deals like the SalesPipeline page)
+        // Won/Lost are time-filtered by updatedAt (when the deal was dragged to that outcome)
+        // Ongoing and stages have no time filter (shows current active pipeline)
+        const pipelineUpdatedCond = Object.keys(dealDateCondition).length > 0
+            ? { updatedAt: dealDateCondition }
+            : null;
+
         const pipelineAgg = await Deal.aggregate([
             {
                 $facet: {
-                    totals: [
-                        { $group: {
-                            _id: null,
-                            completedDeals: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
-                            lostDeals: { $sum: { $cond: [{ $eq: ["$stage", "Lost"] }, 1, 0] } },
-                            ongoingDeals: { $sum: { $cond: [{ $in: ["$stage", ["Won", "Lost"]] }, 0, 1] } },
-                            total: { $sum: 1 }
-                        }}
+                    completedDeals: [
+                        ...(pipelineUpdatedCond ? [{ $match: pipelineUpdatedCond }] : []),
+                        { $match: { stage: 'Won' } },
+                        { $count: 'count' }
+                    ],
+                    lostDeals: [
+                        ...(pipelineUpdatedCond ? [{ $match: pipelineUpdatedCond }] : []),
+                        { $match: { stage: 'Lost' } },
+                        { $count: 'count' }
+                    ],
+                    ongoingDeals: [
+                        { $match: { stage: { $nin: ['Won', 'Lost'] } } },
+                        { $count: 'count' }
                     ],
                     stages: [
-                        { $match: { stage: { $nin: ["Won", "Lost"] } } },
-                        { $group: { _id: "$stage", count: { $sum: 1 } } }
+                        { $match: { stage: { $nin: ['Won', 'Lost'] } } },
+                        { $group: { _id: '$stage', count: { $sum: 1 } } }
                     ]
                 }
             }
         ]);
 
-        const pipeTotals = pipelineAgg[0]?.totals[0] || { completedDeals: 0, lostDeals: 0, ongoingDeals: 0, total: 0 };
+        const pipeCompletedDeals = pipelineAgg[0]?.completedDeals[0]?.count || 0;
+        const pipeLostDeals = pipelineAgg[0]?.lostDeals[0]?.count || 0;
+        const pipeOngoingDeals = pipelineAgg[0]?.ongoingDeals[0]?.count || 0;
         const pipeDefaultStages = { 'Qualified': 0, 'Contact Made': 0, 'Demo Scheduled': 0, 'Proposal Made': 0, 'Negotiation': 0 };
         pipelineAgg[0]?.stages?.forEach(s => { pipeDefaultStages[s._id] = s.count; });
         const pipeStagesArray = Object.keys(pipeDefaultStages).map(k => ({ name: k, count: pipeDefaultStages[k] }));
 
         const pipeline = {
-            total: pipeTotals.total,
-            completedDeals: pipeTotals.completedDeals,
-            ongoingDeals: pipeTotals.ongoingDeals,
-            lostDeals: pipeTotals.lostDeals,
+            total: pipeCompletedDeals + pipeLostDeals + pipeOngoingDeals,
+            completedDeals: pipeCompletedDeals,
+            ongoingDeals: pipeOngoingDeals,
+            lostDeals: pipeLostDeals,
             stages: pipeStagesArray
         };
 
