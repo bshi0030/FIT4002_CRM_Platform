@@ -1,0 +1,342 @@
+/* Customer self-service portal */
+
+.portal-shell {
+  min-height: 100vh;
+  background-image: linear-gradient(135deg, #704b2f 0%, #cc8c48 50%, #aa6a37 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-main {
+  flex: 1;
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px 20px 60px 20px;
+  box-sizing: border-box;
+}
+
+.portal-heading {
+  color: #fef3c7;
+  font-size: 34px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+}
+
+.portal-subheading {
+  color: rgba(254, 249, 195, 0.9);
+  font-size: 15px;
+  margin: 0 0 28px 0;
+}
+
+.portal-card {
+  background: rgba(254, 252, 232, 0.97);
+  border-radius: 24px;
+  padding: 28px 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  margin-bottom: 24px;
+}
+
+.portal-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.portal-card-header h2 {
+  margin: 0;
+  font-size: 21px;
+  color: #44403c;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.portal-card-sub {
+  color: #78716c;
+  font-size: 13px;
+  margin: 4px 0 0 0;
+}
+
+/* Profile display grid */
+.portal-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.portal-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a8a29e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.portal-field .portal-field-value {
+  color: #44403c;
+  font-size: 15px;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.portal-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 16px;
+  border-radius: 14px;
+  border: 1px solid #d6d3d1;
+  outline: none;
+  font-size: 14px;
+  background: #fff;
+  color: #44403c;
+}
+
+.portal-field input:focus {
+  border-color: #b45309;
+}
+
+/* Buttons */
+.portal-btn {
+  background: #fcd34d;
+  color: #44403c;
+  border: none;
+  padding: 11px 24px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.portal-btn:hover {
+  background: #fbbf24;
+}
+
+.portal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.portal-btn.ghost {
+  background: transparent;
+  border: 1px solid #d6d3d1;
+  color: #57534e;
+  font-weight: 600;
+}
+
+.portal-btn.ghost:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.portal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+/* Feedback */
+.portal-feedback {
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.portal-feedback.success {
+  background: #e6f6e6;
+  color: #226b22;
+  border: 1px solid #9fd89f;
+}
+
+.portal-feedback.error {
+  background: #fdecec;
+  color: #a02020;
+  border: 1px solid #f2a6a6;
+}
+
+/* Deals */
+.portal-deal {
+  border: 1px solid #e7e5e4;
+  border-radius: 18px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  background: #fff;
+}
+
+.portal-deal:last-child {
+  margin-bottom: 0;
+}
+
+.portal-deal-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.portal-deal-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #44403c;
+}
+
+.portal-deal-owner {
+  font-size: 13px;
+  color: #78716c;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.portal-deal-status {
+  padding: 5px 14px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.portal-deal-status.open {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.portal-deal-status.won {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.portal-deal-status.lost {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Stage progression stepper */
+.portal-stepper {
+  display: flex;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding: 6px 0 2px 0;
+}
+
+.portal-step {
+  flex: 1;
+  min-width: 86px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  text-align: center;
+}
+
+.portal-step::before,
+.portal-step::after {
+  content: "";
+  position: absolute;
+  top: 11px;
+  height: 3px;
+  width: 50%;
+  background: #e7e5e4;
+}
+
+.portal-step::before {
+  left: 0;
+}
+
+.portal-step::after {
+  right: 0;
+}
+
+.portal-step:first-child::before,
+.portal-step:last-child::after {
+  display: none;
+}
+
+.portal-step.done::before,
+.portal-step.done::after,
+.portal-step.current::before {
+  background: #b45309;
+}
+
+.portal-step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #e7e5e4;
+  z-index: 1;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+}
+
+.portal-step.done .portal-step-dot {
+  background: #b45309;
+  border-color: #b45309;
+}
+
+.portal-step.current .portal-step-dot {
+  border-color: #b45309;
+  background: #fef3c7;
+  box-shadow: 0 0 0 4px rgba(180, 83, 9, 0.18);
+}
+
+.portal-step.lost .portal-step-dot {
+  background: #991b1b;
+  border-color: #991b1b;
+}
+
+.portal-step-label {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #a8a29e;
+  font-weight: 600;
+  max-width: 90px;
+  line-height: 1.3;
+}
+
+.portal-step.done .portal-step-label,
+.portal-step.current .portal-step-label {
+  color: #57534e;
+}
+
+.portal-step.lost .portal-step-label {
+  color: #991b1b;
+}
+
+.portal-empty {
+  text-align: center;
+  color: #78716c;
+  padding: 26px 16px;
+  font-size: 14px;
+}
+
+.portal-privacy-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(254, 249, 195, 0.85);
+  font-size: 13px;
+  justify-content: center;
+  margin-top: 6px;
+}
