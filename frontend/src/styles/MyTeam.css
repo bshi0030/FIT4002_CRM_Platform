@@ -1,0 +1,118 @@
+/* My Team page */
+
+.myteam-page {
+  padding: 40px;
+  background: linear-gradient(135deg, #e4f0a3 0%, #f7e8a9 100%);
+  min-height: calc(100vh - 70px);
+  border-radius: 30px 0 0 0;
+  box-shadow: inset 0px 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.myteam-page h1 {
+  font-size: 36px;
+  color: #333;
+  margin: 0 0 6px 0;
+}
+
+.myteam-subtitle {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 26px 0;
+}
+
+.myteam-summary {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.myteam-card {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  flex: 1;
+  min-width: 220px;
+}
+
+.myteam-card-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.myteam-card-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.myteam-card-note {
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+/* Sharing status indicator */
+.myteam-sharing-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.myteam-sharing-pill.on {
+  background: #e6f6e6;
+  color: #226b22;
+  border: 1px solid #9fd89f;
+}
+
+.myteam-sharing-pill.off {
+  background: #eeece4;
+  color: #6b675c;
+  border: 1px solid #cfcabb;
+}
+
+.myteam-members-card {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 20px;
+  padding: 26px 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.myteam-members-card h2 {
+  font-size: 22px;
+  color: #333;
+  margin: 0 0 18px 0;
+}
+
+.myteam-empty-card {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 20px;
+  padding: 48px 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  color: #666;
+}
+
+.myteam-empty-card h2 {
+  color: #333;
+  margin: 12px 0 8px 0;
+}
+
+.myteam-empty-icon {
+  font-size: 40px;
+  color: #b1ad9f;
+}
