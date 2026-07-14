@@ -1,8 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useAuth } from '@/context/auth'
 
 function Menu({ currentPage, setCurrentPage }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useAuth()
 
   return (
     <nav className="menu">
@@ -33,9 +35,24 @@ function Menu({ currentPage, setCurrentPage }) {
       <button className="menu-item">
         Calendar ◫
       </button>
-      <button className="menu-item">
-        Settings ⚙
-      </button>
+      {/* Supervisors get a view of their team and its sharing status */}
+      {user?.role === 'Supervisor' && (
+        <button
+          className={`menu-item ${location.pathname === '/team' ? 'active' : ''}`}
+          onClick={() => navigate('/team')}
+        >
+          My Team ⚑
+        </button>
+      )}
+      {/* the system settings menu is visible only to Admin */}
+      {user?.role === 'Admin' && (
+        <button
+          className={`menu-item ${location.pathname === '/settings' ? 'active' : ''}`}
+          onClick={() => navigate('/settings')}
+        >
+          Settings ⚙
+        </button>
+      )}
     </nav>
   );
 }
