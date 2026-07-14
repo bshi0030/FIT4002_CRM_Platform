@@ -129,7 +129,15 @@ const Customers = () => {
                         <div className="contact-avatar-placeholder">👤</div>
                       )}
                       <div className="contact-info">
-                        <span className="contact-name">{cust.fullName}</span>
+                        <span className="contact-name">
+                          {cust.fullName}
+                          {/* Records owned by teammates carry a shared sign */}
+                          {cust.shared && (
+                            <span className="shared-badge" title={`Shared by ${cust.owner?.fullName || 'a teammate'}`}>
+                              ⇄ Shared
+                            </span>
+                          )}
+                        </span>
                         <span className="contact-email">{cust.email}</span>
                       </div>
                     </Link>
@@ -146,7 +154,7 @@ const Customers = () => {
                   <td>
                     <div className="assignee-cell">
                       <div className="contact-avatar-placeholder small">👤</div>
-                      <span>You</span>
+                      <span>{cust.owner?.fullName || 'Unassigned'}</span>
                     </div>
                   </td>
                   <td>
