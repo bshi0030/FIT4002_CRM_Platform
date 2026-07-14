@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/client';
+import { useAuth } from '@/context/auth';
 import '../styles/CustomerProfile.css';
 import '../styles/InteractionSidePanel.css'
 import AddCustomerModal from '../components/AddCustomerModal';
@@ -22,6 +23,10 @@ import {
 
 function CustomerProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  // Delete options are only rendered for Admins
+  const isAdmin = user?.role === 'Admin';
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -142,6 +147,20 @@ function CustomerProfile() {
 
   const handleCustomerUpdated = () => {
     fetchCustomer(false);
+  };
+
+  // Only Admins can delete a customer profile
+  const handleDeleteCustomer = async () => {
+    if (!window.confirm(`Permanently delete ${customer.fullName}'s profile? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await api.delete(`/customers/${id}`);
+      navigate('/customers');
+    } catch (err) {
+      console.error("Failed to delete customer:", err);
+      alert(err.response?.data?.message || "Failed to delete customer.");
+    }
   };
 
   // Logic to delete an interaction
@@ -528,6 +547,16 @@ function CustomerProfile() {
               <FiEdit2 className="edit-icon" />
               Edit Profile
             </button>
+            {isAdmin && (
+              <button
+                className="edit-profile-btn delete-customer-btn"
+                onClick={handleDeleteCustomer}
+                title="Only Admins can delete customer profiles"
+              >
+                <FiTrash2 className="edit-icon" />
+                Delete
+              </button>
+            )}
           </div>
         </div>
         
@@ -675,9 +704,12 @@ function CustomerProfile() {
                       </>
                     ) : (
                       <>
-                        <button className="delete-btn-action" onClick={handleDelete}>
-                          <FiTrash2 /> Delete
-                        </button>
+                        {/* Only Admins can delete data records */}
+                        {isAdmin && (
+                          <button className="delete-btn-action" onClick={handleDelete}>
+                            <FiTrash2 /> Delete
+                          </button>
+                        )}
                         <button className="edit-btn-action" onClick={handleEditClick}>
                           <FiEdit2 /> Edit
                         </button>
@@ -740,13 +772,16 @@ function CustomerProfile() {
                         Download
                       </a>
 
-                      <button
-                        type="button"
-                        className="delete-btn-action"
-                        onClick={() => handleDeleteDocument(doc._id)}
-                      >
-                        <FiTrash2 />
-                      </button>
+                      {/* Only Admins can delete data records */}
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          className="delete-btn-action"
+                          onClick={() => handleDeleteDocument(doc._id)}
+                        >
+                          <FiTrash2 />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))
