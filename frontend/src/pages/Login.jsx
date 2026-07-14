@@ -176,6 +176,13 @@ export default function Login() {
                         disabled={submitting}
                     />
                 </section>
+
+                <p className="mt-6 text-center text-sm text-yellow-50/90">
+                    Are you a customer?{' '}
+                    <Link to="/portal" className="font-semibold underline">
+                        Visit the Customer Portal
+                    </Link>
+                </p>
             </main>
         </div>
     )
