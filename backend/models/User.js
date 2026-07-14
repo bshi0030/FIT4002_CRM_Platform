@@ -38,6 +38,11 @@ const userSchema = new mongoose.Schema(
             enum: ROLES,
             default: 'User',
         },
+        team: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Team',
+            default: null,
+        },
         authProvider: {
             type: String,
             enum: ['local', 'google'],
@@ -64,12 +69,18 @@ userSchema.methods.comparePassword = function (candidate) {
 }
 
 userSchema.methods.toSafeJSON = function () {
+    const team =
+        this.team && this.team.name
+            ? {id: this.team._id, name: this.team.name}
+            : this.team || null
+
     return {
         id: this._id,
         fullName: this.fullName,
         email: this.email,
         companyName: this.companyName,
         role: this.role,
+        team,
         authProvider: this.authProvider,
         createdAt: this.createdAt,
     }
