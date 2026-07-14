@@ -3,14 +3,15 @@ const mongoose = require('mongoose');
 const Task = require('../models/Task');
 const path = require('path');
 const fs = require('fs');
+const { getVisibleCustomerFilter, canViewCustomer } = require('../middleware/teamScope');
 
 // @desc    Create new customer
 // @route   POST /api/customers
-// @access  Public (for now)
+// @access  Authenticated staff
 const createCustomer = async (req, res) => {
   try {
     const { fullName, phone, email, company, address, designation, department } = req.body;
-    
+
     let companyLogo = '';
     if (req.file) {
       companyLogo = `/uploads/${req.file.filename}`;
@@ -21,7 +22,9 @@ const createCustomer = async (req, res) => {
     }
 
     const customer = await Customer.create({
-      fullName, phone, email, company, address, designation, department, companyLogo
+      fullName, phone, email, company, address, designation, department, companyLogo,
+      owner: req.user?._id || null,
+      team: req.user?.team || null
     });
 
     res.status(201).json(customer);
@@ -31,13 +34,27 @@ const createCustomer = async (req, res) => {
   }
 };
 
-// @desc    Get all customers
+// @desc    Get all customers visible to the requester
 // @route   GET /api/customers
 const getCustomers = async (req, res) => {
   try {
-    const customers = await Customer.find().sort({ createdAt: -1 });
-    res.status(200).json(customers);
+    const filter = await getVisibleCustomerFilter(req.user);
+    const customers = await Customer.find(filter)
+      .populate('owner', 'fullName')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const isAdmin = req.user.role === 'Admin';
+    const withSharedFlag = customers.map((c) => ({
+      ...c,
+      shared: Boolean(
+        !isAdmin && c.owner && String(c.owner._id) !== String(req.user._id)
+      ),
+    }));
+
+    res.status(200).json(withSharedFlag);
   } catch (error) {
+    console.error('Error fetching customers:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -46,8 +63,11 @@ const getCustomers = async (req, res) => {
 // @route   GET /api/customers/:id
 const getCustomerById = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findById(req.params.id).populate('owner', 'fullName');
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    if (!(await canViewCustomer(req.user, customer))) {
+      return res.status(403).json({ message: 'You do not have access to this customer' });
+    }
     res.status(200).json(customer);
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
@@ -61,6 +81,9 @@ const updateCustomer = async (req, res) => {
     const { fullName, phone, email, company, address, designation, department } = req.body;
     let customer = await Customer.findById(req.params.id);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    if (!(await canViewCustomer(req.user, customer))) {
+      return res.status(403).json({ message: 'You do not have access to this customer' });
+    }
 
     const updatedData = { fullName, phone, email, company, address, designation, department };
     if (req.file) updatedData.companyLogo = `/uploads/${req.file.filename}`;
@@ -72,12 +95,41 @@ const updateCustomer = async (req, res) => {
   }
 };
 
+// @desc    Delete customer profile
+// @route   DELETE /api/customers/:id
+const deleteCustomer = async (req, res) => {
+  try {
+    const customer = await Customer.findById(req.params.id);
+    if (!customer) return res.status(404).json({ message: 'Customer not found' });
+
+    // Cleanup uploaded files belonging to this customer
+    for (const file of customer.attachments || []) {
+      if (!file.path) continue;
+      const filePath = path.join(__dirname, '../', file.path);
+      try {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      } catch (fileErr) {
+        console.error('Failed to remove attachment file:', fileErr);
+      }
+    }
+
+    await Customer.findByIdAndDelete(customer._id);
+    res.status(200).json({ message: 'Customer deleted', customerId: customer._id });
+  } catch (error) {
+    console.error('Error deleting customer:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 // --- FILE ATTACHMENT CONTROLLERS ---
 
 const uploadCustomerFile = async (req, res) => {
   try {
     const customer = await Customer.findById(req.params.id);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    if (!(await canViewCustomer(req.user, customer))) {
+      return res.status(403).json({ message: 'You do not have access to this customer' });
+    }
     if (!req.file) return res.status(400).json({ message: 'Please upload a file' });
 
     const newFile = {
@@ -163,6 +215,9 @@ const addInteraction = async (req, res) => {
 
     const customer = await Customer.findById(customerId);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    if (!(await canViewCustomer(req.user, customer))) {
+      return res.status(403).json({ message: 'You do not have access to this customer' });
+    }
 
     // DUAL-WRITE STEP: If it's a Task, spawn a card on the Kanban board
     if (type === 'Task') {
@@ -237,6 +292,9 @@ const editInteraction = async (req, res) => {
     if (!customer) {
       return res.status(404).json({ status: "fail", message: "Customer not found." });
     }
+    if (!(await canViewCustomer(req.user, customer))) {
+      return res.status(403).json({ status: "fail", message: "You do not have access to this customer." });
+    }
 
     const oldInteraction = customer.interactions.id(interactionId);
     const oldDetails = oldInteraction ? oldInteraction.details : "";
@@ -310,6 +368,7 @@ module.exports = {
   getCustomers,
   getCustomerById,
   updateCustomer,
+  deleteCustomer,
   uploadCustomerFile,
   viewCustomerFile,
   downloadCustomerFile,
