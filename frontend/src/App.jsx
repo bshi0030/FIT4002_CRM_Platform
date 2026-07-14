@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import PortalProtectedRoute from '@/components/PortalProtectedRoute'
 import AppLayout from '@/components/AppLayout'
 import Login from '@/pages/Login'
 import Signup from '@/pages/Signup'
@@ -9,6 +10,10 @@ import SalesPipeline from '@/pages/SalesPipeline'
 import Customers from "@/pages/Customers";
 import CustomerProfile from "@/pages/CustomerProfile";
 import TaskKanban from './pages/TaskKanban'
+import AdminSettings from '@/pages/AdminSettings'
+import MyTeam from '@/pages/MyTeam'
+import PortalLogin from '@/pages/PortalLogin'
+import PortalDashboard from '@/pages/PortalDashboard'
 
 function App() {
   return (
@@ -69,7 +74,42 @@ function App() {
             </ProtectedRoute>
         }
     />
-                    
+
+                {/* system settings are Admin only */}
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute roles={['Admin']}>
+                      <AppLayout>
+                        <AdminSettings />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* supervisors can review their team + sharing status */}
+                <Route
+                  path="/team"
+                  element={
+                    <ProtectedRoute roles={['Supervisor', 'Admin']}>
+                      <AppLayout>
+                        <MyTeam />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* customer self-service portal */}
+                <Route path="/portal" element={<PortalLogin />} />
+                <Route
+                  path="/portal/home"
+                  element={
+                    <PortalProtectedRoute>
+                      <PortalDashboard />
+                    </PortalProtectedRoute>
+                  }
+                />
+
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </BrowserRouter>
