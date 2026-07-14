@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "../styles/SalesPipeline.css";
 import DealCard from "../components/DealCard";
 import { getDeals, createDeal, updateDealStage, markDealOutcome, getDealLogs, deleteDeal } from "../api/deals";
+import { useAuth } from "@/context/auth";
 
 const STAGES = [
   { name: "Qualified", dot: "#A4A4A4" },
@@ -18,6 +19,9 @@ const INITIAL_FORM = {
 };
 
 function SalesPipeline() {
+  const { user } = useAuth();
+  // Only Admins see the delete option on deals
+  const isAdmin = user?.role === 'Admin';
   const [deals, setDeals] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
@@ -207,13 +211,15 @@ const avgProbability = deals.length > 0
 
         <div className="pipeline-action-bar">
           <button className="btn-add-lead" onClick={handleAddLead}>+ Add Lead</button>
-          <button
-          className="btn-add-lead"
-          onClick={() => setDeleteMode(prev => !prev)}
-         style={{ background: deleteMode ? 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' : 'linear-gradient(135deg, #253984 0%, #2A2A72 100%)' }}
-          >
-        {deleteMode ? 'Cancel' : 'Delete'}
-        </button>
+          {isAdmin && (
+            <button
+            className="btn-add-lead"
+            onClick={() => setDeleteMode(prev => !prev)}
+           style={{ background: deleteMode ? 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' : 'linear-gradient(135deg, #253984 0%, #2A2A72 100%)' }}
+            >
+          {deleteMode ? 'Cancel' : 'Delete'}
+          </button>
+          )}
 
        <select
        className="btn-filter"
