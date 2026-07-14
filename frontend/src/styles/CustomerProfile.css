@@ -338,6 +338,15 @@
   height: 14px;
 }
 
+/* Admin-only customer delete button */
+.delete-customer-btn {
+  background: linear-gradient(135deg, #7b1a1a 0%, #a02020 100%);
+}
+
+.delete-customer-btn:hover {
+  background: #7b1a1a;
+}
+
 /* TABS */
 .tabs-container {
   display: flex;
