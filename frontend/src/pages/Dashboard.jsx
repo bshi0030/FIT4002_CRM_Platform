@@ -239,12 +239,14 @@ export default function Dashboard() {
     }, [selectedMemberId, timeFilter, customStartDate, customEndDate]);
 
     const pipeline = data?.pipeline
+    const CHART_WIN = '#4DC9C9'
+    const CHART_LOST = '#e74c3c'
     const pieData = pipeline ? [
-        { name: 'Completed Deals', value: pipeline.completedDeals },
+        { name: 'Won Deals', value: pipeline.completedDeals },
         { name: 'Ongoing Deals', value: pipeline.ongoingDeals },
         { name: 'Lost Deals', value: pipeline.lostDeals }
     ] : []
-    const pct = pipeline && pipeline.total > 0 ? Math.round((pipeline.completedDeals / pipeline.total) * 100) : 0
+    const pct = pipeline && pipeline.total > 0 ? Math.round(((pipeline.completedDeals + pipeline.lostDeals) / pipeline.total) * 100) : 0
     const teamMembers = data?.teamPerformance?.members ?? []
     const topMember = data?.teamPerformance?.topMember ?? ''
     const teamTotal = teamMembers.reduce((s, m) => s + m.sales, 0)
@@ -296,9 +298,9 @@ export default function Dashboard() {
                         <div className="pipeline-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', gap: '20px', padding: '10px 0' }}>
                             <div className="donut-wrap">
                                 {loading ? <Skeleton w={180} h={180} /> : (
-                                    <PieChart width={180} height={180}>
-                                        <Pie data={pieData} cx={90} cy={90} innerRadius={55} outerRadius={80} startAngle={90} endAngle={-270} dataKey="value" paddingAngle={3}>
-                                            <Cell fill={ACCENT} stroke="none" />
+                                    <PieChart width={180} height={180} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} startAngle={90} endAngle={-270} dataKey="value" paddingAngle={3}>
+                                            <Cell fill={CHART_WIN} stroke="none" />
                                             <Cell fill={CHART_GREY} stroke="none" />
                                             <Cell fill="#e74c3c" stroke="none" />
                                         </Pie>
@@ -306,9 +308,9 @@ export default function Dashboard() {
                                     </PieChart>
                                 )}
                                 <div className="donut-legend">
-                                    <span className="dot" style={{ background: ACCENT }} /><span>Completed Deals</span><strong>{pipeline?.completedDeals ?? '—'}</strong>
+                                    <span className="dot" style={{ background: CHART_WIN }} /><span>Won Deals</span><strong>{pipeline?.completedDeals ?? '—'}</strong>
                                     <span className="dot" style={{ background: CHART_GREY }} /><span>Ongoing Deals</span><strong>{pipeline?.ongoingDeals ?? '—'}</strong>
-                                    <span className="dot" style={{ background: '#e74c3c' }} /><span>Lost Deals</span><strong>{pipeline?.lostDeals ?? '—'}</strong>
+                                    <span className="dot" style={{ background: CHART_LOST }} /><span>Lost Deals</span><strong>{pipeline?.lostDeals ?? '—'}</strong>
                                 </div>
                             </div>
                             <div className="stage-breakdown" style={{ width: '100%' }}>

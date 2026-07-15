@@ -105,7 +105,6 @@ exports.getDashboardData = async (req, res) => {
 
                 // 1. Aggregation for Deals
         const ongoingAgg = await Deal.aggregate([
-            ...dealMatch,
             ...dateMatchDealCreated,
             {
                 $facet: {
@@ -124,7 +123,6 @@ exports.getDashboardData = async (req, res) => {
         ]);
 
         const completedAgg = await Deal.aggregate([
-            ...dealMatch,
             ...dateMatchDealUpdated,
             {
                 $group: {
@@ -138,23 +136,24 @@ exports.getDashboardData = async (req, res) => {
                             ] 
                         } 
                     },
-                    dealsCompleted: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
+                    wonDeals: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
                     lostDeals: { $sum: { $cond: [{ $eq: ["$stage", "Lost"] }, 1, 0] } }
                 }
             }
         ]);
 
         const ongoingTotals = ongoingAgg[0].totals[0] || { ongoingDeals: 0 };
-        const completedTotals = completedAgg[0] || { totalSales: 0, dealsCompleted: 0, lostDeals: 0 };
+        const completedTotals = completedAgg[0] || { totalSales: 0, wonDeals: 0, lostDeals: 0 };
 
         const dealTotals = {
             totalSales: completedTotals.totalSales,
-            dealsCompleted: completedTotals.dealsCompleted,
+            wonDeals: completedTotals.wonDeals,
+            dealsCompleted: completedTotals.wonDeals + completedTotals.lostDeals, // Won + Lost
             ongoingDeals: ongoingTotals.ongoingDeals,
             lostDeals: completedTotals.lostDeals,
-            totalCount: completedTotals.dealsCompleted + ongoingTotals.ongoingDeals + completedTotals.lostDeals
+            totalCount: completedTotals.wonDeals + completedTotals.lostDeals + ongoingTotals.ongoingDeals
         };
-        const avgDealValue = dealTotals.dealsCompleted > 0 ? (dealTotals.totalSales / dealTotals.dealsCompleted) : 0;
+        const avgDealValue = dealTotals.wonDeals > 0 ? (dealTotals.totalSales / dealTotals.wonDeals) : 0;
         
         // Ensure standard pipeline stages exist
         const defaultStages = { 'Qualified': 0, 'Contact Made': 0, 'Demo Scheduled': 0, 'Proposal Made': 0, 'Negotiation': 0 };
@@ -180,7 +179,6 @@ exports.getDashboardData = async (req, res) => {
         let prevIStats = { callsMade: 0, emailsSent: 0, meetingsHeld: 0 };
         if (showChange) {
             const prevOngoingAgg = await Deal.aggregate([
-                ...dealMatch,
                 ...prevDateMatchDealCreated,
                 { $group: {
                     _id: null,
@@ -189,19 +187,21 @@ exports.getDashboardData = async (req, res) => {
             ]);
 
             const prevCompletedAgg = await Deal.aggregate([
-                ...dealMatch,
                 ...prevDateMatchDealUpdated,
                 { $group: {
                     _id: null,
                     totalSales: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, { $convert: { input: "$price", to: "double", onError: 0, onNull: 0 } }, 0] } },
-                    dealsCompleted: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } }
+                    wonDeals: { $sum: { $cond: [{ $eq: ["$stage", "Won"] }, 1, 0] } },
+                    lostDeals: { $sum: { $cond: [{ $eq: ["$stage", "Lost"] }, 1, 0] } }
                 }}
             ]);
             
             prevDealTotals.ongoingDeals = prevOngoingAgg[0]?.ongoingDeals || 0;
             prevDealTotals.totalSales = prevCompletedAgg[0]?.totalSales || 0;
-            prevDealTotals.dealsCompleted = prevCompletedAgg[0]?.dealsCompleted || 0;
-            prevDealTotals.avgDealValue = prevDealTotals.dealsCompleted > 0 ? (prevDealTotals.totalSales / prevDealTotals.dealsCompleted) : 0;
+            prevDealTotals.wonDeals = prevCompletedAgg[0]?.wonDeals || 0;
+            prevDealTotals.lostDeals = prevCompletedAgg[0]?.lostDeals || 0;
+            prevDealTotals.dealsCompleted = (prevCompletedAgg[0]?.wonDeals || 0) + (prevCompletedAgg[0]?.lostDeals || 0);
+            prevDealTotals.avgDealValue = prevDealTotals.wonDeals > 0 ? (prevDealTotals.totalSales / prevDealTotals.wonDeals) : 0;
 
             const prevInteractionAgg = await Customer.aggregate([
                 { $unwind: "$interactions" },
