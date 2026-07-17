@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { FiX, FiSend } from "react-icons/fi";
+import api from '../api/client';
 
-function EmailComposer({ customerEmail, onClose, onEmailSent }) {
+function EmailComposer({ customerEmail, customerId, onClose, onEmailSent }) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   const handleSend = async () => {
     if (!subject.trim() || !message.trim()) {
@@ -11,22 +13,45 @@ function EmailComposer({ customerEmail, onClose, onEmailSent }) {
       return;
     }
 
-    // This is where you would call your Django API later
-    const emailData = { to: customerEmail, subject, message };
-    
-    // For now, let's simulate a successful send
-    console.log("Sending email:", emailData);
+    setIsSending(true);
 
-    onEmailSent({ subject, message });
+    const accessToken = window.localStorage.getItem('google_access_token') || 
+                        window.sessionStorage.getItem('accessToken');
+
+    // This is where you would call your Django API later
+    const payload = {
+      type: "Email",
+      details: message, 
+      emailSubject: subject || "CRM Update",
+      customerEmail: customerEmail,
+      googleAccessToken: accessToken
+    };
     
-    onClose();
+    try {
+      await api.post(`/customers/${customerId}/interactions`, payload);
+      
+      if (onEmailSent) {
+        onEmailSent();
+      }
+      
+      setSubject("");
+      setMessage("");
+      onClose();
+      
+      alert("Email sent and interaction logged successfully!");
+    } catch (err) {
+      console.error("Failed to execute live email pipeline:", err);
+      alert(err.response?.data?.message || "Could not dispatch email. Ensure your Google account is linked.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
-    <div className="side-panel"> {/* Reuse the same CSS class for consistency */}
+    <div className="side-panel"> 
       <div className="side-panel-header">
         <h4>Compose Email</h4>
-        <button onClick={onClose} className="close-btn"><FiX /></button>
+        <button onClick={onClose} className="close-btn" disabled={isSending}><FiX /></button>
       </div>
 
       <div className="side-panel-body">
@@ -43,6 +68,8 @@ function EmailComposer({ customerEmail, onClose, onEmailSent }) {
             style={{width: '100%', marginTop: '5px'}}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
+            disabled={isSending}
+            placeholder="Enter email subject..."
           />
         </div>
 
@@ -53,6 +80,8 @@ function EmailComposer({ customerEmail, onClose, onEmailSent }) {
             style={{minHeight: '150px'}}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            disabled={isSending}
+            placeholder="Type your email message here..."
           />
         </div>
       </div>
@@ -60,7 +89,7 @@ function EmailComposer({ customerEmail, onClose, onEmailSent }) {
       <div className="side-panel-footer">
         <button className="cancel-btn" onClick={onClose}>Cancel</button>
         <button className="save-btn" onClick={handleSend}>
-          <FiSend size={14}/> Send Email
+          <FiSend size={14}/> {isSending ? "Sending..." : "Send Email"}
         </button>
       </div>
     </div>

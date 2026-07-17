@@ -281,7 +281,8 @@ function CustomerProfile() {
       type: newInteractionData.type || "Note",
       details: newInteractionData.desc,
       priority: newInteractionData.priority || "Medium",
-      dueDate: newInteractionData.dueDate || null
+      dueDate: newInteractionData.dueDate || null,
+      companyName: customer?.company
     };
 
     try {
@@ -606,21 +607,15 @@ function CustomerProfile() {
               {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
               {isComposingEmail ? (
                 <EmailComposer 
-                  customerEmail={customer.email}
+                  customerEmail={customer?.email}
+                  customerId={id}
                   onClose={() => setIsComposingEmail(false)}
-                  onEmailSent={async ({ subject, message }) => {
-
+                  onEmailSent={async () => {
                     try {
-                      // Axios automatically serializes JSON objects
-                      await api.post(`/customers/${id}/interactions`, {
-                        type: "Email",
-                        details: `Sent Email - Subject: ${subject || ""}`,
-                      });
-
                       await fetchCustomer(false);
                       setIsComposingEmail(false);
                     } catch (err) {
-                      console.error("Failed to log email interaction", err);
+                      console.error("Failed to refresh customer data after email delivery:", err);
                     }
                   }}
                 />
