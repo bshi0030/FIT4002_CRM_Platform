@@ -2,38 +2,25 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 
 const AddCustomerModal = ({ onClose, onAdd, initialData = null }) => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    company: '',
-    designation: '',
-    department: '',
-    address: 'Not Provided'
-  });
+  const [formData, setFormData] = useState(() => ({
+    fullName: initialData?.fullName || '',
+    email: initialData?.email || '',
+    phone: initialData?.phone || '',
+    company: initialData?.company || '',
+    designation: initialData?.designation || '',
+    department: initialData?.department || '',
+    address: initialData?.address || 'Not Provided'
+  }));
   const [logoFile, setLogoFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(() => 
+    initialData?.companyLogo 
+      ? `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${initialData.companyLogo}`
+      : null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        fullName: initialData.fullName || '',
-        email: initialData.email || '',
-        phone: initialData.phone || '',
-        company: initialData.company || '',
-        designation: initialData.designation || '',
-        department: initialData.department || '',
-        address: initialData.address || 'Not Provided'
-      });
-      if (initialData.companyLogo) {
-        setPreviewUrl(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${initialData.companyLogo}`);
-      }
-    }
-  }, [initialData]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
