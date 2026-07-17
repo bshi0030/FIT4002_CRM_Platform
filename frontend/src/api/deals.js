@@ -6,3 +6,4 @@ export const updateDealStage = (dealId, stage) => api.patch(`/deals/${dealId}/st
 export const markDealOutcome = (dealId, outcome) => api.patch(`/deals/${dealId}/outcome`, { outcome }).then(r => r.data)
 export const getDealLogs = () => api.get('/deals/logs').then(r => r.data)
 export const deleteDeal = (dealId) => api.delete(`/deals/${dealId}`).then(r => r.data)
+export const updateDealProbability = (dealId, probability) => api.patch(`/deals/${dealId}/probability`, { probability }).then(r => r.data)

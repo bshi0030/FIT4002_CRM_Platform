@@ -13,12 +13,15 @@ const {
   deleteCustomerFile,
   addInteraction,
   deleteInteraction,
-  editInteraction
+  editInteraction,
+  getCustomerByName
 } = require('../controllers/customerController');
 
 router.route('/')
   .post(uploadLogo.single('companyLogo'), createCustomer)
   .get(getCustomers);
+
+router.get('/search', getCustomerByName);
 
 router.route('/:id')
   .get(getCustomerById)
