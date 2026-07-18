@@ -9,10 +9,19 @@ import {
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/auth";
+import { Pencil } from "lucide-react";
 
-const TaskDetail = ({ task, onClose }) => {
+const TaskDetail = ({ task, onClose, onEdit }) => {
   console.log(task);
   if (!task) return null;
+
+  const { user } = useAuth();
+
+const canEdit =
+  user &&
+  task.createdBy &&
+  task.createdBy._id === user.id;
 
   const priorityClass =
     task.priority === "High"
@@ -164,22 +173,34 @@ const TaskDetail = ({ task, onClose }) => {
           )}
         </div>
         {/* FOOTER */}
-        <footer className="detail-footer">
-          <button className="btn-email">
-            <Mail size={16} />
-            Send Email
-          </button>
+<footer className="detail-footer">
 
-          {task.customer && (
-            <Link
-              to={`/customers/${task.customer._id}`}
-              className="btn-profile"
-            >
-              <ExternalLink size={16} />
-              View Profile
-            </Link>
-          )}
-        </footer>
+{canEdit && (
+<button
+    className="btn-edit"
+    onClick={() => onEdit(task)}
+>
+    <Pencil size={18} />
+    Edit Task
+</button>
+)}
+
+  <button className="btn-email">
+    <Mail size={16} />
+    Send Email
+  </button>
+
+  {task.customer && (
+    <Link
+      to={`/customers/${task.customer._id}`}
+      className="btn-profile"
+    >
+      <ExternalLink size={16} />
+      View Profile
+    </Link>
+  )}
+
+</footer>
       </div>
     </div>
   );
