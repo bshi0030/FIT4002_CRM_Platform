@@ -3,11 +3,12 @@ import { X } from "lucide-react";
 import "../styles/TaskBoard.css";
 import { updateTask } from "../api/tasks";
 import { getUsers } from "../api/users";
+import { getCustomers } from "../api/customers";
 
 const EditTaskPopup = ({ task, onClose, refreshTasks }) => {
     const [taskName, setTaskName] = useState(task.title);
     const [description, setDescription] = useState(task.description || "");
-    const [customer, setCustomer] = useState(task.company || "");
+    const [customer, setCustomer] = useState(task.customer?._id || "");
     const [priority, setPriority] = useState(task.priority);
     const [dueDate, setDueDate] = useState(
     task.dueDate
@@ -20,6 +21,10 @@ const EditTaskPopup = ({ task, onClose, refreshTasks }) => {
     task.assignedTo.map(user => user._id)
 );
 useEffect(() => {
+    
+    getCustomers()
+    .then(data => setCustomers(data))
+    .catch(console.error);
 
     console.log("Loading users...");
 
@@ -50,14 +55,14 @@ const handleUserSelection = (userId) => {
 const handleUpdateTask = async () => {
     try {
 
-        const updatedTask = {
-            title: taskName,
-            description,
-            company: customer,
-            priority,
-            dueDate,
-            assignedTo: selectedUsers
-        };
+const updatedTask = {
+    title: taskName,
+    description,
+    customer,
+    priority,
+    dueDate,
+    assignedTo: selectedUsers
+};
 
 const result = await updateTask(task._id, updatedTask);
 
