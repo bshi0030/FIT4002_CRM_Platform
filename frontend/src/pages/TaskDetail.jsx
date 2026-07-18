@@ -89,6 +89,18 @@ const TaskDetail = ({ task, onClose }) => {
           </div>
         </div>
 
+<div className="detail-item">
+  <label>CREATED BY</label>
+
+  <div className="creator-pill">
+    <div className="creator-avatar">
+      {task.createdBy?.fullName?.charAt(0).toUpperCase()}
+    </div>
+
+    <span>{task.createdBy?.fullName}</span>
+  </div>
+</div>
+
         {/* PIPELINE */}
         <div className="pipeline-section">
           <label>PIPELINE STAGE</label>
