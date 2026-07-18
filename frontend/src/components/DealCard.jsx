@@ -6,11 +6,12 @@ const PRIORITY_STYLES = {
   Low: { bg: "#F0F8FF", border: "#66B3FF", color: "#0066CC" },
 };
 
-function DealCard({ deal, onClick, style }) {
+function DealCard({ deal, onClick, style, onDragStart }) {
   const priorityStyle = PRIORITY_STYLES[deal.priority] || PRIORITY_STYLES.Medium;
 
   const handleDragStart = (e) => {
     e.dataTransfer.setData("dealId", deal._id);
+    if (onDragStart) onDragStart(e);
   };
 
   return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "../styles/SalesPipeline.css";
 import DealCard from "../components/DealCard";
+import DealDetailModal from "../components/DealDetailModal";
 import { getDeals, createDeal, updateDealStage, markDealOutcome, getDealLogs, deleteDeal } from "../api/deals";
 
 const STAGES = [
@@ -30,6 +31,7 @@ function SalesPipeline() {
   const [confirmDeal, setConfirmDeal] = useState(null);
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDeal, setSelectedDeal] = useState(null);
 
   useEffect(() => {
     getDeals()
@@ -157,7 +159,7 @@ const avgProbability = deals.length > 0
           </div>
           <div className="wonlost-box">
             {getDealsForStage('Won').map(deal => (
-              <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)} />
+              <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)} onClick={() => setSelectedDeal(deal)} />
             ))}
           </div>
           <div className="wonlost-arrow">&#8964;</div>
@@ -173,7 +175,7 @@ const avgProbability = deals.length > 0
           </div>
           <div className="wonlost-box">
             {getDealsForStage('Lost').map(deal => (
-              <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)} />
+              <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)} onClick={() => setSelectedDeal(deal)} />
             ))}
           </div>
           <div className="wonlost-arrow">&#8964;</div>
@@ -258,7 +260,7 @@ const avgProbability = deals.length > 0
     key={deal._id}
     deal={deal}
     onDragStart={(e) => handleDragStart(e, deal)}
-    onClick={deleteMode ? () => handleDeleteClick(deal) : undefined}
+    onClick={deleteMode ? () => handleDeleteClick(deal) : () => setSelectedDeal(deal)}
     style={deleteMode
       ? { cursor: 'pointer' }
       : searchQuery && deal.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -366,6 +368,17 @@ const avgProbability = deals.length > 0
         </div>
       </div>
      </div>
+)}
+
+    {selectedDeal && (
+  <DealDetailModal
+    deal={selectedDeal}
+    onClose={() => setSelectedDeal(null)}
+    onDealUpdate={(updatedDeal) => {
+      setDeals(prev => prev.map(d => d._id === updatedDeal._id ? updatedDeal : d));
+      setSelectedDeal(updatedDeal);
+    }}
+  />
 )}
 
     </div>
