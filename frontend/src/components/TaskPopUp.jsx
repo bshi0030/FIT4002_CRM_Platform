@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import "../styles/TaskBoard.css";
 import { createTask } from "../api/tasks";
 import { getUsers } from "../api/users";
+import { getCustomers } from "../api/customers";
 
 const CreateTaskPopup = ({ onClose, refreshTasks }) => {
     const [taskName, setTaskName] = useState("");
@@ -12,8 +13,13 @@ const CreateTaskPopup = ({ onClose, refreshTasks }) => {
     const [dueDate, setDueDate] = useState("");
     const [pipeline, setPipeline] = useState("");
     const [users, setUsers] = useState([]);
+    const [customers, setCustomers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
 useEffect(() => {
+    
+    getCustomers()
+    .then(data => setCustomers(data))
+    .catch(console.error);
 
     console.log("Loading users...");
 
@@ -44,14 +50,14 @@ const handleUserSelection = (userId) => {
     const handleCreateTask = async () => {
     try {
 
-        const newTask = {
-            title: taskName,
-            description: description,
-            company: customer,
-            priority: priority,
-            dueDate: dueDate,
-            assignedTo: selectedUsers
-        };
+const newTask = {
+    title: taskName,
+    description,
+    customer,
+    priority,
+    dueDate,
+    assignedTo: selectedUsers
+};
 
 const createdTask = await createTask(newTask);
 
@@ -121,12 +127,21 @@ onClose();
 
                         <label>CUSTOMER *</label>
 
-                        <input
-                            type="text"
-                            placeholder="Customer name"
-                            value={customer}
-                            onChange={(e) => setCustomer(e.target.value)}
-                        />
+<select
+    value={customer}
+    onChange={(e) => setCustomer(e.target.value)}
+>
+    <option value="">Select Customer</option>
+
+    {customers.map(customer => (
+        <option
+            key={customer._id}
+            value={customer._id}
+        >
+            {customer.fullName}
+        </option>
+    ))}
+</select>
 
                     </div>
 
