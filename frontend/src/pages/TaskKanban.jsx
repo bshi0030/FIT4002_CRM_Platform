@@ -3,6 +3,7 @@ import { Search, Bell, Building2, Calendar, Users } from 'lucide-react';
 import NotificationPopup from "./NotificationPopup";
 import { getNotifications } from "../api/notifications";
 import CreateTaskPopup from "../components/TaskPopUp";
+import EditTaskPopup from "../components/EditTaskPopup";
 
 import {
   Select, 
@@ -34,6 +35,7 @@ const TaskKanban = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showCreateTask, setShowCreateTask] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   
   const unreadCount =
@@ -126,11 +128,24 @@ useEffect(() => {
 />
 )}
 
+{editingTask && (
+    <EditTaskPopup
+        task={editingTask}
+        onClose={() => setEditingTask(null)}
+        refreshTasks={() => {
+            getTasks()
+                .then(data => setTasks(data))
+                .catch(err => console.error(err));
+        }}
+    />
+)}
+
       {selectedTask && (
-        <TaskDetail
-          task={selectedTask}
-          onClose={() => setSelectedTask(null)}
-        />
+<TaskDetail
+    task={selectedTask}
+    onClose={() => setSelectedTask(null)}
+    onEdit={(task) => setEditingTask(task)}
+/>
       )}
 
       {showNotifications && (
