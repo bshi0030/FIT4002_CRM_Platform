@@ -55,7 +55,9 @@ router.post("/", requireAuth, async (req, res) => {
 const task = new Task({
     title: req.body.title,
     description: req.body.description,
-    company: req.body.company,
+
+    customer: req.body.customer,
+
     priority: req.body.priority,
     dueDate: req.body.dueDate,
     status: "todo",
@@ -73,7 +75,9 @@ const task = new Task({
 console.log("Task saved!");
 
 const populatedTask = await Task.findById(task._id)
-  .populate("assignedTo", "fullName");
+  .populate("assignedTo", "fullName")
+  .populate("createdBy", "fullName")
+  .populate("customer", "fullName company interactions");
 
 console.log("Task populated!");
 
@@ -136,16 +140,17 @@ router.patch("/:id", requireAuth, async (req, res) => {
 
     task.title = req.body.title ?? task.title;
     task.description = req.body.description ?? task.description;
-    task.company = req.body.company ?? task.company;
+    task.customer = req.body.customer ?? task.customer;
     task.priority = req.body.priority ?? task.priority;
     task.dueDate = req.body.dueDate ?? task.dueDate;
     task.assignedTo = req.body.assignedTo ?? task.assignedTo;
 
     await task.save();
 
-    const updatedTask = await Task.findById(task._id)
-      .populate("assignedTo", "fullName")
-      .populate("createdBy", "fullName");
+const updatedTask = await Task.findById(task._id)
+  .populate("assignedTo", "fullName")
+  .populate("createdBy", "fullName")
+  .populate("customer", "fullName company interactions");
 
     res.json(updatedTask);
 
