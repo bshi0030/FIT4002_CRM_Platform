@@ -1161,32 +1161,29 @@ padding:0 12px;
     font-size: 14px;
     font-weight: 700;
 }
-
 .btn-edit {
-    width: 180px;
-    height: 42px;
+    flex: 1;
+    height: 54px;
 
-    border-radius: 9999px;
-
-    background: linear-gradient(135deg,#253984,#2a2a72);
-
-    color: white;
-    border: none;
+    border-radius: 14px;
 
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
 
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
 
     cursor: pointer;
 
-    transition: .2s;
+    transition: 0.2s ease;
+
+    background: linear-gradient(135deg,#253984 0%,#2a2a72 100%);
+    color: #fff;
+    border: none;
 }
 
 .btn-edit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(37,57,132,.3);
+    transform: translateY(-1px);
 }
