@@ -17,14 +17,19 @@ router.get("/", requireAuth, async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user._id);
     const tasks = await Task.find({
-      assignedTo: userId
-    })
+    $or: [
+        { assignedTo: userId },
+        { createdBy: userId }
+    ]
+})
 
       .populate("assignedTo", "fullName")
+      .populate("createdBy", "fullName")
       .populate("customer", "fullName company interactions")
       .populate("deal", "name")
       .populate("currentStage", "name")
       .populate("nextStage", "name")
+      
 
       .sort({ createdAt: -1 });
 
@@ -41,6 +46,49 @@ router.get("/", requireAuth, async (req, res) => {
   }
 
 }); 
+
+router.post("/", requireAuth, async (req, res) => {
+  try {
+
+    console.log("BODY:", req.body);
+
+const task = new Task({
+    title: req.body.title,
+    description: req.body.description,
+    company: req.body.company,
+    priority: req.body.priority,
+    dueDate: req.body.dueDate,
+    status: "todo",
+
+    createdBy: req.user._id,
+
+    assignedTo:
+        req.body.assignedTo?.length > 0
+            ? req.body.assignedTo
+            : [req.user._id]
+});
+
+    await task.save();
+
+console.log("Task saved!");
+
+const populatedTask = await Task.findById(task._id)
+  .populate("assignedTo", "fullName");
+
+console.log("Task populated!");
+
+res.status(201).json(populatedTask);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "Failed to create task"
+    });
+
+  }
+});
 
 router.patch("/:id/status", requireAuth, async (req, res) => {
 
