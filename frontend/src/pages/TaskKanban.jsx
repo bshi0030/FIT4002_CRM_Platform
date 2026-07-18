@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Search, Bell, Building2, Calendar, Users } from 'lucide-react';
 import NotificationPopup from "./NotificationPopup";
 import { getNotifications } from "../api/notifications";
+import CreateTaskPopup from "../components/TaskPopUp";
 
 import {
-  Select,
+  Select, 
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -32,6 +33,7 @@ const TaskKanban = () => {
   const [draggedTaskId, setDraggedTaskId] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [showCreateTask, setShowCreateTask] = useState(false);
 
   
   const unreadCount =
@@ -112,6 +114,18 @@ useEffect(() => {
     <div className="task-container">
 
       {/* POPUP */}
+
+      {showCreateTask && (
+<CreateTaskPopup
+    onClose={() => setShowCreateTask(false)}
+    refreshTasks={() => {
+        getTasks()
+        .then(data => setTasks(data))
+        .catch(err => console.error(err));
+    }}
+/>
+)}
+
       {selectedTask && (
         <TaskDetail
           task={selectedTask}
@@ -125,8 +139,8 @@ useEffect(() => {
   />
 )}
 
-      {/* NAVBAR */}
-      <div className="task-navbar">
+{/* NAVBAR */}
+<div className="task-navbar">
 
         <div className="search-wrapper">
           <Search className="search-icon-svg" size={18} />
@@ -139,6 +153,12 @@ useEffect(() => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+          <button
+    className="create-task-btn"
+    onClick={() => setShowCreateTask(true)}
+  >
+    Create Task  +
+  </button>
 
         <Select
           onValueChange={(value) => setFilterPriority(value)}
