@@ -129,15 +129,22 @@ useEffect(() => {
 )}
 
 {editingTask && (
-    <EditTaskPopup
-        task={editingTask}
-        onClose={() => setEditingTask(null)}
-        refreshTasks={() => {
-            getTasks()
-                .then(data => setTasks(data))
-                .catch(err => console.error(err));
-        }}
-    />
+<EditTaskPopup
+    task={editingTask}
+    onClose={() => setEditingTask(null)}
+    refreshTasks={(updatedTask) => {
+
+        setTasks(prev =>
+            prev.map(task =>
+                task._id === updatedTask._id
+                    ? updatedTask
+                    : task
+            )
+        );
+
+        setSelectedTask(updatedTask);
+    }}
+/>
 )}
 
       {selectedTask && (
