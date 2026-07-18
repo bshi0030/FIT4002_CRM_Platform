@@ -59,16 +59,11 @@ const handleUpdateTask = async () => {
             assignedTo: selectedUsers
         };
 
-        const result = await updateTask(
-            task._id,
-            updatedTask
-        );
+const result = await updateTask(task._id, updatedTask);
 
-        console.log("Updated task:", result);
+refreshTasks(result);
 
-        refreshTasks();
-
-        onClose();
+onClose();
 
     } catch (error) {
 
