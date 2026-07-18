@@ -23,7 +23,7 @@ router.get("/", requireAuth, async (req, res) => {
     ]
 })
 
-      .populate("assignedTo", "fullName")
+      .populate("assignedTo", "_id fullName")
       .populate("createdBy", "fullName")
       .populate("customer", "fullName company interactions")
       .populate("deal", "name")
@@ -114,6 +114,50 @@ router.patch("/:id/status", requireAuth, async (req, res) => {
 
   }
 
+});
+
+router.patch("/:id", requireAuth, async (req, res) => {
+  try {
+
+    const task = await Task.findById(req.params.id);
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found"
+      });
+    }
+
+    // Only the creator can edit
+    if (task.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "You can only edit tasks you created."
+      });
+    }
+
+    task.title = req.body.title ?? task.title;
+    task.description = req.body.description ?? task.description;
+    task.company = req.body.company ?? task.company;
+    task.priority = req.body.priority ?? task.priority;
+    task.dueDate = req.body.dueDate ?? task.dueDate;
+    task.assignedTo = req.body.assignedTo ?? task.assignedTo;
+
+    await task.save();
+
+    const updatedTask = await Task.findById(task._id)
+      .populate("assignedTo", "fullName")
+      .populate("createdBy", "fullName");
+
+    res.json(updatedTask);
+
+  } catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+      message: "Failed to update task"
+    });
+
+  }
 });
 
 module.exports = router;
