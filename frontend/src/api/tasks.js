@@ -10,3 +10,8 @@ export const updateTaskStatus = (taskId, status) =>
 export const createTask = (taskData) =>
   api.post("/tasks", taskData)
      .then(res => res.data);
+
+export const updateTask = (taskId, taskData) =>
+  api.patch(`/tasks/${taskId}`, taskData)
+     .then(res => res.data);
+
