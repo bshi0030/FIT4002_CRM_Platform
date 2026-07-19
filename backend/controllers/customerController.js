@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Task = require('../models/Task');
 const path = require('path');
 const fs = require('fs');
-const sendGmailMessage = require('../services/gmailService');
+const { sendGmailMessage }= require('../services/gmailService');
 
 // @desc    Create new customer
 // @route   POST /api/customers
