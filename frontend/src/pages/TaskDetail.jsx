@@ -110,31 +110,30 @@ const canEdit =
   </div>
 </div>
 
-        {/* PIPELINE */}
-        <div className="pipeline-section">
-          <label>PIPELINE STAGE</label>
-          <div className="pipeline-box">
-            <div className="pipeline-info">
-              <span>
-                Current:
-                <strong> {task.currentStage?.name || "N/A"}</strong>
-              </span>
+{/* PIPELINE DEAL */}
+<div className="pipeline-section">
+  <label>PIPELINE DEAL</label>
 
-              <ArrowRight size={18} />
+  <div className="pipeline-box">
+    <div className="pipeline-info">
+      <span>
+        Deal:
+        <strong> {task.deal?.name || "No deal linked"}</strong>
+      </span>
 
-              <span>
-                Next:
-                <strong> {task.nextStage?.name || "N/A"}</strong>
-              </span>
-            </div>
+      <ArrowRight size={18} />
 
-    
-              <Link to="/pipeline" className="pipeline-link">
-                View Pipeline
-              </Link>
-        
-          </div>
-        </div>
+      <span>
+        Stage:
+        <strong> {task.deal?.stage || "N/A"}</strong>
+      </span>
+    </div>
+
+    <Link to="/pipeline" className="pipeline-link">
+      View Pipeline
+    </Link>
+  </div>
+</div>
 
         {/* TIMELINE */}
         <div className="activity-section">
