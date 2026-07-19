@@ -8,7 +8,6 @@ const Task = require("../models/Task");
 
 const mongoose = require("mongoose");
 
-require("../models/Stage");
 const { requireAuth } = require("../middleware/auth");
 
 // every logged in users tasks
@@ -26,9 +25,7 @@ router.get("/", requireAuth, async (req, res) => {
       .populate("assignedTo", "_id fullName")
       .populate("createdBy", "fullName")
       .populate("customer", "fullName company interactions")
-      .populate("deal", "name")
-      .populate("currentStage", "name")
-      .populate("nextStage", "name")
+      .populate("deal", "name stage company")
       
 
       .sort({ createdAt: -1 });
@@ -57,6 +54,7 @@ const task = new Task({
     description: req.body.description,
 
     customer: req.body.customer,
+    deal: req.body.deal,
 
     priority: req.body.priority,
     dueDate: req.body.dueDate,
