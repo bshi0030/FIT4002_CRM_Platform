@@ -880,6 +880,7 @@
 .create-task-modal {
     width: 540px;
     max-width: 95vw;
+    max-height: 85vh;
 
     background: #f8f8f3;
 
@@ -890,7 +891,8 @@
 
     box-shadow: 0 20px 60px rgba(0,0,0,.18);
 
-    animation: popupFade .25s ease;
+    animation: popupFade .25s ease; 
+
 }
 
 @keyframes popupFade {
@@ -945,6 +947,10 @@ gap:14px 18px;
     display:grid;
 
     grid-template-columns:1fr 1fr;
+
+      max-height: 60vh;
+  overflow-y: auto;
+  padding: 20px 22px;
 
 }
 
@@ -1187,3 +1193,4 @@ padding:0 12px;
 .btn-edit:hover {
     transform: translateY(-1px);
 }
+
