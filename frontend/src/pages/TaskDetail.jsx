@@ -5,14 +5,22 @@ import {
   ExternalLink,
   Building2,
   Calendar,
-  ArrowRight
+  ArrowRight,
+  UserRound
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/auth";
+import { Pencil } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-const TaskDetail = ({ task, onClose }) => {
+const TaskDetail = ({ task, onClose, onEdit }) => {
   console.log(task);
   if (!task) return null;
+
+  const { user } = useAuth();
+
+  const canEdit = user && task.createdBy && task.createdBy._id === user.id;
 
   const priorityClass =
     task.priority === "High"
@@ -89,29 +97,50 @@ const TaskDetail = ({ task, onClose }) => {
           </div>
         </div>
 
-        {/* PIPELINE */}
+        {/* CREATED BY */}
+        <div className="detail-item">
+          <label>CREATED BY</label>
+
+          <div className="creator-pill">
+            {task.createdBy?._id === user?.id ? (
+              <Badge variant="secondary" className="you-badge">
+                <UserRound size={14} />
+                You
+              </Badge>
+            ) : (
+              <>
+                <div className="creator-avatar">
+                  {task.createdBy?.fullName?.charAt(0).toUpperCase()}
+                </div>
+
+                <span>{task.createdBy?.fullName}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* PIPELINE DEAL */}
         <div className="pipeline-section">
-          <label>PIPELINE STAGE</label>
+          <label>PIPELINE DEAL</label>
+
           <div className="pipeline-box">
             <div className="pipeline-info">
               <span>
-                Current:
-                <strong> {task.currentStage?.name || "N/A"}</strong>
+                Deal:
+                <strong> {task.deal?.name || "No deal linked"}</strong>
               </span>
 
               <ArrowRight size={18} />
 
               <span>
-                Next:
-                <strong> {task.nextStage?.name || "N/A"}</strong>
+                Stage:
+                <strong> {task.deal?.stage || "N/A"}</strong>
               </span>
             </div>
 
-    
-              <Link to="/pipeline" className="pipeline-link">
-                View Pipeline
-              </Link>
-        
+            <Link to="/pipeline" className="pipeline-link">
+              View Pipeline
+            </Link>
           </div>
         </div>
 
@@ -153,6 +182,13 @@ const TaskDetail = ({ task, onClose }) => {
         </div>
         {/* FOOTER */}
         <footer className="detail-footer">
+          {canEdit && (
+            <button className="btn-edit" onClick={() => onEdit(task)}>
+              <Pencil size={18} />
+              Edit Task
+            </button>
+          )}
+
           <button className="btn-email">
             <Mail size={16} />
             Send Email
