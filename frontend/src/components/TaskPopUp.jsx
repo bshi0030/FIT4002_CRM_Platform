@@ -4,6 +4,7 @@ import "../styles/TaskBoard.css";
 import { createTask } from "../api/tasks";
 import { getUsers } from "../api/users";
 import { getCustomers } from "../api/customers";
+import { getDeals } from "../api/deals";
 
 const CreateTaskPopup = ({ onClose, refreshTasks }) => {
   const [taskName, setTaskName] = useState("");
@@ -15,7 +16,14 @@ const CreateTaskPopup = ({ onClose, refreshTasks }) => {
   const [users, setUsers] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [deals, setDeals] = useState([]);
+  const [deal, setDeal] = useState("");
   useEffect(() => {
+
+    getDeals()
+  .then(data => setDeals(data))
+  .catch(console.error);
+
     getCustomers()
       .then((data) => setCustomers(data))
       .catch(console.error);
@@ -43,14 +51,15 @@ const CreateTaskPopup = ({ onClose, refreshTasks }) => {
   };
   const handleCreateTask = async () => {
     try {
-      const newTask = {
-        title: taskName,
-        description,
-        customer,
-        priority,
-        dueDate,
-        assignedTo: selectedUsers
-      };
+const newTask = {
+  title: taskName,
+  description,
+  customer,
+  deal,
+  priority,
+  dueDate,
+  assignedTo: selectedUsers
+};
 
       const createdTask = await createTask(newTask);
 
@@ -160,21 +169,23 @@ const CreateTaskPopup = ({ onClose, refreshTasks }) => {
             />
           </div>
 
-          {/* Pipeline */}
-          <div className="field">
-            <label>PIPELINE STAGE</label>
+{/* Deal */}
+<div className="field">
+  <label>PIPELINE DEAL</label>
 
-            <select
-              value={pipeline}
-              onChange={(e) => setPipeline(e.target.value)}
-            >
-              <option>Select Stage</option>
-              <option>Lead</option>
-              <option>Qualified</option>
-              <option>Proposal</option>
-              <option>Closed</option>
-            </select>
-          </div>
+  <select
+    value={deal}
+    onChange={(e) => setDeal(e.target.value)}
+  >
+    <option value="">Select Deal</option>
+
+    {deals.map((deal) => (
+      <option key={deal._id} value={deal._id}>
+        {deal.name}
+      </option>
+    ))}
+  </select>
+</div>
 
           {/* Assign Users */}
           <div className="field full">
