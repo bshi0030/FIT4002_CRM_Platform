@@ -555,12 +555,14 @@ function CustomerProfile() {
             <div className="interactions-header">
               <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
               <div className="interaction-action-btns">
-                {activeTab !== 'Notes' && (
+                {!['Notes', 'Calls', 'Tasks'].includes(activeTab) && (
                   <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
                     <FiMail /> Send Email
                   </button>
                 )}
-                <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
+                {!['Emails', 'Notes', 'Calls', 'Tasks'].includes(activeTab) && (
+                  <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
+                )}
               </div>
             </div>
             
@@ -701,7 +703,7 @@ function CustomerProfile() {
 
         
         {/* Files & Documents */}
-        {activeTab !== 'Notes' && (
+        {!['Emails', 'Notes', 'Calls', 'Tasks'].includes(activeTab) && (
           <div className="files-card">
             <div className="files-header">
               <h3>Files & Documents</h3>
