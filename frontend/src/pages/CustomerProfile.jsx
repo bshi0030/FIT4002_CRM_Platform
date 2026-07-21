@@ -19,6 +19,8 @@ import {
   FiX,
   FiTrash2
 } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
+import { generateWhatsAppUrl } from '../lib/phoneUtils';
 
 const ProfileLogo = ({ companyLogo, companyName }) => {
   const [imgError, setImgError] = useState(false);
@@ -337,6 +339,38 @@ function CustomerProfile() {
     }
   };
 
+  /**
+   * Opens the customer's WhatsApp conversation in a new tab so the
+   * salesperson can press the voice-call icon inside WhatsApp.
+   *
+   * NOTE: A standard wa.me link cannot initiate or confirm a voice call
+   * automatically. The salesperson must press the call icon manually.
+   */
+  const handleWhatsAppCall = async () => {
+    const url = generateWhatsAppUrl(customer.phone);
+
+    if (!url) {
+      alert("No valid WhatsApp number is available for this customer.");
+      return;
+    }
+
+    // Open WhatsApp Web / app in a new tab with security attributes
+    window.open(url, "_blank", "noopener,noreferrer");
+
+    // Log the interaction as "Call — WhatsApp initiated".
+    // Fire-and-forget: WhatsApp has already opened above, so a logging
+    // failure must never prevent the salesperson from reaching the customer.
+    try {
+      await api.post(`/customers/${id}/interactions`, {
+        type: "Call",
+        details: "WhatsApp opened for customer call",
+      });
+      fetchCustomer(false);
+    } catch (err) {
+      console.error("Failed to log WhatsApp call interaction", err);
+    }
+  };
+
   const formatInteractionTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -466,7 +500,15 @@ function CustomerProfile() {
 
             <div className="profile-actions">
               <button className="add-contact-btn" onClick={() => setIsComposingEmail(true)}>✉️ Email</button>
-              <a className="add-contact-btn call-btn" href={`tel:${customer.phone}`} onClick={() => handleInteraction('Call')}>📞 Call</a>
+              <button
+                className="add-contact-btn call-btn"
+                onClick={handleWhatsAppCall}
+                disabled={!generateWhatsAppUrl(customer.phone)}
+                title="Open customer in WhatsApp to call"
+                aria-label="Open customer in WhatsApp to call"
+              >
+                <FaWhatsapp /> Call
+              </button>
             </div>
           </div>
         </div>
