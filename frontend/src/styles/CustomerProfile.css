@@ -203,6 +203,14 @@
   text-decoration: none;
 }
 
+.call-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 3px 10px rgba(37, 57, 132, 0.15);
+}
+
+
 /* Deal list cards */
 .deal-item {
   background: #ffffff;
