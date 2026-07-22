@@ -219,10 +219,14 @@ const deleteInteraction = async (req, res) => {
     const targetInteraction = customer.interactions.id(interactionId);
 
     if (targetInteraction && targetInteraction.type === 'Task') {
-      await Task.findOneAndDelete({
-        customer: new mongoose.Types.ObjectId(id),
-        title: targetInteraction.details
-      });
+      if (targetInteraction.taskId) {
+        await Task.findByIdAndDelete(targetInteraction.taskId);
+      } else {
+        await Task.findOneAndDelete({
+          customer: new mongoose.Types.ObjectId(id),
+          description: targetInteraction.details
+        });
+      }
     }
 
     const updatedCustomer = await Customer.findByIdAndUpdate(

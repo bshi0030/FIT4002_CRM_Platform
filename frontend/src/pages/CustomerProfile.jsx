@@ -767,7 +767,7 @@ function CustomerProfile() {
             </div>
             
             <div className="modal-body">
-              <div className="form-group">
+              {/* <div className="form-group">
                 <label>Interaction Type</label>
                 <select 
                   name="type" 
@@ -780,7 +780,7 @@ function CustomerProfile() {
                   <option value="Task">Task</option>
                   <option value="Note">Note</option>
                 </select>
-              </div>
+              </div> */}
 
               <div className="form-group">
                 <label>Description / Notes</label>

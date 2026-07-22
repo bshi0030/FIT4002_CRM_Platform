@@ -1,13 +1,9 @@
 const express = require("express");
-
 const Notification = require("../models/Notification");
-
 const router = express.Router();
-
 const Task = require("../models/Task");
-
+const Customer = require("../models/Customer");
 const mongoose = require("mongoose");
-
 const { requireAuth } = require("../middleware/auth");
 
 // every logged in users tasks
@@ -59,6 +55,23 @@ router.post("/", requireAuth, async (req, res) => {
     await task.save();
 
     console.log("Task saved!");
+
+    if (req.body.customer) {
+      await Customer.findByIdAndUpdate(req.body.customer, {
+        $push: {
+          interactions: {
+            type: "Task",
+            summary: req.body.title ? `${req.body.title}: ${req.body.description || ""}` : (req.body.description || ""),
+            details: req.body.description || "",
+            taskId: task._id,
+            createdBy: req.user._id,
+            author: req.user.fullName || (task.createdBy && task.createdBy.fullName),
+            date: new Date()
+          }
+        }
+      });
+      console.log("Interaction logged to customer!");
+    }
 
     const populatedTask = await Task.findById(task._id)
       .populate("assignedTo", "fullName")
