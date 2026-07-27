@@ -33,7 +33,10 @@ function Menu({ currentPage, setCurrentPage }) {
       <button className="menu-item">
         Calendar ◫
       </button>
-      <button className="menu-item">
+      <button
+        className={`menu-item ${location.pathname === '/settings' ? 'active' : ''}`}
+        onClick={() => navigate('/settings')}
+      >
         Settings ⚙
       </button>
     </nav>

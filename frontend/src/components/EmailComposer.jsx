@@ -2,48 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { FiX, FiSend } from "react-icons/fi";
 import api from '../api/client';
 
-function GmailLinker() {
-  const [tokenClient, setTokenClient] = useState(null);
-
-  useEffect(() => {
-    console.log("All available Vite envs:", import.meta.env);
-    const clientId = import.meta.env?.VITE_GOOGLE_CLIENT_ID
-
-    if (!clientId) {
-      console.error("Google Client ID is missing from environment variables.");
-      return;
-    }
-
-    if (window.google) {
-      const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/gmail.send',
-        callback: (tokenResponse) => {
-          if (tokenResponse.access_token) {
-            window.localStorage.setItem('google_access_token', tokenResponse.access_token);
-            alert('Gmail sandbox successfully connected!');
-          }
-        },
-      });
-      setTokenClient(client);
-    }
-  }, []);
-
-  const handleLinkGmail = () => {
-    if (tokenClient) {
-      tokenClient.requestAccessToken();
-    } else {
-      alert("Google script is still loading. Please wait a moment.");
-    }
-  };
-
-  return (
-    <button onClick={handleLinkGmail} className="btn-gmail">
-      🔗 Connect Sandbox Gmail
-    </button>
-  );
-}
-
 export function EmailComposer({ customerEmail, customerId, onClose, onEmailSent }) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -80,7 +38,7 @@ export function EmailComposer({ customerEmail, customerId, onClose, onEmailSent 
       setMessage("");
       onClose();
       
-      alert("Email sent and interaction logged successfully!");
+      console.log("Email sent and interaction logged successfully!");
     } catch (err) {
       console.error("Failed to execute live email pipeline:", err);
       alert(err.response?.data?.message || "Could not dispatch email. Ensure your Google account is linked.");
@@ -100,10 +58,6 @@ export function EmailComposer({ customerEmail, customerId, onClose, onEmailSent 
         <div className="side-panel-row">
           <span className="detail-label">To:</span>
           <span>{customerEmail}</span>
-        </div>
-
-        <div className="gmail-auth-row">
-          <GmailLinker />
         </div>
         
         <div className="side-panel-row" style={{flexDirection: 'column', alignItems: 'flex-start'}}>
