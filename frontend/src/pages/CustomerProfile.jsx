@@ -764,20 +764,6 @@ function CustomerProfile() {
             </div>
             
             <div className="modal-body">
-              <div className="form-group">
-                <label>Interaction Type</label>
-                <select 
-                  name="type" 
-                  value={newInteractionData.type} 
-                  onChange={handleNewInteractionChange}
-                  className="edit-select"
-                >
-                  <option value="Email">Email</option>
-                  <option value="Call">Call</option>
-                  <option value="Task">Task</option>
-                  <option value="Note">Note</option>
-                </select>
-              </div>
 
               <div className="form-group">
                 <label>Description / Notes</label>
