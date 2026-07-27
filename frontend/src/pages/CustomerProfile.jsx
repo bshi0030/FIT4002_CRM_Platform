@@ -325,20 +325,6 @@ function CustomerProfile() {
     }
   };
 
-  const handleInteraction = async (type) => {
-
-    try {
-      await api.post(`/customers/${id}/interactions`, {
-        type: type,
-        details: `Initiated ${type} contact from Customer Profile`
-      });
-      
-      fetchCustomer(false); // Silent refresh
-    } catch (err) {
-      console.error(`Failed to log ${type} interaction`, err);
-    }
-  };
-
   /**
    * Opens the customer's WhatsApp conversation in a new tab so the
    * salesperson can press the voice-call icon inside WhatsApp.
