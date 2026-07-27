@@ -338,7 +338,7 @@
   height: 14px;
 }
 
-/* Admin-only customer delete button */
+/* Customer delete button, shown with the Delete Customers permission */
 .delete-customer-btn {
   background: linear-gradient(135deg, #7b1a1a 0%, #a02020 100%);
 }

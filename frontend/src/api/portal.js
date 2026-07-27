@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// Dedicated client for the customer self-service portal.
-// Portal sessions are stored under their own keys so they never mix with staff auth.
+// Dedicated client for the customer self-service portal. Portal
+// sessions are stored under their own keys so they never mix with staff auth.
 export const PORTAL_TOKEN_KEY = 'nexgen_portal_token'
 export const PORTAL_PROFILE_KEY = 'nexgen_portal_profile'
 

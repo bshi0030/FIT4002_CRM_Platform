@@ -4,8 +4,11 @@ const Team = require('../models/Team')
 const User = require('../models/User')
 const Customer = require('../models/Customer')
 const {requireAuth, requireRole} = require('../middleware/auth')
+const {companyPattern, sameCompanyName} = require('../middleware/teamScope')
 
 const router = express.Router()
+
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const serializeTeam = (team, memberCount = 0) => ({
     id: team._id,
@@ -13,10 +16,10 @@ const serializeTeam = (team, memberCount = 0) => ({
     sharingEnabled: team.sharingEnabled,
     supervisor: team.supervisor
         ? {
-              id: team.supervisor._id,
-              fullName: team.supervisor.fullName,
-              email: team.supervisor.email,
-          }
+            id: team.supervisor._id,
+            fullName: team.supervisor.fullName,
+            email: team.supervisor.email,
+        }
         : null,
     memberCount,
     createdAt: team.createdAt,
@@ -30,10 +33,37 @@ const countMembers = async (teamIds) => {
     return new Map(counts.map((c) => [String(c._id), c.count]))
 }
 
-// GET /api/teams : list all teams (Admin only; used by team management and filters)
+// Teams the admin can manage: their own company's, plus legacy teams created
+// before company scoping existed.
+const companyTeamFilter = (user) => ({
+    $or: [{company: companyPattern(user.companyName)}, {company: null}],
+})
+
+const canManageTeam = (user, team) =>
+    !team.company || sameCompanyName(team.company, user.companyName)
+
+// Loads a team for a mutation; other companies' teams read as not found.
+const findManagedTeam = async (req, res) => {
+    const team = await Team.findById(req.params.id)
+    if (!team || !canManageTeam(req.user, team)) {
+        res.status(404).json({message: 'Team not found'})
+        return null
+    }
+    return team
+}
+
+// Case-insensitive name-clash check within the admin's company.
+const findNameClash = (user, name, excludeId = null) =>
+    Team.findOne({
+        ...(excludeId ? {_id: {$ne: excludeId}} : {}),
+        name: new RegExp(`^${escapeRegex(name)}$`, 'i'),
+        ...companyTeamFilter(user),
+    })
+
+// GET /api/teams: the admin's company teams, used by team management and filters
 router.get('/', requireAuth, requireRole('Admin'), async (req, res) => {
     try {
-        const teams = await Team.find()
+        const teams = await Team.find(companyTeamFilter(req.user))
             .populate('supervisor', 'fullName email')
             .sort({name: 1})
         const counts = await countMembers(teams.map((t) => t._id))
@@ -46,7 +76,7 @@ router.get('/', requireAuth, requireRole('Admin'), async (req, res) => {
     }
 })
 
-// GET /api/teams/my-team : the requesting user's team, members and sharing status
+// GET /api/teams/my-team: the requesting user's team, members and sharing status
 router.get('/my-team', requireAuth, async (req, res) => {
     try {
         if (!req.user.team) return res.json({team: null, members: []})
@@ -79,7 +109,7 @@ router.get('/my-team', requireAuth, async (req, res) => {
     }
 })
 
-// POST /api/teams : create a team
+// POST /api/teams: create a team in the admin's company
 router.post('/', requireAuth, requireRole('Admin'), async (req, res) => {
     try {
         const name = (req.body?.name || '').trim()
@@ -88,30 +118,25 @@ router.post('/', requireAuth, requireRole('Admin'), async (req, res) => {
             return res.status(400).json({message: 'Team name cannot be more than 80 characters'})
         }
 
-        const existing = await Team.findOne({
-            name: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
-        })
+        const existing = await findNameClash(req.user, name)
         if (existing) {
             return res.status(409).json({message: 'A team with this name already exists'})
         }
 
-        const team = await Team.create({name})
+        const team = await Team.create({name, company: req.user.companyName})
         return res.status(201).json({team: serializeTeam(team, 0)})
     } catch (err) {
-        if (err && err.code === 11000) {
-            return res.status(409).json({message: 'A team with this name already exists'})
-        }
         console.error('Create team error:', err)
         return res.status(500).json({message: 'Unable to create team'})
     }
 })
 
-// PATCH /api/teams/:id : rename, toggle sharing, designate supervisor
+// PATCH /api/teams/:id: rename, toggle sharing, designate supervisor
 // Body: { name?, sharingEnabled?, supervisorId? (id | null) }
 router.patch('/:id', requireAuth, requireRole('Admin'), async (req, res) => {
     try {
-        const team = await Team.findById(req.params.id)
-        if (!team) return res.status(404).json({message: 'Team not found'})
+        const team = await findManagedTeam(req, res)
+        if (!team) return
 
         const {name, sharingEnabled, supervisorId} = req.body || {}
 
@@ -121,13 +146,11 @@ router.patch('/:id', requireAuth, requireRole('Admin'), async (req, res) => {
             if (trimmed.length > 80) {
                 return res.status(400).json({message: 'Team name cannot be more than 80 characters'})
             }
-            const clash = await Team.findOne({
-                _id: {$ne: team._id},
-                name: new RegExp(`^${trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
-            })
+            const clash = await findNameClash(req.user, trimmed, team._id)
             if (clash) {
                 return res.status(409).json({message: 'A team with this name already exists'})
             }
+            // References point at the team id, so the new name propagates everywhere.
             team.name = trimmed
         }
 
@@ -143,7 +166,7 @@ router.patch('/:id', requireAuth, requireRole('Admin'), async (req, res) => {
                     return res.status(400).json({message: 'Invalid supervisor'})
                 }
                 const supervisor = await User.findById(supervisorId)
-                if (!supervisor) {
+                if (!supervisor || !sameCompanyName(supervisor.companyName, req.user.companyName)) {
                     return res.status(404).json({message: 'Supervisor user not found'})
                 }
                 if (supervisor.role === 'Admin') {
@@ -152,10 +175,13 @@ router.patch('/:id', requireAuth, requireRole('Admin'), async (req, res) => {
                         .json({message: 'Admins cannot be designated as team supervisors'})
                 }
 
+                // One supervisor per team, one team per supervisor:
+                // remove any previous designation held by this user...
                 await Team.updateMany(
                     {_id: {$ne: team._id}, supervisor: supervisor._id},
                     {supervisor: null}
                 )
+                // ...pull them into this team and make sure they hold the role.
                 supervisor.team = team._id
                 if (supervisor.role !== 'Supervisor') supervisor.role = 'Supervisor'
                 await supervisor.save()
@@ -169,22 +195,20 @@ router.patch('/:id', requireAuth, requireRole('Admin'), async (req, res) => {
         const memberCount = await User.countDocuments({team: team._id})
         return res.json({team: serializeTeam(team, memberCount)})
     } catch (err) {
-        if (err && err.code === 11000) {
-            return res.status(409).json({message: 'A team with this name already exists'})
-        }
         console.error('Update team error:', err)
         return res.status(500).json({message: 'Unable to update team'})
     }
 })
 
-// DELETE /api/teams/:id : delete a team
+// DELETE /api/teams/:id: delete a team; members are reassigned to no team
 router.delete('/:id', requireAuth, requireRole('Admin'), async (req, res) => {
     try {
-        const team = await Team.findById(req.params.id)
-        if (!team) return res.status(404).json({message: 'Team not found'})
+        const team = await findManagedTeam(req, res)
+        if (!team) return
 
         await User.updateMany({team: team._id}, {team: null})
-
+        // Customers keep their owner (historical records stay intact) but no
+        // longer belong to a team.
         await Customer.updateMany({team: team._id}, {team: null})
         await Team.findByIdAndDelete(team._id)
 

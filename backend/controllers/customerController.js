@@ -7,7 +7,7 @@ const { getVisibleCustomerFilter, canViewCustomer } = require('../middleware/tea
 
 // @desc    Create new customer
 // @route   POST /api/customers
-// @access  Authenticated staff
+// @access  Authenticated staff (record is stamped with owner + team)
 const createCustomer = async (req, res) => {
   try {
     const { fullName, phone, email, company, address, designation, department } = req.body;
@@ -34,21 +34,22 @@ const createCustomer = async (req, res) => {
   }
 };
 
-// @desc    Get all customers visible to the requester
+// @desc    Get all customers visible to the requester (team scoped)
 // @route   GET /api/customers
 const getCustomers = async (req, res) => {
   try {
     const filter = await getVisibleCustomerFilter(req.user);
     const customers = await Customer.find(filter)
-      .populate('owner', 'fullName')
-      .sort({ createdAt: -1 })
-      .lean();
+        .populate('owner', 'fullName')
+        .sort({createdAt: -1})
+        .lean();
 
     const isAdmin = req.user.role === 'Admin';
     const withSharedFlag = customers.map((c) => ({
       ...c,
+      // Mark records owned by another member of the viewer's team
       shared: Boolean(
-        !isAdmin && c.owner && String(c.owner._id) !== String(req.user._id)
+          !isAdmin && c.owner && String(c.owner._id) !== String(req.user._id)
       ),
     }));
 
@@ -59,7 +60,7 @@ const getCustomers = async (req, res) => {
   }
 };
 
-// @desc    Get single customer
+// @desc    Get single customer (access denied outside the requester's scope)
 // @route   GET /api/customers/:id
 const getCustomerById = async (req, res) => {
   try {
@@ -95,14 +96,18 @@ const updateCustomer = async (req, res) => {
   }
 };
 
-// @desc    Delete customer profile
+// @desc    Delete customer profile. Requires the deleteCustomers permission,
+//          enforced in routes; non-admins stay team scoped.
 // @route   DELETE /api/customers/:id
 const deleteCustomer = async (req, res) => {
   try {
     const customer = await Customer.findById(req.params.id);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
+    if (!(await canViewCustomer(req.user, customer))) {
+      return res.status(403).json({message: 'You do not have access to this customer'});
+    }
 
-    // Cleanup uploaded files belonging to this customer
+    // Best-effort cleanup of uploaded files belonging to this customer
     for (const file of customer.attachments || []) {
       if (!file.path) continue;
       const filePath = path.join(__dirname, '../', file.path);
@@ -163,7 +168,7 @@ const viewCustomerFile = async (req, res) => {
     const file = await getFileFromCustomer(req.params.id, req.params.fileId);
     const filePath = path.join(__dirname, '../', file.path);
     if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'File not found on server' });
-    
+
     res.setHeader('Content-Type', file.mimetype);
     res.setHeader('Content-Disposition', 'inline; filename="' + file.originalName + '"');
     res.sendFile(filePath);
@@ -177,7 +182,7 @@ const downloadCustomerFile = async (req, res) => {
     const file = await getFileFromCustomer(req.params.id, req.params.fileId);
     const filePath = path.join(__dirname, '../', file.path);
     if (!fs.existsSync(filePath)) return res.status(404).json({ message: 'File not found on server' });
-    
+
     res.download(filePath, file.originalName);
   } catch (error) {
     res.status(error.message.includes('not found') ? 404 : 500).json({ message: error.message || 'Server Error' });
@@ -188,7 +193,10 @@ const deleteCustomerFile = async (req, res) => {
   try {
     const customer = await Customer.findById(req.params.id);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
-    
+    if (!(await canViewCustomer(req.user, customer))) {
+      return res.status(403).json({message: 'You do not have access to this customer'});
+    }
+
     const fileIndex = customer.attachments.findIndex(f => f._id.toString() === req.params.fileId);
     if (fileIndex === -1) return res.status(404).json({ message: 'File not found' });
 
@@ -208,7 +216,7 @@ const deleteCustomerFile = async (req, res) => {
   }
 };
 
-const addInteraction = async (req, res) => {  
+const addInteraction = async (req, res) => {
   try {
     const { type, details, companyName, priority, dueDate } = req.body;
     const customerId = req.params.id;
@@ -222,12 +230,12 @@ const addInteraction = async (req, res) => {
     // DUAL-WRITE STEP: If it's a Task, spawn a card on the Kanban board
     if (type === 'Task') {
       await Task.create({
-        title: details || "New Task",                     
-        company: companyName || customer.company || "",    
-        status: "todo",                    
-        priority: priority || "Medium",    
-        dueDate: dueDate ? new Date(dueDate) : null, 
-        customer: new mongoose.Types.ObjectId(customerId), 
+        title: details || "New Task",
+        company: companyName || customer.company || "",
+        status: "todo",
+        priority: priority || "Medium",
+        dueDate: dueDate ? new Date(dueDate) : null,
+        customer: new mongoose.Types.ObjectId(customerId),
         assignedTo: [new mongoose.Types.ObjectId(req.user._id)],
         collaborative: false
       });
@@ -251,6 +259,9 @@ const deleteInteraction = async (req, res) => {
     if (!customer) {
       return res.status(404).json({ status: "fail", message: "Customer not found." });
     }
+    if (!(await canViewCustomer(req.user, customer))) {
+      return res.status(403).json({status: "fail", message: "You do not have access to this customer."});
+    }
 
     const targetInteraction = customer.interactions.id(interactionId);
 
@@ -262,9 +273,9 @@ const deleteInteraction = async (req, res) => {
     }
 
     const updatedCustomer = await Customer.findByIdAndUpdate(
-      id,
-      { $pull: { interactions: { _id: interactionId } } },
-      { new: true } // returns the document after the deletion takes effect
+        id,
+        {$pull: {interactions: {_id: interactionId}}},
+        {new: true} // returns the document after the deletion takes effect
     );
 
     // Success response matching your frontend's 'res.data.status === "success"' check
@@ -276,9 +287,9 @@ const deleteInteraction = async (req, res) => {
 
   } catch (err) {
     console.error("Error inside deleteCustomerInteraction controller:", err);
-    return res.status(500).json({ 
-      status: "error", 
-      message: "Internal server error while trying to delete interaction." 
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error while trying to delete interaction."
     });
   }
 };
@@ -301,45 +312,45 @@ const editInteraction = async (req, res) => {
 
     if (type === 'Task') {
       await Task.findOneAndUpdate(
-        {
-          customer: new mongoose.Types.ObjectId(id),
-          title: oldDetails // Finds the task using the previous description text
-        },
-        {
-          $set: {
-            title: desc, // Updates the task title on the Kanban board
-            priority: req.body.priority || "Medium",
-            dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null
+          {
+            customer: new mongoose.Types.ObjectId(id),
+            title: oldDetails // Finds the task using the previous description text
+          },
+          {
+            $set: {
+              title: desc, // Updates the task title on the Kanban board
+              priority: req.body.priority || "Medium",
+              dueDate: req.body.dueDate ? new Date(req.body.dueDate) : null
+            }
           }
-        }
       );
     }
-    
+
     const updatedCustomer = await Customer.findOneAndUpdate(
-      { _id: id, "interactions._id": interactionId },
-      {
-        $set: {
-          "interactions.$[elem].type": type,
-          "interactions.$[elem].details": desc, // Maps back to your 'details' schema field
-          "interactions.$[elem].date": new Date() // Optional: updates the interaction timestamp
+        {_id: id, "interactions._id": interactionId},
+        {
+          $set: {
+            "interactions.$[elem].type": type,
+            "interactions.$[elem].details": desc, // Maps back to your 'details' schema field
+            "interactions.$[elem].date": new Date() // Optional: updates the interaction timestamp
+          }
+        },
+        {
+          arrayFilters: [{"elem._id": interactionId}],
+          new: true
         }
-      },
-      {
-        arrayFilters: [{ "elem._id": interactionId }],
-        new: true
-      }
     );
 
     if (!updatedCustomer) {
-      return res.status(404).json({ 
-        status: "fail", 
-        message: "Customer or interaction not found." 
+      return res.status(404).json({
+        status: "fail",
+        message: "Customer or interaction not found."
       });
     }
 
     // Find the specific interaction we just updated to send back to the UI
     const updatedInteraction = updatedCustomer.interactions.find(
-      (item) => item._id.toString() === interactionId
+        (item) => item._id.toString() === interactionId
     );
 
     return res.status(200).json({
@@ -356,9 +367,9 @@ const editInteraction = async (req, res) => {
 
   } catch (err) {
     console.error("Error inside editCustomerInteraction controller:", err);
-    return res.status(500).json({ 
-      status: "error", 
-      message: "Internal server error while trying to update interaction." 
+    return res.status(500).json({
+      status: "error",
+      message: "Internal server error while trying to update interaction."
     });
   }
 };

@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken')
 const CustomerAccount = require('../models/CustomerAccount')
 
+// Auth for the customer self-service portal. Portal tokens carry a
+// dedicated `kind` claim and resolve against the CustomerAccount collection,
+// so they can never be used on staff endpoints.
+
 const getJwtSecret = () => {
     const secret = process.env.JWT_SECRET
     if (!secret) {

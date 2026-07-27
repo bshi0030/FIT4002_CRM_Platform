@@ -30,6 +30,8 @@ const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 const isValidEmail = (email) =>
     typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
+// Only the customer's own contact details are ever exposed: no internal
+// interactions, attachments, notes or ownership data.
 const serializeProfile = (customer) => ({
     id: customer._id,
     fullName: customer.fullName,
@@ -41,7 +43,10 @@ const serializeProfile = (customer) => ({
     department: customer.department,
 })
 
-const HAPPY_PATH = STAGE_ORDER.slice(0, 6)
+// The portal only exposes stage progression and the person in charge.
+// `stages` is the happy path (Lost is reported via `stage` instead) and
+// `progressIndex` is the furthest happy-path stage the deal has reached.
+const HAPPY_PATH = STAGE_ORDER.slice(0, 6) // Qualified … Won
 
 const serializeDeal = (deal) => {
     let progressIndex
@@ -66,7 +71,9 @@ const serializeDeal = (deal) => {
     }
 }
 
-// POST /api/portal/register : customers create a portal login
+// POST /api/portal/register: customers create a portal login.
+// Registration is only possible for email addresses that already exist as a
+// customer record in the CRM, so a login can never expose someone else's data.
 router.post('/register', portalLimiter, async (req, res) => {
     try {
         const {email, password} = req.body || {}
@@ -128,7 +135,7 @@ router.post('/register', portalLimiter, async (req, res) => {
     }
 })
 
-// POST /api/portal/login : customer portal login
+// POST /api/portal/login: customer portal login
 router.post('/login', portalLimiter, async (req, res) => {
     try {
         const {email, password} = req.body || {}
@@ -156,12 +163,12 @@ router.post('/login', portalLimiter, async (req, res) => {
     }
 })
 
-// GET /api/portal/me : the customer's own profile
+// GET /api/portal/me: the customer's own profile, and only their own data
 router.get('/me', requirePortalAuth, async (req, res) => {
     return res.json({profile: serializeProfile(req.customer)})
 })
 
-// PUT /api/portal/profile : update own contact details
+// PUT /api/portal/profile: update own contact details
 router.put('/profile', requirePortalAuth, async (req, res) => {
     try {
         const {fullName, email, phone, company, address} = req.body || {}
@@ -196,6 +203,7 @@ router.put('/profile', requirePortalAuth, async (req, res) => {
             await account.save()
         }
 
+        // Surface the change to the sales team in the interaction timeline.
         customer.interactions.push({
             type: 'Note',
             details: 'Customer updated their contact details via the self-service portal',
@@ -210,7 +218,7 @@ router.put('/profile', requirePortalAuth, async (req, res) => {
     }
 })
 
-// GET /api/portal/deals : stage progression + person in charge only
+// GET /api/portal/deals: stage progression and person in charge only
 router.get('/deals', requirePortalAuth, async (req, res) => {
     try {
         const deals = await Deal.find({

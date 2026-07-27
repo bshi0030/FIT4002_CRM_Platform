@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useAuth } from '@/context/auth';
+import {can} from '@/lib/permissions';
 import '../styles/CustomerProfile.css';
 import '../styles/InteractionSidePanel.css'
 import AddCustomerModal from '../components/AddCustomerModal';
@@ -25,8 +26,10 @@ function CustomerProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  // Delete options are only rendered for Admins
-  const isAdmin = user?.role === 'Admin';
+    // Delete options render only for Admins or people granted the matching
+    // permission in Settings -> Permissions
+    const canDeleteCustomer = can(user, 'deleteCustomers');
+    const canDeleteRecords = can(user, 'deleteRecords');
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -82,12 +85,12 @@ function CustomerProfile() {
       setCustomer(customerData);
 
       setAllInteractions(
-        (customerData.interactions || []).map(mapBackendInteractionToMyUI)
-        .sort((a, b) => new Date(b.time) - new Date(a.time))
+          (customerData.interactions || []).map(mapBackendInteractionToMyUI)
+              .sort((a, b) => new Date(b.time) - new Date(a.time))
       );
 
       setDocuments(
-        (customerData.attachments || []).map(mapBackendAttachmentToMyUI)
+          (customerData.attachments || []).map(mapBackendAttachmentToMyUI)
       );
 
       setError(null);
@@ -149,7 +152,7 @@ function CustomerProfile() {
     fetchCustomer(false);
   };
 
-  // Only Admins can delete a customer profile
+    // Deleting a customer profile needs the Delete Customers permission
   const handleDeleteCustomer = async () => {
     if (!window.confirm(`Permanently delete ${customer.fullName}'s profile? This cannot be undone.`)) {
       return;
@@ -171,14 +174,14 @@ function CustomerProfile() {
         const res = await api.delete(`/customers/${id}/interactions/${selectedInteraction._id}`);
         if (res.data.status === "success") {
           setAllInteractions((prev) =>
-            prev.filter((interaction) => interaction._id !== selectedInteraction._id)
+              prev.filter((interaction) => interaction._id !== selectedInteraction._id)
           );
           setSelectedInteraction(null);
         }
       } catch (err) {
         console.error("Failed to delete interaction:", err);
         alert("Failed to delete interaction.");
-      } 
+      }
     }
   };
 
@@ -203,9 +206,9 @@ function CustomerProfile() {
 
       if (res.data.status === "success") {
         setAllInteractions((prev) =>
-          prev.map((interaction) =>
-            interaction._id === res.data.data._id ? res.data.data : interaction
-          )
+            prev.map((interaction) =>
+                interaction._id === res.data.data._id ? res.data.data : interaction
+            )
         );
 
         setSelectedInteraction(res.data.data);
@@ -306,10 +309,10 @@ function CustomerProfile() {
     try {
       // 4. Hit the exact same Express endpoint to store it in MongoDB
       await api.post(`/customers/${id}/interactions`, payload);
-      
+
       await fetchCustomer(false);
 
-      setIsLoggingModalOpen(false);  
+        setIsLoggingModalOpen(false);
       setNewInteractionData({ type: 'Note', desc: '', priority: 'Medium', dueDate: ''});
     } catch (err) {
       console.error("Failed to save new manual interaction to database:", err);
@@ -326,7 +329,7 @@ function CustomerProfile() {
         type: type,
         details: `Initiated ${type} contact from Customer Profile`
       });
-      
+
       fetchCustomer(false); // Silent refresh
     } catch (err) {
       console.error(`Failed to log ${type} interaction`, err);
@@ -370,15 +373,15 @@ function CustomerProfile() {
     };
 
     const matchesTab =
-      activeTab === "Interactions" || item.type === tabMapping[activeTab];
+        activeTab === "Interactions" || item.type === tabMapping[activeTab];
 
     const query = searchQuery.toLowerCase().trim();
-    
+
     const matchesSearch =
-      query === "" ||
-      item.type?.toLowerCase().includes(query) ||
-      item.desc?.toLowerCase().includes(query) ||
-      item.author?.toLowerCase().includes(query);
+        query === "" ||
+        item.type?.toLowerCase().includes(query) ||
+        item.desc?.toLowerCase().includes(query) ||
+        item.author?.toLowerCase().includes(query);
 
     // return item.type === tabMapping[activeTab];
     return matchesTab && matchesSearch;
@@ -412,460 +415,479 @@ function CustomerProfile() {
   if (!customer) return <div className="error-msg">Customer not found.</div>;
 
   return (
-    <div className="customer-detail-page">
-      <div className="customer-detail-header">
-        <div>
-          <Link to="/customers" className="back-link">← Back to Customers</Link>
-          <h1>Customer Profile</h1>
-        </div>
-      </div>
-      
-      <div className="customer-profile-container">
-
-      {/* LEFT COLUMN */}
-      <div className="left-column">
-        {/* Profile Card */}
-        <div className="profile-card">
-          {customer.companyLogo ? (
-            <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${customer.companyLogo}`} alt={`${customer.company} logo`} className="profile-logo" />
-          ) : (
-            <FiUser className="avatar-icon" />
-          )}
-          <h2 className="profile-name">{customer.fullName}</h2>
-          <p className="profile-subtitle">
-            {customer.designation} ·<br />
-            {customer.company}
-          </p>
-          
-          <div className="about-account">
-            <h3>About account</h3>
-            
-            <div className="info-group">
-              <span className="info-label">Email</span>
-              <span className="info-value email-link">{customer.email}</span>
-            </div>
-            
-            <div className="info-group">
-              <span className="info-label">Phone</span>
-              <span className="info-value">{customer.phone}</span>
-            </div>
-            
-            <div className="info-group">
-              <span className="info-label">Company</span>
-              <span className="info-value">{customer.company}</span>
-            </div>
-            
-            <div className="info-group">
-              <span className="info-label">Department</span>
-              <span className="info-value">{customer.department}</span>
-            </div>
-            
-            <div className="info-group">
-              <span className="info-label">Created</span>
-              <span className="info-value">{new Date(customer.createdAt).toLocaleDateString()}</span>
-            </div>
-
-            <div className="profile-actions">
-              <button className="add-contact-btn" onClick={() => setIsComposingEmail(true)}>✉️ Email</button>
-              <a className="add-contact-btn call-btn" href={`tel:${customer.phone}`} onClick={() => handleInteraction('Call')}>📞 Call</a>
-            </div>
+      <div className="customer-detail-page">
+          <div className="customer-detail-header">
+              <div>
+                  <Link to="/customers" className="back-link">← Back to Customers</Link>
+                  <h1>Customer Profile</h1>
+              </div>
           </div>
-        </div>
 
-        {/* Linked Deals Card */}
-        <div className="linked-deals-card">
-          <h3>Linked Deals</h3>
-          
-          <div className="deal-item">
-            <div className="deal-info">
-              <span className="deal-title">Solar grid expansion</span>
-              <span className="deal-amount">$48,000</span>
-              <span className="deal-status status-proposal">Proposal Made</span>
-            </div>
-            <button className="deal-arrow-btn" aria-label="View solar grid expansion deal">
-              <FiArrowRight />
-            </button>
-          </div>
-          
-          <div className="deal-item">
-            <div className="deal-info">
-              <span className="deal-title">EV charging pilot</span>
-              <span className="deal-amount">$12,000</span>
-              <span className="deal-status status-won">Won</span>
-            </div>
-            <button className="deal-arrow-btn" aria-label="View EV charging pilot deal">
-              <FiArrowRight />
-            </button>
-          </div>
-        </div>
-      </div>
+          <div className="customer-profile-container">
 
-      {/* RIGHT COLUMN */}
-      <div className="right-column">
-        {/* Top Header / Activity Summary */}
-        <div className="activity-header-area">
-          <div className="activity-summary-card">
-            <h3>Activity Summary</h3>
-            <div className="activity-pills">
-              <div className="summary-pill pill-emails">
-                <span className="pill-count">{emailCount}</span>
-                <span className="pill-label">Emails</span>
-              </div>
-              <div className="summary-pill pill-calls">
-                <span className="pill-count">{callCount}</span>
-                <span className="pill-label">Calls</span>
-              </div>
-              <div className="summary-pill pill-tasks">
-                <span className="pill-count">{taskCount}</span>
-                <span className="pill-label">Tasks</span>
-              </div>
-            </div>
-
-            <div className="engagement-insights">
-              <div className="insight-row">
-                <span className="insight-label">Engagement:</span>
-                <span className={`insight-badge ${engagementClass}`}>{engagementLevel}</span>
-              </div>
-              <div className="insight-row">
-                <span className="insight-label">Last Active:</span>
-                <span className="insight-value">{formatInteractionTime(recentInteractionTime)}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="header-actions">
-            <div className="search-bar">
-              <input 
-                type="text" 
-                placeholder="Search interactions, notes, email and more..." 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <FiSearch className="search-icon" />
-            </div>
-            <button className="edit-profile-btn" onClick={() => setIsEditModalOpen(true)}>
-              <FiEdit2 className="edit-icon" />
-              Edit Profile
-            </button>
-            {isAdmin && (
-              <button
-                className="edit-profile-btn delete-customer-btn"
-                onClick={handleDeleteCustomer}
-                title="Only Admins can delete customer profiles"
-              >
-                <FiTrash2 className="edit-icon" />
-                Delete
-              </button>
-            )}
-          </div>
-        </div>
-        
-        {/* Tabs */}
-        <div className="tabs-container">
-          {['Interactions', 'Emails', 'Calls', 'Tasks', 'Files', 'Notes'].map((name) => (
-            <button 
-              key={name}
-              className={`tab ${activeTab === name ? 'active-tab' : ''}`}
-              onClick={() => {
-                setActiveTab(name)
-                setSelectedInteraction(null);
-                setIsEditing(false);
-              }}
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-        
-        {/* Interactions List */}
-        {activeTab !== 'Files' && (
-          <div className="interactions-card">
-            <div className="interactions-header">
-              <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
-              <div className="interaction-action-btns">
-                {activeTab !== 'Notes' && (
-                  <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
-                    <FiMail /> Send Email
-                  </button>
-                )}
-                <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log Interaction</button>
-              </div>
-            </div>
-            
-            <div className="interactions-content-layout">
-
-              <div className="interactions-list">
-                {visibleInteractions.map((item) => {
-
-                  const config = getStyleConfig(item.type);
-
-                  const itemId = item._id || item.id;
-
-                  return (
-                    <div 
-                      className={`interaction-item clickable ${selectedInteraction?.id === itemId ? 'active-item' : ''}`}
-                      key={item.id} 
-                      onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
-                    >
-                      {/* Uses the generated icon background wrapper style */}
-                      <div className={`interaction-icon-wrapper ${config.className}`}>
-                        {config.icon}
-                      </div>
-
-                      <div className="interaction-content">
-                        <div className="interaction-meta">
-                          <span className={`interaction-type ${config.typeClass}`}>{item.type}</span>
-                          <span className="interaction-author">by {item.author}</span>
-                        </div>
-                        <p className="interaction-desc">{item.desc}</p>
-                      </div>
-                      <div className="interaction-time">{formatInteractionTime(item.time)}</div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {isEditModalOpen && (
-                <AddCustomerModal 
-                  onClose={() => setIsEditModalOpen(false)} 
-                  onAdd={handleCustomerUpdated}
-                  initialData={customer}
-                />
-              )}
-              {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
-              {isComposingEmail ? (
-                <EmailComposer 
-                  customerEmail={customer.email}
-                  onClose={() => setIsComposingEmail(false)}
-                  onEmailSent={async ({ subject, message }) => {
-
-                    try {
-                      // Axios automatically serializes JSON objects
-                      await api.post(`/customers/${id}/interactions`, {
-                        type: "Email",
-                        details: `Sent Email - Subject: ${subject || ""}`,
-                      });
-
-                      await fetchCustomer(false);
-                      setIsComposingEmail(false);
-                    } catch (err) {
-                      console.error("Failed to log email interaction", err);
-                    }
-                  }}
-                />
-                ) : selectedInteraction && (
-                  <div className="side-panel">
-                    <div className="side-panel-header">
-                      <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
-                      <button onClick={() => { setSelectedInteraction(null); setIsEditing(false); }} className="close-btn"><FiX /></button>
-                    </div>
-                
-                  <div className="side-panel-body">
-                    <div className="side-panel-row">
-                      <strong>Activity:</strong> 
-                      {isEditing ? (
-                        <select name="type" className="edit-select" value={editedData.type} onChange={handleInputChange}>
-                          <option value="Email">Email</option>
-                          <option value="Call">Call</option>
-                          <option value="Task">Task</option>
-                          <option value="Note">Note</option>
-                        </select>
+              {/* LEFT COLUMN */}
+              <div className="left-column">
+                  {/* Profile Card */}
+                  <div className="profile-card">
+                      {customer.companyLogo ? (
+                          <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${customer.companyLogo}`}
+                               alt={`${customer.company} logo`} className="profile-logo"/>
                       ) : (
-                        <span>{selectedInteraction.type}</span>
+                          <FiUser className="avatar-icon"/>
                       )}
-                    </div>
+                      <h2 className="profile-name">{customer.fullName}</h2>
+                      <p className="profile-subtitle">
+                          {customer.designation} ·<br/>
+                          {customer.company}
+                      </p>
 
-                    <div className="side-panel-row">
-                      <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
-                    </div>
-                    <div className="side-panel-row">
-                      <strong>Logged:</strong> <span>{formatInteractionTime(selectedInteraction.time)}</span>
-                    </div>
-                    <div className="side-panel-notes">
-                      <strong>Notes:</strong>
-                      {isEditing ? (
-                        <textarea 
-                          name="desc"
-                          value={editedData.desc} 
-                          onChange={handleInputChange}
-                          className="edit-textarea"
-                        />
-                      ) : (
-                        <p className="detail-notes-text">{selectedInteraction.desc}</p>
-                      )}
-                    </div>
+                      <div className="about-account">
+                          <h3>About account</h3>
+
+                          <div className="info-group">
+                              <span className="info-label">Email</span>
+                              <span className="info-value email-link">{customer.email}</span>
+                          </div>
+
+                          <div className="info-group">
+                              <span className="info-label">Phone</span>
+                              <span className="info-value">{customer.phone}</span>
+                          </div>
+
+                          <div className="info-group">
+                              <span className="info-label">Company</span>
+                              <span className="info-value">{customer.company}</span>
+                          </div>
+
+                          <div className="info-group">
+                              <span className="info-label">Department</span>
+                              <span className="info-value">{customer.department}</span>
+                          </div>
+
+                          <div className="info-group">
+                              <span className="info-label">Created</span>
+                              <span className="info-value">{new Date(customer.createdAt).toLocaleDateString()}</span>
+                          </div>
+
+                          <div className="profile-actions">
+                              <button className="add-contact-btn" onClick={() => setIsComposingEmail(true)}>✉️ Email
+                              </button>
+                              <a className="add-contact-btn call-btn" href={`tel:${customer.phone}`}
+                                 onClick={() => handleInteraction('Call')}>📞 Call</a>
+                          </div>
+                      </div>
                   </div>
 
-                  <div className="side-panel-footer">
-                    {isEditing ? (
-                      <>
-                        <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
-                        <button className="save-btn" onClick={handleSave}>Save Changes</button>
-                      </>
-                    ) : (
-                      <>
-                        {/* Only Admins can delete data records */}
-                        {isAdmin && (
-                          <button className="delete-btn-action" onClick={handleDelete}>
-                            <FiTrash2 /> Delete
+                  {/* Linked Deals Card */}
+                  <div className="linked-deals-card">
+                      <h3>Linked Deals</h3>
+
+                      <div className="deal-item">
+                          <div className="deal-info">
+                              <span className="deal-title">Solar grid expansion</span>
+                              <span className="deal-amount">$48,000</span>
+                              <span className="deal-status status-proposal">Proposal Made</span>
+                          </div>
+                          <button className="deal-arrow-btn" aria-label="View solar grid expansion deal">
+                              <FiArrowRight/>
                           </button>
-                        )}
-                        <button className="edit-btn-action" onClick={handleEditClick}>
-                          <FiEdit2 /> Edit
-                        </button>
-                      </>
-                    )}
+                      </div>
+
+                      <div className="deal-item">
+                          <div className="deal-info">
+                              <span className="deal-title">EV charging pilot</span>
+                              <span className="deal-amount">$12,000</span>
+                              <span className="deal-status status-won">Won</span>
+                          </div>
+                          <button className="deal-arrow-btn" aria-label="View EV charging pilot deal">
+                              <FiArrowRight/>
+                          </button>
+                      </div>
                   </div>
-                </div>
-              )}
-            </div>
-            {filteredInteractions.length > 5 && (
-              <button
-                className="view-more-btn"
-                onClick={() => {
-                  if (hasMoreInteractions) {
-                    setVisibleCount((prev) => prev + 5);
-                  } else {
-                    setVisibleCount(5);
-                  }
-                }}
-              >
-                {hasMoreInteractions ? "View more" : "View less"}
-              </button>
-            )}
-          </div>
-        )}
+              </div>
 
-        
-        {/* Files & Documents */}
-        {activeTab !== 'Notes' && (
-          <div className="files-card">
-            <div className="files-header">
-              <h3>Files & Documents</h3>
-              <label className="upload-btn">
-                <FiUpload />
-                Upload
-                <input type="file" hidden onChange={handleFileUpload} />
-              </label>
-            </div>
-            
-            <div className="files-list">
-              {documents.length === 0 ? (
-                <p className="empty-state">No documents uploaded yet.</p>
-              ) : (
-                documents.map((doc) => (
-                  <div className="file-item" key={doc._id}>
-                    <div className="file-info">
-                      <span className="file-name">{doc.originalName}</span>
+              {/* RIGHT COLUMN */}
+              <div className="right-column">
+                  {/* Top Header / Activity Summary */}
+                  <div className="activity-header-area">
+                      <div className="activity-summary-card">
+                          <h3>Activity Summary</h3>
+                          <div className="activity-pills">
+                              <div className="summary-pill pill-emails">
+                                  <span className="pill-count">{emailCount}</span>
+                                  <span className="pill-label">Emails</span>
+                              </div>
+                              <div className="summary-pill pill-calls">
+                                  <span className="pill-count">{callCount}</span>
+                                  <span className="pill-label">Calls</span>
+                              </div>
+                              <div className="summary-pill pill-tasks">
+                                  <span className="pill-count">{taskCount}</span>
+                                  <span className="pill-label">Tasks</span>
+                              </div>
+                          </div>
 
-                      <span className="file-meta">
+                          <div className="engagement-insights">
+                              <div className="insight-row">
+                                  <span className="insight-label">Engagement:</span>
+                                  <span className={`insight-badge ${engagementClass}`}>{engagementLevel}</span>
+                              </div>
+                              <div className="insight-row">
+                                  <span className="insight-label">Last Active:</span>
+                                  <span className="insight-value">{formatInteractionTime(recentInteractionTime)}</span>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div className="header-actions">
+                          <div className="search-bar">
+                              <input
+                                  type="text"
+                                  placeholder="Search interactions, notes, email and more..."
+                                  value={searchQuery}
+                                  onChange={(e) => setSearchQuery(e.target.value)}
+                              />
+                              <FiSearch className="search-icon"/>
+                          </div>
+                          <button className="edit-profile-btn" onClick={() => setIsEditModalOpen(true)}>
+                              <FiEdit2 className="edit-icon"/>
+                              Edit Profile
+                          </button>
+                          {canDeleteCustomer && (
+                              <button
+                                  className="edit-profile-btn delete-customer-btn"
+                                  onClick={handleDeleteCustomer}
+                                  title="Requires the Delete Customers permission"
+                              >
+                                  <FiTrash2 className="edit-icon"/>
+                                  Delete
+                              </button>
+                          )}
+                      </div>
+                  </div>
+
+                  {/* Tabs */}
+                  <div className="tabs-container">
+                      {['Interactions', 'Emails', 'Calls', 'Tasks', 'Files', 'Notes'].map((name) => (
+                          <button
+                              key={name}
+                              className={`tab ${activeTab === name ? 'active-tab' : ''}`}
+                              onClick={() => {
+                                  setActiveTab(name)
+                                  setSelectedInteraction(null);
+                                  setIsEditing(false);
+                              }}
+                          >
+                              {name}
+                          </button>
+                      ))}
+                  </div>
+
+                  {/* Interactions List */}
+                  {activeTab !== 'Files' && (
+                      <div className="interactions-card">
+                          <div className="interactions-header">
+                              <h3>{activeTab === 'Interactions' ? 'All Interactions' : activeTab}</h3>
+                              <div className="interaction-action-btns">
+                                  {activeTab !== 'Notes' && (
+                                      <button className="log-interaction-btn" onClick={() => setIsComposingEmail(true)}>
+                                          <FiMail/> Send Email
+                                      </button>
+                                  )}
+                                  <button className="log-interaction-btn" onClick={handleOpenLogModal}>+ Log
+                                      Interaction
+                                  </button>
+                              </div>
+                          </div>
+
+                          <div className="interactions-content-layout">
+
+                              <div className="interactions-list">
+                                  {visibleInteractions.map((item) => {
+
+                                      const config = getStyleConfig(item.type);
+
+                                      const itemId = item._id || item.id;
+
+                                      return (
+                                          <div
+                                              className={`interaction-item clickable ${selectedInteraction?.id === itemId ? 'active-item' : ''}`}
+                                              key={item.id}
+                                              onClick={() => setSelectedInteraction(item)} // 4. CLICK TO OPEN MODAL
+                                          >
+                                              {/* Uses the generated icon background wrapper style */}
+                                              <div className={`interaction-icon-wrapper ${config.className}`}>
+                                                  {config.icon}
+                                              </div>
+
+                                              <div className="interaction-content">
+                                                  <div className="interaction-meta">
+                                                      <span
+                                                          className={`interaction-type ${config.typeClass}`}>{item.type}</span>
+                                                      <span className="interaction-author">by {item.author}</span>
+                                                  </div>
+                                                  <p className="interaction-desc">{item.desc}</p>
+                                              </div>
+                                              <div className="interaction-time">{formatInteractionTime(item.time)}</div>
+                                          </div>
+                                      );
+                                  })}
+                              </div>
+
+                              {isEditModalOpen && (
+                                  <AddCustomerModal
+                                      onClose={() => setIsEditModalOpen(false)}
+                                      onAdd={handleCustomerUpdated}
+                                      initialData={customer}
+                                  />
+                              )}
+                              {/* SHOW EITHER DETAIL VIEW OR EMAIL COMPOSER */}
+                              {isComposingEmail ? (
+                                  <EmailComposer
+                                      customerEmail={customer.email}
+                                      onClose={() => setIsComposingEmail(false)}
+                                      onEmailSent={async ({subject, message}) => {
+
+                                          try {
+                                              // Axios automatically serializes JSON objects
+                                              await api.post(`/customers/${id}/interactions`, {
+                                                  type: "Email",
+                                                  details: `Sent Email - Subject: ${subject || ""}`,
+                                              });
+
+                                              await fetchCustomer(false);
+                                              setIsComposingEmail(false);
+                                          } catch (err) {
+                                              console.error("Failed to log email interaction", err);
+                                          }
+                                      }}
+                                  />
+                              ) : selectedInteraction && (
+                                  <div className="side-panel">
+                                      <div className="side-panel-header">
+                                          <h4>{isEditing ? 'Edit Interaction' : 'Detail View'}</h4>
+                                          <button onClick={() => {
+                                              setSelectedInteraction(null);
+                                              setIsEditing(false);
+                                          }} className="close-btn"><FiX/></button>
+                                      </div>
+
+                                      <div className="side-panel-body">
+                                          <div className="side-panel-row">
+                                              <strong>Activity:</strong>
+                                              {isEditing ? (
+                                                  <select name="type" className="edit-select" value={editedData.type}
+                                                          onChange={handleInputChange}>
+                                                      <option value="Email">Email</option>
+                                                      <option value="Call">Call</option>
+                                                      <option value="Task">Task</option>
+                                                      <option value="Note">Note</option>
+                                                  </select>
+                                              ) : (
+                                                  <span>{selectedInteraction.type}</span>
+                                              )}
+                                          </div>
+
+                                          <div className="side-panel-row">
+                                              <strong>Owner:</strong> <span>{selectedInteraction.author}</span>
+                                          </div>
+                                          <div className="side-panel-row">
+                                              <strong>Logged:</strong>
+                                              <span>{formatInteractionTime(selectedInteraction.time)}</span>
+                                          </div>
+                                          <div className="side-panel-notes">
+                                              <strong>Notes:</strong>
+                                              {isEditing ? (
+                                                  <textarea
+                                                      name="desc"
+                                                      value={editedData.desc}
+                                                      onChange={handleInputChange}
+                                                      className="edit-textarea"
+                                                  />
+                                              ) : (
+                                                  <p className="detail-notes-text">{selectedInteraction.desc}</p>
+                                              )}
+                                          </div>
+                                      </div>
+
+                                      <div className="side-panel-footer">
+                                          {isEditing ? (
+                                              <>
+                                                  <button className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                                                  <button className="save-btn" onClick={handleSave}>Save Changes
+                                                  </button>
+                                              </>
+                                          ) : (
+                                              <>
+                                                  {/* Needs the Delete Records permission */}
+                                                  {canDeleteRecords && (
+                                                      <button className="delete-btn-action" onClick={handleDelete}>
+                                                          <FiTrash2/> Delete
+                                                      </button>
+                                                  )}
+                                                  <button className="edit-btn-action" onClick={handleEditClick}>
+                                                      <FiEdit2/> Edit
+                                                  </button>
+                                              </>
+                                          )}
+                                      </div>
+                                  </div>
+                              )}
+                          </div>
+                          {filteredInteractions.length > 5 && (
+                              <button
+                                  className="view-more-btn"
+                                  onClick={() => {
+                                      if (hasMoreInteractions) {
+                                          setVisibleCount((prev) => prev + 5);
+                                      } else {
+                                          setVisibleCount(5);
+                                      }
+                                  }}
+                              >
+                                  {hasMoreInteractions ? "View more" : "View less"}
+                              </button>
+                          )}
+                      </div>
+                  )}
+
+
+                  {/* Files & Documents */}
+                  {activeTab !== 'Notes' && (
+                      <div className="files-card">
+                          <div className="files-header">
+                              <h3>Files & Documents</h3>
+                              <label className="upload-btn">
+                                  <FiUpload/>
+                                  Upload
+                                  <input type="file" hidden onChange={handleFileUpload}/>
+                              </label>
+                          </div>
+
+                          <div className="files-list">
+                              {documents.length === 0 ? (
+                                  <p className="empty-state">No documents uploaded yet.</p>
+                              ) : (
+                                  documents.map((doc) => (
+                                      <div className="file-item" key={doc._id}>
+                                          <div className="file-info">
+                                              <span className="file-name">{doc.originalName}</span>
+
+                                              <span className="file-meta">
                         Uploaded {formatInteractionTime(doc.createdAt)} -{" "}
-                        {(doc.fileSize / 1024 / 1024).toFixed(1)} MB
+                                                  {(doc.fileSize / 1024 / 1024).toFixed(1)} MB
                       </span>
-                    </div>
+                                          </div>
 
-                    <div className="file-actions">
-                      <a
-                        href={`${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/customers/${customer._id}/files/${doc._id}/download`}
-                        className="download-btn"
-                      >
-                        Download
-                      </a>
+                                          <div className="file-actions">
+                                              <a
+                                                  href={`${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/customers/${customer._id}/files/${doc._id}/download`}
+                                                  className="download-btn"
+                                              >
+                                                  Download
+                                              </a>
 
-                      {/* Only Admins can delete data records */}
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          className="delete-btn-action"
-                          onClick={() => handleDeleteDocument(doc._id)}
-                        >
-                          <FiTrash2 />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                                              {/* Needs the Delete Records permission */}
+                                              {canDeleteRecords && (
+                                                  <button
+                                                      type="button"
+                                                      className="delete-btn-action"
+                                                      onClick={() => handleDeleteDocument(doc._id)}
+                                                  >
+                                                      <FiTrash2/>
+                                                  </button>
+                                              )}
+                                          </div>
+                                      </div>
+                                  ))
+                              )}
+                          </div>
+                      </div>
+                  )}
+              </div>
           </div>
-        )}
+
+          {/* LOG INTERACTION MODAL */}
+          {isLoggingModalOpen && (
+              <div className="modal-overlay">
+                  <div className="modal-content-card">
+                      <div className="modal-header">
+                          <h3>Log Interaction</h3>
+                          <button onClick={handleCloseLogModal} className="close-btn"><FiX/></button>
+                      </div>
+
+                      <div className="modal-body">
+                          <div className="form-group">
+                              <label>Interaction Type</label>
+                              <select
+                                  name="type"
+                                  value={newInteractionData.type}
+                                  onChange={handleNewInteractionChange}
+                                  className="edit-select"
+                              >
+                                  <option value="Email">Email</option>
+                                  <option value="Call">Call</option>
+                                  <option value="Task">Task</option>
+                                  <option value="Note">Note</option>
+                              </select>
+                          </div>
+
+                          <div className="form-group">
+                              <label>Description / Notes</label>
+                              <textarea
+                                  name="desc"
+                                  value={newInteractionData.desc}
+                                  onChange={handleNewInteractionChange}
+                                  className="edit-textarea"
+                                  placeholder="Enter details about this interaction..."
+                              />
+                          </div>
+
+                          {newInteractionData.type === 'Task' && (
+                              <div className="task-extra-fields"
+                                   style={{marginTop: '15px', display: 'flex', gap: '15px'}}>
+
+                                  <div className="form-group" style={{flex: 1}}>
+                                      <label>Priority</label>
+                                      <select
+                                          className="form-control"
+                                          value={newInteractionData.priority || 'Medium'}
+                                          onChange={(e) => setNewInteractionData({
+                                              ...newInteractionData,
+                                              priority: e.target.value
+                                          })}
+                                      >
+                                          <option value="Low">Low</option>
+                                          <option value="Medium">Medium</option>
+                                          <option value="High">High</option>
+                                      </select>
+                                  </div>
+
+                                  <div className="form-group" style={{flex: 1}}>
+                                      <label>Due Date</label>
+                                      <input
+                                          type="date"
+                                          className="form-control"
+                                          value={newInteractionData.dueDate || ''}
+                                          onChange={(e) => setNewInteractionData({
+                                              ...newInteractionData,
+                                              dueDate: e.target.value
+                                          })}
+                                      />
+                                  </div>
+
+                              </div>
+                          )}
+                      </div>
+
+                      <div className="modal-footer">
+                          <button className="cancel-btn" onClick={handleCloseLogModal}>Cancel</button>
+                          <button className="save-btn" onClick={handleSaveNewInteraction}>Save Interaction</button>
+                      </div>
+                  </div>
+              </div>
+          )}
       </div>
-    </div>
-
-      {/* LOG INTERACTION MODAL */}
-      {isLoggingModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-content-card">
-            <div className="modal-header">
-              <h3>Log Interaction</h3>
-              <button onClick={handleCloseLogModal} className="close-btn"><FiX /></button>
-            </div>
-            
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Interaction Type</label>
-                <select 
-                  name="type" 
-                  value={newInteractionData.type} 
-                  onChange={handleNewInteractionChange}
-                  className="edit-select"
-                >
-                  <option value="Email">Email</option>
-                  <option value="Call">Call</option>
-                  <option value="Task">Task</option>
-                  <option value="Note">Note</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Description / Notes</label>
-                <textarea 
-                  name="desc"
-                  value={newInteractionData.desc} 
-                  onChange={handleNewInteractionChange}
-                  className="edit-textarea"
-                  placeholder="Enter details about this interaction..."
-                />
-              </div>
-
-              {newInteractionData.type === 'Task' && (
-                <div className="task-extra-fields" style={{ marginTop: '15px', display: 'flex', gap: '15px' }}>
-                  
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label>Priority</label>
-                    <select 
-                      className="form-control"
-                      value={newInteractionData.priority || 'Medium'}
-                      onChange={(e) => setNewInteractionData({ ...newInteractionData, priority: e.target.value })}
-                    >
-                      <option value="Low">Low</option>
-                      <option value="Medium">Medium</option>
-                      <option value="High">High</option>
-                    </select>
-                  </div>
-
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label>Due Date</label>
-                    <input 
-                      type="date" 
-                      className="form-control"
-                      value={newInteractionData.dueDate || ''}
-                      onChange={(e) => setNewInteractionData({ ...newInteractionData, dueDate: e.target.value })}
-                    />
-                  </div>
-
-                </div>
-              )}
-            </div>
-
-            <div className="modal-footer">
-              <button className="cancel-btn" onClick={handleCloseLogModal}>Cancel</button>
-              <button className="save-btn" onClick={handleSaveNewInteraction}>Save Interaction</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 

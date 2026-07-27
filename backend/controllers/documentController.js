@@ -5,7 +5,7 @@ const path = require("path");
 const getDocuments = async (req, res) => {
   try {
     const documents = await Document.find({ entityId: req.params.entityId })
-      .sort({ createdAt: -1 });
+        .sort({createdAt: -1});
 
     res.json(documents);
   } catch (err) {
@@ -73,7 +73,7 @@ const downloadDocument = async (req, res) => {
     // storedPath = storedPath.replace(/^\/app\//, "");
     // storedPath = storedPath.replace(/^app\//, "");
     // storedPath = storedPath.replace(/^\//, "");
-    
+
     // const fullPath = path.join(process.cwd(), storedPath);
 
     const filePath = path.join(__dirname, "..", document.filePath);

@@ -28,7 +28,7 @@ const taskSchema = new mongoose.Schema({
     type: Date
   },
 
-   assignedTo: [
+    assignedTo: [
     {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
@@ -61,8 +61,8 @@ const taskSchema = new mongoose.Schema({
   },
 
     collaborative: {
-      type: Boolean,
-      default: false
+        type: Boolean,
+        default: false
     }
 
 

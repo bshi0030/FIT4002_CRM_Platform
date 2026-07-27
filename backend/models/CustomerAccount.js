@@ -1,6 +1,8 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 
+// Self-service portal login for customers. Kept separate from the staff
+// User collection so portal credentials can never grant CRM access.
 const customerAccountSchema = new mongoose.Schema(
     {
         email: {

@@ -1,11 +1,13 @@
-/* Admin Settings page */
+/* Admin Settings page. */
 
 .admin-page {
   padding: 40px;
   background: linear-gradient(135deg, #e4f0a3 0%, #f7e8a9 100%);
-  min-height: calc(100vh - 70px);
   border-radius: 30px 0 0 0;
   box-shadow: inset 0px 4px 10px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+    flex: 1 0 auto;
+    min-height: 100%;
 }
 
 .admin-header {
@@ -29,7 +31,7 @@
   font-size: 14px;
 }
 
-/* Tabs */
+/* Tabs, styled like the customer profile tabs */
 .admin-tabs {
   display: flex;
   gap: 8px;
@@ -84,6 +86,9 @@
   font-size: 22px;
   color: #333;
   margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .admin-card-header .admin-card-sub {
@@ -168,9 +173,13 @@
   font-size: 13px;
   color: #666;
   margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
 }
 
-/* Tables, same header treatment as the customers table */
+/* Tables, with the same header treatment as the customers table */
 .admin-table-wrapper {
   overflow-x: auto;
   border-radius: 14px;
@@ -554,4 +563,63 @@
   color: #666;
   font-size: 14px;
   padding: 20px 0;
+}
+
+/* Permissions tab */
+.admin-perm-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.admin-perm-legend-item {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-perm-legend-item strong {
+    color: #333;
+    font-size: 14px;
+}
+
+.admin-perm-legend-item span {
+    color: #666;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.admin-perm-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 13px;
+    margin: 0;
+}
+
+.admin-full-access {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 15px;
+    background: #fdd9d9;
+    color: #a02020;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Small hint under the team select for designated supervisors */
+.admin-supervises-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #253984;
 }

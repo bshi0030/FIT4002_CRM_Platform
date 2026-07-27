@@ -23,13 +23,13 @@ const createInteraction = async (req, res) => {
 
     if (normalizedType === 'Task') {
       const newTaskCard = await Task.create({
-        title: details,                       
-        company: companyName || "",       
-        status: "todo",                   
+        title: details,
+        company: companyName || "",
+        status: "todo",
         priority: priority || "Medium",
-        dueDate: dueDate ? new Date(dueDate) : null,               
-        customer: new mongoose.Types.ObjectId(customerId),                
-        assignedTo: [new mongoose.Types.ObjectId(req.user._id)],        
+        dueDate: dueDate ? new Date(dueDate) : null,
+        customer: new mongoose.Types.ObjectId(customerId),
+        assignedTo: [new mongoose.Types.ObjectId(req.user._id)],
         collaborative: false
       });
 
@@ -56,7 +56,7 @@ const deleteInteraction = async (req, res) => {
     }
 
     const deletedInteraction = await Interaction.findByIdAndDelete(
-      req.params.interactionId
+        req.params.interactionId
     );
 
     if (!deletedInteraction) {
@@ -72,12 +72,12 @@ const deleteInteraction = async (req, res) => {
 const editInteraction = async (req, res) => {
   try {
     const updatedInteraction = await Interaction.findByIdAndUpdate(
-      req.params.interactionId,
-      {
-        type: req.body.type,
-        desc: req.body.desc,
-      },
-      { new: true, runValidators: true }
+        req.params.interactionId,
+        {
+          type: req.body.type,
+          desc: req.body.desc,
+        },
+        {new: true, runValidators: true}
     );
 
     if (!updatedInteraction) {

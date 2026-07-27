@@ -14,49 +14,49 @@ function DealCard({ deal, onClick, style }) {
   };
 
   return (
-    <div
-    className="deal-card"
-    draggable
-    onDragStart={handleDragStart}
-    onClick={onClick}
-    style={style}
-    >
-      <div className="deal-days-badge">
-        <span className="deal-days-text">{deal.daysAgo}d</span>
-      </div>
+      <div
+          className="deal-card"
+          draggable
+          onDragStart={handleDragStart}
+          onClick={onClick}
+          style={style}
+      >
+          <div className="deal-days-badge">
+              <span className="deal-days-text">{deal.daysAgo}d</span>
+          </div>
 
-      <div className="deal-top-row">
-        <span className="deal-name">{deal.name}</span>
-        <span className="deal-price">${deal.price}</span>
-      </div>
+          <div className="deal-top-row">
+              <span className="deal-name">{deal.name}</span>
+              <span className="deal-price">${deal.price}</span>
+          </div>
 
-      <div className="deal-company-row">
-        <span className="deal-company">{deal.company}</span>
-        <span
-          className="deal-priority-badge"
-          style={{
-            backgroundColor: priorityStyle.bg,
-            border: `0.5px solid ${priorityStyle.border}`,
-            color: priorityStyle.color,
-          }}
-        >
+          <div className="deal-company-row">
+              <span className="deal-company">{deal.company}</span>
+              <span
+                  className="deal-priority-badge"
+                  style={{
+                      backgroundColor: priorityStyle.bg,
+                      border: `0.5px solid ${priorityStyle.border}`,
+                      color: priorityStyle.color,
+                  }}
+              >
           {deal.priority}
         </span>
-      </div>
+          </div>
 
-      <div className="deal-prob-row">
-        <div className="deal-prob-track">
-          <div
-            className="deal-prob-fill"
-            style={{ width: `${deal.probability}%` }}
-          />
-        </div>
-        <span className="deal-prob-text">{deal.probability}%</span>
-      </div>
+          <div className="deal-prob-row">
+              <div className="deal-prob-track">
+                  <div
+                      className="deal-prob-fill"
+                      style={{width: `${deal.probability}%`}}
+                  />
+              </div>
+              <span className="deal-prob-text">{deal.probability}%</span>
+          </div>
 
-      <div className="deal-divider" />
-      <div className="deal-view">View</div>
-    </div>
+          <div className="deal-divider"/>
+          <div className="deal-view">View</div>
+      </div>
   );
 }
 

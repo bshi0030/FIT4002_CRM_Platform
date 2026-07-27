@@ -2,13 +2,14 @@ const express = require('express')
 const router = express.Router()
 const Deal = require('../models/Deal')
 const { requireAuth, requireRole } = require('../middleware/auth')
+const {requirePermission} = require('../middleware/permissions')
 const DealLog = require('../models/DealLog')
 const Customer = require('../models/Customer')
 const User = require('../models/User')
 const {
   getVisibleDealFilter,
   getVisibleCustomerFilter,
-  getTeamMemberIds,
+    getVisibleDealLogFilter,
   canAccessDeal
 } = require('../middleware/teamScope')
 
@@ -18,7 +19,7 @@ const STAGE_ORDER = [
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-// GET all deals visible to the requester
+// GET all deals visible to the requester (team scoped)
 router.get('/', requireAuth, async (req, res) => {
   try {
     const scope = await getVisibleDealFilter(req.user)
@@ -46,11 +47,8 @@ router.get('/logs', requireAuth, async (req, res) => {
       })
     })
 
-    // Also pull deleted deal logs
-    const logScope = req.user.role === 'Admin'
-      ? {}
-      : { changedBy: { $in: await getTeamMemberIds(req.user) } }
-    const deletedLogs = await DealLog.find(logScope).lean()
+      // Also pull deleted deal logs, scoped the same way as live deals
+      const deletedLogs = await DealLog.find(await getVisibleDealLogFilter(req.user)).lean()
     deletedLogs.forEach(log => {
       logs.push({
         dealName: log.dealName,
@@ -74,6 +72,7 @@ router.post('/', requireAuth, requireRole('User', 'Admin'), async (req, res) => 
     const { name, company, price, priority, probability, assignee, customer } = req.body
 
     if (customer) {
+        // Deals can only be linked to customers the creator can actually see
       const customerScope = await getVisibleCustomerFilter(req.user)
       const existingCustomer = await Customer.findOne({
         $and: [
@@ -162,11 +161,14 @@ router.patch('/:id/outcome', requireAuth, async (req, res) => {
   }
 })
 
-// DELETE deal
-router.delete('/:id', requireAuth, requireRole('Admin'), async (req, res) => {
+// DELETE deal. Admin by default; grantable per person via
+// Settings -> Permissions. Non-admin holders stay team scoped.
+router.delete('/:id', requireAuth, requirePermission('deleteRecords'), async (req, res) => {
   try {
     const deal = await Deal.findById(req.params.id)
     if (!deal) return res.status(404).json({ message: 'Deal not found' })
+      if (!(await canAccessDeal(req.user, deal)))
+          return res.status(403).json({message: 'You do not have access to this deal'})
 
     await DealLog.create({
       dealName: deal.name,

@@ -14,6 +14,7 @@ import {
     storePortalSession,
 } from '@/api/portal'
 
+// Customer self-service portal: register and log in.
 export default function PortalLogin() {
     const navigate = useNavigate()
     const [mode, setMode] = useState('login')
@@ -60,9 +61,9 @@ export default function PortalLogin() {
         } catch (err) {
             setError(
                 err?.response?.data?.message ||
-                    (isRegister
-                        ? 'Unable to create your account. Please try again.'
-                        : 'Unable to log in. Please try again.')
+                (isRegister
+                    ? 'Unable to create your account. Please try again.'
+                    : 'Unable to log in. Please try again.')
             )
         } finally {
             setSubmitting(false)

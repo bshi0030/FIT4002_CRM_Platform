@@ -3,6 +3,7 @@ import "../styles/SalesPipeline.css";
 import DealCard from "../components/DealCard";
 import { getDeals, createDeal, updateDealStage, markDealOutcome, getDealLogs, deleteDeal } from "../api/deals";
 import { useAuth } from "@/context/auth";
+import {can} from "@/lib/permissions";
 
 const STAGES = [
   { name: "Qualified", dot: "#A4A4A4" },
@@ -20,8 +21,8 @@ const INITIAL_FORM = {
 
 function SalesPipeline() {
   const { user } = useAuth();
-  // Only Admins see the delete option on deals
-  const isAdmin = user?.role === 'Admin';
+    // The delete option shows for Admins or people granted Delete Records
+    const canDeleteRecords = can(user, 'deleteRecords');
   const [deals, setDeals] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
@@ -37,8 +38,15 @@ function SalesPipeline() {
 
   useEffect(() => {
     getDeals()
-      .then(data => { setDeals(data); setLoading(false); })
-      .catch(err => { console.error(err); setError('Failed to load deals'); setLoading(false); });
+        .then(data => {
+            setDeals(data);
+            setLoading(false);
+        })
+        .catch(err => {
+            console.error(err);
+            setError('Failed to load deals');
+            setLoading(false);
+        });
   }, []);
 
   const handleAddLead = () => setShowModal(true);
@@ -62,10 +70,10 @@ function SalesPipeline() {
   };
 
   const getDealsForStage = (stageName) => deals.filter(d => {
-  const matchesStage = d.stage === stageName;
-  const matchesPriority = priorityFilter === 'All' || d.priority === priorityFilter;
-  const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase());
-  return matchesStage && matchesPriority && matchesSearch;
+      const matchesStage = d.stage === stageName;
+      const matchesPriority = priorityFilter === 'All' || d.priority === priorityFilter;
+      const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStage && matchesPriority && matchesSearch;
   });
 
   const handleDragStart = (e, deal) => {
@@ -121,260 +129,270 @@ function SalesPipeline() {
 
 
   const handleDeleteClick = (deal) => {
-  setConfirmDeal(deal);
-};
+      setConfirmDeal(deal);
+  };
 
-const handleConfirmDelete = async () => {
-  try {
-    await deleteDeal(confirmDeal._id);
-    setDeals(prev => prev.filter(d => d._id !== confirmDeal._id));
-    setConfirmDeal(null);
-    setDeleteMode(false);
-  } catch (err) {
-    alert(err.response?.data?.message || 'Failed to delete deal');
-  }
-};
+    const handleConfirmDelete = async () => {
+        try {
+            await deleteDeal(confirmDeal._id);
+            setDeals(prev => prev.filter(d => d._id !== confirmDeal._id));
+            setConfirmDeal(null);
+            setDeleteMode(false);
+        } catch (err) {
+            alert(err.response?.data?.message || 'Failed to delete deal');
+        }
+    };
 
-const openStages = ['Qualified', 'Contact Made', 'Demo Scheduled', 'Proposal Made', 'Negotiation'];
-const openDeals = deals.filter(d => openStages.includes(d.stage));
-const totalValue = deals
-  .reduce((sum, d) => sum + (parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 0), 0);
-const closedWon = deals.filter(d => d.stage === 'Won')
-  .reduce((sum, d) => sum + (parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 0), 0);
-const avgProbability = deals.length > 0
-  ? Math.round(deals.reduce((sum, d) => sum + (d.probability || 0), 0) / deals.length)
-  : 0;
+    const openStages = ['Qualified', 'Contact Made', 'Demo Scheduled', 'Proposal Made', 'Negotiation'];
+    const openDeals = deals.filter(d => openStages.includes(d.stage));
+    const totalValue = deals
+        .reduce((sum, d) => sum + (parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 0), 0);
+    const closedWon = deals.filter(d => d.stage === 'Won')
+        .reduce((sum, d) => sum + (parseFloat(String(d.price).replace(/[^0-9.]/g, '')) || 0), 0);
+    const avgProbability = deals.length > 0
+        ? Math.round(deals.reduce((sum, d) => sum + (d.probability || 0), 0) / deals.length)
+        : 0;
 
 
   return (
-    <div className="pipeline-page">
+      <div className="pipeline-page">
 
-      {/* Won / Lost drop zones */}
-      <div className="wonlost-panel">
-        <div
-          className="wonlost-section"
-          onDragOver={allowDrop}
-          onDrop={(e) => handleOutcomeDrop(e, 'Won')}
-        >
-          <div className="wonlost-label-row">
-            <span className="wonlost-text">Won</span>
-          </div>
-          <div className="wonlost-box">
-            {getDealsForStage('Won').map(deal => (
-              <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)} />
-            ))}
-          </div>
-          <div className="wonlost-arrow">&#8964;</div>
-        </div>
+          {/* Won / Lost drop zones */}
+          <div className="wonlost-panel">
+              <div
+                  className="wonlost-section"
+                  onDragOver={allowDrop}
+                  onDrop={(e) => handleOutcomeDrop(e, 'Won')}
+              >
+                  <div className="wonlost-label-row">
+                      <span className="wonlost-text">Won</span>
+                  </div>
+                  <div className="wonlost-box">
+                      {getDealsForStage('Won').map(deal => (
+                          <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)}/>
+                      ))}
+                  </div>
+                  <div className="wonlost-arrow">&#8964;</div>
+              </div>
 
-        <div
-          className="wonlost-section"
-          onDragOver={allowDrop}
-          onDrop={(e) => handleOutcomeDrop(e, 'Lost')}
-        >
-          <div className="wonlost-label-row">
-            <span className="wonlost-text">Lost</span>
+              <div
+                  className="wonlost-section"
+                  onDragOver={allowDrop}
+                  onDrop={(e) => handleOutcomeDrop(e, 'Lost')}
+              >
+                  <div className="wonlost-label-row">
+                      <span className="wonlost-text">Lost</span>
+                  </div>
+                  <div className="wonlost-box">
+                      {getDealsForStage('Lost').map(deal => (
+                          <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)}/>
+                      ))}
+                  </div>
+                  <div className="wonlost-arrow">&#8964;</div>
+              </div>
           </div>
-          <div className="wonlost-box">
-            {getDealsForStage('Lost').map(deal => (
-              <DealCard key={deal._id} deal={deal} onDragStart={(e) => handleDragStart(e, deal)} />
-            ))}
+
+          <div className="pipeline-gradient-box">
+              <div className="pipeline-title-row">
+                  <h1 className="pipeline-title">Sales Pipeline</h1>
+                  <button className="btn-deal-history" onClick={handleOpenHistory}>Deal History</button>
+              </div>
+
+              <div className="pipeline-stats-row">
+                  <div className="pipeline-stat-box">
+                      <span className="pipeline-stat-label">Open Deals</span>
+                      <span className="pipeline-stat-value">{openDeals.length}</span>
+                  </div>
+                  <div className="pipeline-stat-box">
+                      <span className="pipeline-stat-label">Total Value</span>
+                      <span
+                          className="pipeline-stat-value">${totalValue >= 1000 ? (totalValue / 1000).toFixed(0) + 'k' : totalValue}</span>
+                  </div>
+                  <div className="pipeline-stat-box">
+                      <span className="pipeline-stat-label">Closed Won</span>
+                      <span
+                          className="pipeline-stat-value">${closedWon >= 1000 ? (closedWon / 1000).toFixed(0) + 'k' : closedWon}</span>
+                  </div>
+                  <div className="pipeline-stat-box">
+                      <span className="pipeline-stat-label">Avg Probability</span>
+                      <span className="pipeline-stat-value">{avgProbability}%</span>
+                  </div>
+              </div>
+
+              <div className="pipeline-action-bar">
+                  <button className="btn-add-lead" onClick={handleAddLead}>+ Add Lead</button>
+                  {canDeleteRecords && (
+                      <button
+                          className="btn-add-lead"
+                          onClick={() => setDeleteMode(prev => !prev)}
+                          style={{background: deleteMode ? 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' : 'linear-gradient(135deg, #253984 0%, #2A2A72 100%)'}}
+                      >
+                          {deleteMode ? 'Cancel' : 'Delete'}
+                      </button>
+                  )}
+
+                  <select
+                      className="btn-filter"
+                      value={priorityFilter}
+                      onChange={(e) => setPriorityFilter(e.target.value)}
+                  >
+                      <option value="All">Priority</option>
+                      <option value="High">High</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Low">Low</option>
+                  </select>
+
+                  <div className="search-wrapper">
+                      <input
+                          className="btn-search"
+                          type="text"
+                          placeholder="Search deals..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                  </div>
+              </div>
+
+              {loading && <p style={{color: '#555', fontSize: '14px'}}>Loading deals...</p>}
+              {error && <p style={{color: 'red', fontSize: '14px'}}>{error}</p>}
+
+              <div className="pipeline-stages">
+                  {STAGES.map(stage => (
+                      <div
+                          className="stage-column"
+                          key={stage.name}
+                          onDragOver={allowDrop}
+                          onDrop={(e) => handleDrop(e, stage.name)}
+                      >
+                          <div className="stage-header">
+                              <span className="stage-dot" style={{backgroundColor: stage.dot}}/>
+                              <span className="stage-name">{stage.name}</span>
+                          </div>
+                          <div className="stage-cards-area">
+                              {getDealsForStage(stage.name).map(deal => (
+                                  <DealCard
+                                      key={deal._id}
+                                      deal={deal}
+                                      onDragStart={(e) => handleDragStart(e, deal)}
+                                      onClick={deleteMode ? () => handleDeleteClick(deal) : undefined}
+                                      style={deleteMode
+                                          ? {cursor: 'pointer'}
+                                          : searchQuery && deal.name.toLowerCase().includes(searchQuery.toLowerCase())
+                                              ? {boxShadow: '0 0 0 2px #253984', background: 'rgba(37,57,132,0.07)'}
+                                              : {}
+                                      }
+                                  />
+                              ))}
+                          </div>
+                      </div>
+                  ))}
+              </div>
           </div>
-          <div className="wonlost-arrow">&#8964;</div>
-        </div>
-      </div>
 
-      <div className="pipeline-gradient-box">
-        <div className="pipeline-title-row">
-          <h1 className="pipeline-title">Sales Pipeline</h1>
-          <button className="btn-deal-history" onClick={handleOpenHistory}>Deal History</button>
-        </div>
-      
-        <div className="pipeline-stats-row">
-  <div className="pipeline-stat-box">
-    <span className="pipeline-stat-label">Open Deals</span>
-    <span className="pipeline-stat-value">{openDeals.length}</span>
-  </div>
-  <div className="pipeline-stat-box">
-    <span className="pipeline-stat-label">Total Value</span>
-    <span className="pipeline-stat-value">${totalValue >= 1000 ? (totalValue/1000).toFixed(0) + 'k' : totalValue}</span>
-  </div>
-  <div className="pipeline-stat-box">
-    <span className="pipeline-stat-label">Closed Won</span>
-    <span className="pipeline-stat-value">${closedWon >= 1000 ? (closedWon/1000).toFixed(0) + 'k' : closedWon}</span>
-  </div>
-  <div className="pipeline-stat-box">
-    <span className="pipeline-stat-label">Avg Probability</span>
-    <span className="pipeline-stat-value">{avgProbability}%</span>
-  </div>
-</div>
-
-        <div className="pipeline-action-bar">
-          <button className="btn-add-lead" onClick={handleAddLead}>+ Add Lead</button>
-          {isAdmin && (
-            <button
-            className="btn-add-lead"
-            onClick={() => setDeleteMode(prev => !prev)}
-           style={{ background: deleteMode ? 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' : 'linear-gradient(135deg, #253984 0%, #2A2A72 100%)' }}
-            >
-          {deleteMode ? 'Cancel' : 'Delete'}
-          </button>
+          {/* Add Lead Modal */}
+          {showModal && (
+              <div className="modal-overlay" onClick={handleCloseModal}>
+                  <div className="modal-box" onClick={e => e.stopPropagation()}>
+                      <h2 className="modal-title">Add New Lead</h2>
+                      <div className="modal-field">
+                          <label className="modal-label">Deal Name *</label>
+                          <input className="modal-input" type="text" name="name" value={form.name}
+                                 onChange={handleFormChange}/>
+                      </div>
+                      <div className="modal-field">
+                          <label className="modal-label">Company Name *</label>
+                          <input className="modal-input" type="text" name="company" value={form.company}
+                                 onChange={handleFormChange}/>
+                      </div>
+                      <div className="modal-field">
+                          <label className="modal-label">Deal Price *</label>
+                          <input className="modal-input" type="text" name="price" value={form.price}
+                                 onChange={handleFormChange}/>
+                      </div>
+                      <div className="modal-field">
+                          <label className="modal-label">Priority</label>
+                          <select className="modal-input" name="priority" value={form.priority}
+                                  onChange={handleFormChange}>
+                              <option value="High">High</option>
+                              <option value="Medium">Medium</option>
+                              <option value="Low">Low</option>
+                          </select>
+                      </div>
+                      <div className="modal-field">
+                          <label className="modal-label">Deal Probability (%)</label>
+                          <input className="modal-input" type="number" name="probability" min="0" max="100"
+                                 value={form.probability} onChange={handleFormChange}/>
+                      </div>
+                      <div className="modal-field">
+                          <label className="modal-label">Assignee</label>
+                          <input className="modal-input" type="text" name="assignee" value={form.assignee}
+                                 onChange={handleFormChange}/>
+                      </div>
+                      <div className="modal-field">
+                          <label className="modal-label">Customer</label>
+                          <input className="modal-input" type="text" name="customer" value={form.customer}
+                                 onChange={handleFormChange}/>
+                      </div>
+                      <div className="modal-actions">
+                          <button className="btn-cancel" onClick={handleCloseModal}>Cancel</button>
+                          <button className="btn-submit" onClick={handleSubmit}>Add Lead</button>
+                      </div>
+                  </div>
+              </div>
           )}
 
-       <select
-       className="btn-filter"
-       value={priorityFilter}
-       onChange={(e) => setPriorityFilter(e.target.value)}
-      >
-      <option value="All">Priority</option>
-      <option value="High">High</option>
-      <option value="Medium">Medium</option>
-      <option value="Low">Low</option>
-     </select>
-
-      <div className="search-wrapper">
-      <input
-      className="btn-search"
-      type="text"
-      placeholder="Search deals..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-     />
-    </div>
-    </div>
-
-        {loading && <p style={{ color: '#555', fontSize: '14px' }}>Loading deals...</p>}
-        {error && <p style={{ color: 'red', fontSize: '14px' }}>{error}</p>}
-
-        <div className="pipeline-stages">
-          {STAGES.map(stage => (
-            <div
-              className="stage-column"
-              key={stage.name}
-              onDragOver={allowDrop}
-              onDrop={(e) => handleDrop(e, stage.name)}
-            >
-              <div className="stage-header">
-                <span className="stage-dot" style={{ backgroundColor: stage.dot }} />
-                <span className="stage-name">{stage.name}</span>
-              </div>
-              <div className="stage-cards-area">
-                {getDealsForStage(stage.name).map(deal => (
-  <DealCard
-    key={deal._id}
-    deal={deal}
-    onDragStart={(e) => handleDragStart(e, deal)}
-    onClick={deleteMode ? () => handleDeleteClick(deal) : undefined}
-    style={deleteMode
-      ? { cursor: 'pointer' }
-      : searchQuery && deal.name.toLowerCase().includes(searchQuery.toLowerCase())
-        ? { boxShadow: '0 0 0 2px #253984', background: 'rgba(37,57,132,0.07)' }
-        : {}
-    }
-  />
-))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Add Lead Modal */}
-      {showModal && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h2 className="modal-title">Add New Lead</h2>
-            <div className="modal-field">
-              <label className="modal-label">Deal Name *</label>
-              <input className="modal-input" type="text" name="name" value={form.name} onChange={handleFormChange} />
-            </div>
-            <div className="modal-field">
-              <label className="modal-label">Company Name *</label>
-              <input className="modal-input" type="text" name="company" value={form.company} onChange={handleFormChange} />
-            </div>
-            <div className="modal-field">
-              <label className="modal-label">Deal Price *</label>
-              <input className="modal-input" type="text" name="price" value={form.price} onChange={handleFormChange} />
-            </div>
-            <div className="modal-field">
-              <label className="modal-label">Priority</label>
-              <select className="modal-input" name="priority" value={form.priority} onChange={handleFormChange}>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-            </div>
-            <div className="modal-field">
-              <label className="modal-label">Deal Probability (%)</label>
-              <input className="modal-input" type="number" name="probability" min="0" max="100" value={form.probability} onChange={handleFormChange} />
-            </div>
-            <div className="modal-field">
-              <label className="modal-label">Assignee</label>
-              <input className="modal-input" type="text" name="assignee" value={form.assignee} onChange={handleFormChange} />
-            </div>
-            <div className="modal-field">
-              <label className="modal-label">Customer</label>
-              <input className="modal-input" type="text" name="customer" value={form.customer} onChange={handleFormChange} />
-            </div>
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={handleCloseModal}>Cancel</button>
-              <button className="btn-submit" onClick={handleSubmit}>Add Lead</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Deal History Modal */}
-      {showHistory && (
-        <div className="modal-overlay" onClick={() => setShowHistory(false)}>
-          <div className="modal-box history-modal" onClick={e => e.stopPropagation()}>
-            <h2 className="modal-title">Deal History</h2>
-            {logsLoading && <p style={{ fontSize: '14px', color: '#555' }}>Loading...</p>}
-            {!logsLoading && logs.length === 0 && (
-              <p style={{ fontSize: '14px', color: '#888' }}>No stage changes recorded yet.</p>
-            )}
-            {!logsLoading && logs.length > 0 && (
-              <div className="history-log-list">
-                {logs.map((log, i) => (
-                  <div className="history-log-item" key={i}>
-                    <span className="history-log-date">{formatDate(log.changedAt)}</span>
-                    <span className="history-log-deal">{log.dealName}</span>
-                    <span className="history-log-change">
+          {/* Deal History Modal */}
+          {showHistory && (
+              <div className="modal-overlay" onClick={() => setShowHistory(false)}>
+                  <div className="modal-box history-modal" onClick={e => e.stopPropagation()}>
+                      <h2 className="modal-title">Deal History</h2>
+                      {logsLoading && <p style={{fontSize: '14px', color: '#555'}}>Loading...</p>}
+                      {!logsLoading && logs.length === 0 && (
+                          <p style={{fontSize: '14px', color: '#888'}}>No stage changes recorded yet.</p>
+                      )}
+                      {!logsLoading && logs.length > 0 && (
+                          <div className="history-log-list">
+                              {logs.map((log, i) => (
+                                  <div className="history-log-item" key={i}>
+                                      <span className="history-log-date">{formatDate(log.changedAt)}</span>
+                                      <span className="history-log-deal">{log.dealName}</span>
+                                      <span className="history-log-change">
                       {log.fromStage ? `${log.fromStage} → ${log.toStage}` : `Created as ${log.toStage}`}
                     </span>
+                                  </div>
+                              ))}
+                          </div>
+                      )}
+                      <div className="modal-actions">
+                          <button className="btn-cancel" onClick={() => setShowHistory(false)}>Close</button>
+                      </div>
                   </div>
-                ))}
               </div>
-            )}
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setShowHistory(false)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {confirmDeal && (
-      <div className="modal-overlay" onClick={() => setConfirmDeal(null)}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
-      <h2 className="modal-title">Delete Deal</h2>
-      <p style={{ fontSize: '14px', color: '#555' }}>
-        Are you sure you want to permanently delete <strong>{confirmDeal.name}</strong>? This cannot be undone.
-      </p>
-      <div className="modal-actions">
-        <button className="btn-cancel" onClick={() => setConfirmDeal(null)}>Cancel</button>
-        <button
-          className="btn-submit"
-          style={{ background: 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)' }}
-          onClick={handleConfirmDelete}
-        >
-          Delete
-        </button>
-        </div>
+          {confirmDeal && (
+              <div className="modal-overlay" onClick={() => setConfirmDeal(null)}>
+                  <div className="modal-box" onClick={e => e.stopPropagation()}>
+                      <h2 className="modal-title">Delete Deal</h2>
+                      <p style={{fontSize: '14px', color: '#555'}}>
+                          Are you sure you want to permanently delete <strong>{confirmDeal.name}</strong>? This cannot
+                          be undone.
+                      </p>
+                      <div className="modal-actions">
+                          <button className="btn-cancel" onClick={() => setConfirmDeal(null)}>Cancel</button>
+                          <button
+                              className="btn-submit"
+                              style={{background: 'linear-gradient(135deg, #7b1a1a 0%, #a02020 100%)'}}
+                              onClick={handleConfirmDelete}
+                          >
+                              Delete
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          )}
+
       </div>
-     </div>
-)}
-
-    </div>
   );
 }
 

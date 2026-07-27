@@ -20,13 +20,13 @@ router.get("/", requireAuth, async (req, res) => {
       assignedTo: userId
     })
 
-      .populate("assignedTo", "fullName")
-      .populate("customer", "fullName company interactions")
-      .populate("deal", "name")
-      .populate("currentStage", "name")
-      .populate("nextStage", "name")
+        .populate("assignedTo", "fullName")
+        .populate("customer", "fullName company interactions")
+        .populate("deal", "name")
+        .populate("currentStage", "name")
+        .populate("nextStage", "name")
 
-      .sort({ createdAt: -1 });
+        .sort({createdAt: -1});
 
     res.json(tasks);
 
@@ -40,7 +40,7 @@ router.get("/", requireAuth, async (req, res) => {
 
   }
 
-}); 
+});
 
 router.patch("/:id/status", requireAuth, async (req, res) => {
 
@@ -49,9 +49,9 @@ router.patch("/:id/status", requireAuth, async (req, res) => {
     const { status } = req.body;
 
     const updatedTask = await Task.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
+        req.params.id,
+        {status},
+        {new: true}
     );
 
     res.json(updatedTask);

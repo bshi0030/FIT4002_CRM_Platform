@@ -322,12 +322,16 @@ export default function Dashboard() {
                     <table className="team-table">
                         <thead><tr><th>Team Member</th><th>Sales</th><th>Deals</th><th>Activities</th></tr></thead>
                         <tbody>
-                            {loading ? [1,2,3].map(i => (<tr key={i}>{[1,2,3,4].map(j => <td key={j}><Skeleton h={12} /></td>)}</tr>))
-                                : teamMembers.map((m) => (
-                                    <tr key={m.name} className={m.name === topMember ? 'top-row' : ''}>
-                                        <td>{m.name}</td><td>{fmtMoney(m.sales)}</td><td>{m.deals}</td><td>{m.activities}</td>
-                                    </tr>
-                                ))}
+                        {loading ? [1, 2, 3].map(i => (
+                                <tr key={i}>{[1, 2, 3, 4].map(j => <td key={j}><Skeleton h={12}/></td>)}</tr>))
+                            : teamMembers.map((m) => (
+                                <tr key={m.name} className={m.name === topMember ? 'top-row' : ''}>
+                                    <td>{m.name}</td>
+                                    <td>{fmtMoney(m.sales)}</td>
+                                    <td>{m.deals}</td>
+                                    <td>{m.activities}</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                     {!loading && (
