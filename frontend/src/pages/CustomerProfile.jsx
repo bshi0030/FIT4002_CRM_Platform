@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
 import '../styles/CustomerProfile.css';
@@ -19,6 +19,35 @@ import {
   FiX,
   FiTrash2
 } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
+import { generateWhatsAppUrl } from '../lib/phoneUtils';
+
+const ProfileLogo = ({ companyLogo, companyName }) => {
+  const [imgError, setImgError] = useState(false);
+
+  const imageUrl = companyLogo ? `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${companyLogo}` : null;
+
+  if (imageUrl && !imgError) {
+    return (
+      <img
+        src={imageUrl}
+        alt={`${companyName || 'Company'} logo`}
+        className="profile-logo"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  const initials = companyName
+    ? companyName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    : null;
+
+  return initials ? (
+    <div className="profile-logo-placeholder-initials">{initials}</div>
+  ) : (
+    <FiUser className="avatar-icon" />
+  );
+};
 
 function CustomerProfile() {
   const { id } = useParams();
@@ -46,7 +75,6 @@ function CustomerProfile() {
   const [visibleCount, setVisibleCount] = useState(5);
 
   const [documents, setDocuments] = useState([]);
-  const [selectedFile, setSelectedFile] = useState(null);
 
   //GET Request: Load timeline from MongoDB using Axios instance
   const mapBackendInteractionToMyUI = (interaction) => ({
@@ -135,10 +163,7 @@ function CustomerProfile() {
     }
   };
 
-  const truncateText = (text, maxLength = 120) => {
-    if (!text) return "";
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-  };
+
 
   const handleCustomerUpdated = () => {
     fetchCustomer(false);
@@ -300,17 +325,35 @@ function CustomerProfile() {
     }
   };
 
-  const handleInteraction = async (type) => {
+  /**
+   * Opens the customer's WhatsApp conversation in a new tab so the
+   * salesperson can press the voice-call icon inside WhatsApp.
+   *
+   * NOTE: A standard wa.me link cannot initiate or confirm a voice call
+   * automatically. The salesperson must press the call icon manually.
+   */
+  const handleWhatsAppCall = async () => {
+    const url = generateWhatsAppUrl(customer.phone);
 
+    if (!url) {
+      alert("No valid WhatsApp number is available for this customer.");
+      return;
+    }
+
+    // Open WhatsApp Web / app in a new tab with security attributes
+    window.open(url, "_blank", "noopener,noreferrer");
+
+    // Log the interaction as "Call — WhatsApp initiated".
+    // Fire-and-forget: WhatsApp has already opened above, so a logging
+    // failure must never prevent the salesperson from reaching the customer.
     try {
       await api.post(`/customers/${id}/interactions`, {
-        type: type,
-        details: `Initiated ${type} contact from Customer Profile`
+        type: "Call",
+        details: "WhatsApp opened for customer call",
       });
-      
-      fetchCustomer(false); // Silent refresh
+      fetchCustomer(false);
     } catch (err) {
-      console.error(`Failed to log ${type} interaction`, err);
+      console.error("Failed to log WhatsApp call interaction", err);
     }
   };
 
@@ -367,7 +410,6 @@ function CustomerProfile() {
 
   const visibleInteractions = filteredInteractions.slice(0, visibleCount);
   const hasMoreInteractions = visibleCount < filteredInteractions.length;
-  const canViewLess = visibleCount > 5;
 
   // Calculate dynamic stats
   const emailCount = allInteractions.filter(i => i.type === 'Email').length;
@@ -407,11 +449,7 @@ function CustomerProfile() {
       <div className="left-column">
         {/* Profile Card */}
         <div className="profile-card">
-          {customer.companyLogo ? (
-            <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}${customer.companyLogo}`} alt={`${customer.company} logo`} className="profile-logo" />
-          ) : (
-            <FiUser className="avatar-icon" />
-          )}
+          <ProfileLogo key={customer.companyLogo || ''} companyLogo={customer.companyLogo} companyName={customer.company} />
           <h2 className="profile-name">{customer.fullName}</h2>
           <p className="profile-subtitle">
             {customer.designation} ·<br />
@@ -448,7 +486,15 @@ function CustomerProfile() {
 
             <div className="profile-actions">
               <button className="add-contact-btn" onClick={() => setIsComposingEmail(true)}>✉️ Email</button>
-              <a className="add-contact-btn call-btn" href={`tel:${customer.phone}`} onClick={() => handleInteraction('Call')}>📞 Call</a>
+              <button
+                className="add-contact-btn call-btn"
+                onClick={handleWhatsAppCall}
+                disabled={!generateWhatsAppUrl(customer.phone)}
+                title="Open customer in WhatsApp to call"
+                aria-label="Open customer in WhatsApp to call"
+              >
+                <FaWhatsapp /> Call
+              </button>
             </div>
           </div>
         </div>
@@ -608,7 +654,7 @@ function CustomerProfile() {
                 <EmailComposer 
                   customerEmail={customer.email}
                   onClose={() => setIsComposingEmail(false)}
-                  onEmailSent={async ({ subject, message }) => {
+                  onEmailSent={async ({ subject }) => {
 
                     try {
                       // Axios automatically serializes JSON objects
@@ -710,10 +756,12 @@ function CustomerProfile() {
           <div className="files-card">
             <div className="files-header">
               <h3>Files & Documents</h3>
+              {uploading && <span style={{ fontSize: '12px', color: '#253984', fontFamily: 'Inter', marginRight: '8px' }}>Uploading...</span>}
+              {uploadError && <span style={{ fontSize: '12px', color: 'red', fontFamily: 'Inter', marginRight: '8px' }}>{uploadError}</span>}
               <label className="upload-btn">
                 <FiUpload />
                 Upload
-                <input type="file" hidden onChange={handleFileUpload} />
+                <input type="file" hidden onChange={handleFileUpload} disabled={uploading} />
               </label>
             </div>
             
