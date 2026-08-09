@@ -34,6 +34,22 @@ const findManagedUser = async (req, res) => {
     return user
 }
 
+// GET /api/users/assignable: people the caller can assign work to, such as the
+// task assignee pickers. Open to any authenticated user but limited to their
+// own company. Returns a plain array, which is the shape those pickers expect.
+// Declared before '/' so it is never shadowed by the directory route.
+router.get('/assignable', requireAuth, async (req, res) => {
+    try {
+        const users = await User.find(sameCompanyFilter(req.user))
+            .select('_id fullName email role')
+            .sort({fullName: 1})
+        return res.json(users)
+    } catch (err) {
+        console.error('List assignable users error:', err)
+        return res.status(500).json({message: 'Failed to fetch users'})
+    }
+})
+
 // GET /api/users: directory of the admin's own company with search and filters
 // Query params: search (name/email), role (Admin|Supervisor|User), team (id | 'none')
 router.get('/', requireAuth, requireRole('Admin'), async (req, res) => {

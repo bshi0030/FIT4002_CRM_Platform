@@ -22,7 +22,9 @@ const customerSchema = new mongoose.Schema({
   interactions: [{
     type: { type: String, enum: ['Email', 'Call', 'Task', 'Note'] },
     details: String,
-    date: { type: Date, default: Date.now }
+      date: {type: Date, default: Date.now},
+      createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+      author: {type: String}
   }],
   createdAt: { type: Date, default: Date.now }
 });

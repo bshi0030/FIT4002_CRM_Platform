@@ -63,8 +63,8 @@ function PermissionsTab({users, loading, onDirectoryChanged, notify}) {
     };
 
     return (
-        <>
-            <div className="admin-card">
+        <div className="admin-tab-panel">
+            <div className="admin-card fills">
                 <div className="admin-card-header">
                     <div>
                         <h2><FiShield/> Individual Permissions</h2>
@@ -74,22 +74,13 @@ function PermissionsTab({users, loading, onDirectoryChanged, notify}) {
                         </p>
                     </div>
                 </div>
-                <div className="admin-perm-legend">
-                    {PERMISSION_COLUMNS.map((col) => (
-                        <div key={col.key} className="admin-perm-legend-item">
-                            <strong>{col.label}</strong>
-                            <span>{col.hint}</span>
-                        </div>
-                    ))}
-                </div>
-                <p className="admin-perm-note">
-                    <FiInfo/> Delete permissions still respect
-                    team visibility: a person can only delete records they are allowed to see.
-                    Admins always have full access and cannot be edited here.
-                </p>
-            </div>
 
-            <div className="admin-card">
+                <p className="admin-perm-note">
+                    <FiInfo/> Delete permissions still respect team visibility: a person can
+                    only delete records they are allowed to see. Admins always have full access
+                    and cannot be edited here.
+                </p>
+
                 <div className="admin-toolbar">
                     <div className="admin-search">
                         <FiSearch/>
@@ -116,7 +107,12 @@ function PermissionsTab({users, loading, onDirectoryChanged, notify}) {
                                 <th>User</th>
                                 <th>Role</th>
                                 {PERMISSION_COLUMNS.map((col) => (
-                                    <th key={col.key} title={col.hint}>{col.label}</th>
+                                    <th key={col.key} title={col.hint}>
+                      <span className="admin-th-stack">
+                        {col.label}
+                          <span className="admin-th-hint">{col.hint}</span>
+                      </span>
+                                    </th>
                                 ))}
                             </tr>
                             </thead>
@@ -185,7 +181,7 @@ function PermissionsTab({users, loading, onDirectoryChanged, notify}) {
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 }
 

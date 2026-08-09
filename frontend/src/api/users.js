@@ -11,3 +11,8 @@ export const updateUserTeam = (userId, teamId) =>
 
 export const updateUserPermissions = (userId, permissions) =>
     api.patch(`/users/${userId}/permissions`, {permissions}).then((r) => r.data)
+
+// People the current user can assign work to, used by the task assignee
+// pickers. Returns a plain array of {_id, fullName, email, role}.
+export const getUsers = () =>
+    api.get('/users/assignable').then((r) => r.data)

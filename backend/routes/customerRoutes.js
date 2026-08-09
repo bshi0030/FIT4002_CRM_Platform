@@ -15,13 +15,16 @@ const {
   deleteCustomerFile,
   addInteraction,
   deleteInteraction,
-  editInteraction
+    editInteraction,
+    getCustomerByName
 } = require('../controllers/customerController');
 
 // Customer data is team scoped
 router.route('/')
     .post(requireAuth, uploadLogo.single('companyLogo'), createCustomer)
     .get(requireAuth, getCustomers);
+
+router.get('/search', getCustomerByName);
 
 router.route('/:id')
     .get(requireAuth, getCustomerById)

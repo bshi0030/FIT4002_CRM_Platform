@@ -75,28 +75,28 @@ export default function PortalLogin() {
             className="min-h-screen"
             style={{
                 backgroundImage:
-                    'linear-gradient(135deg, #704B2F 0%, #CC8C48 50%, #AA6A37 100%)',
+                    'linear-gradient(135deg, #1B1C3A 0%, #253984 55%, #2A2A72 100%)',
             }}
         >
             <AppHeader/>
 
             <main className="flex min-h-[calc(100vh-92px)] flex-col items-center px-4 py-10">
-                <h1 className="mb-1 text-center text-5xl font-extrabold tracking-tight text-amber-200 drop-shadow-sm sm:text-6xl">
+                <h1 className="mb-1 text-center text-5xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-6xl">
                     Customer Portal
                 </h1>
-                <p className="mb-8 text-center text-lg text-yellow-100/90">
+                <p className="mb-8 text-center text-lg text-sky-100/90">
                     {isRegister
                         ? 'Create your login to track your deals with us'
                         : 'Log in to view your profile and deal progress'}
                 </p>
 
-                <Card className="w-full max-w-md rounded-3xl border-amber-200/50 bg-yellow-50/95 shadow-xl">
+                <Card className="w-full max-w-md rounded-3xl border-white/40 bg-white/95 shadow-2xl">
                     <CardContent className="p-8">
                         <form onSubmit={handleSubmit} noValidate className="space-y-5">
                             <div className="space-y-2">
                                 <Label
                                     htmlFor="portal-email"
-                                    className="flex items-center gap-2 text-stone-700"
+                                    className="flex items-center gap-2 text-slate-700"
                                 >
                                     <Mail className="h-4 w-4"/> Email
                                 </Label>
@@ -108,10 +108,10 @@ export default function PortalLogin() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={submitting}
                                     required
-                                    className="h-12 rounded-xl border-stone-200 bg-stone-200/70 text-stone-800 focus-visible:bg-white"
+                                    className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-800 focus-visible:bg-white"
                                 />
                                 {isRegister && (
-                                    <p className="text-xs text-stone-500">
+                                    <p className="text-xs text-slate-500">
                                         Use the email address your account manager has on file for you.
                                     </p>
                                 )}
@@ -120,7 +120,7 @@ export default function PortalLogin() {
                             <div className="space-y-2">
                                 <Label
                                     htmlFor="portal-password"
-                                    className="flex items-center gap-2 text-stone-700"
+                                    className="flex items-center gap-2 text-slate-700"
                                 >
                                     <Lock className="h-4 w-4"/> Password
                                 </Label>
@@ -132,10 +132,10 @@ export default function PortalLogin() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={submitting}
                                     required
-                                    className="h-12 rounded-xl border-stone-200 bg-stone-200/70 text-stone-800 focus-visible:bg-white"
+                                    className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-800 focus-visible:bg-white"
                                 />
                                 {isRegister && (
-                                    <p className="text-xs text-stone-500">
+                                    <p className="text-xs text-slate-500">
                                         At least 8 characters, with an uppercase letter, a lowercase
                                         letter and a number.
                                     </p>
@@ -146,7 +146,7 @@ export default function PortalLogin() {
                                 <div className="space-y-2">
                                     <Label
                                         htmlFor="portal-confirm"
-                                        className="flex items-center gap-2 text-stone-700"
+                                        className="flex items-center gap-2 text-slate-700"
                                     >
                                         <Lock className="h-4 w-4"/> Confirm Password
                                     </Label>
@@ -158,7 +158,7 @@ export default function PortalLogin() {
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         disabled={submitting}
                                         required
-                                        className="h-12 rounded-xl border-stone-200 bg-stone-200/70 text-stone-800 focus-visible:bg-white"
+                                        className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-800 focus-visible:bg-white"
                                     />
                                 </div>
                             )}
@@ -173,7 +173,7 @@ export default function PortalLogin() {
                                 type="submit"
                                 size="xl"
                                 disabled={submitting}
-                                className="w-full bg-amber-300 text-stone-800 shadow-sm hover:bg-amber-400"
+                                className="w-full bg-[#253984] text-[#EAF6FF] shadow-md hover:bg-[#2A2A72]"
                             >
                                 {submitting
                                     ? isRegister ? 'Creating account…' : 'Logging in…'
@@ -181,20 +181,20 @@ export default function PortalLogin() {
                                 {isRegister ? <UserPlus className="h-4 w-4"/> : <ArrowRight className="h-4 w-4"/>}
                             </Button>
 
-                            <div className="flex items-center gap-3 pt-1 text-stone-400">
-                                <div className="h-px flex-1 bg-stone-300"/>
+                            <div className="flex items-center gap-3 pt-1 text-slate-400">
+                                <div className="h-px flex-1 bg-slate-300"/>
                                 <span className="text-sm">Or</span>
-                                <div className="h-px flex-1 bg-stone-300"/>
+                                <div className="h-px flex-1 bg-slate-300"/>
                             </div>
 
-                            <p className="text-center text-stone-600">
+                            <p className="text-center text-slate-600">
                                 {isRegister ? (
                                     <>
                                         Already have an account?{' '}
                                         <button
                                             type="button"
                                             onClick={() => switchMode('login')}
-                                            className="font-semibold text-stone-800 hover:underline"
+                                            className="font-semibold text-[#253984] hover:underline"
                                         >
                                             Log in
                                         </button>
@@ -205,7 +205,7 @@ export default function PortalLogin() {
                                         <button
                                             type="button"
                                             onClick={() => switchMode('register')}
-                                            className="font-semibold text-stone-800 hover:underline"
+                                            className="font-semibold text-[#253984] hover:underline"
                                         >
                                             Create your account
                                         </button>
@@ -216,7 +216,7 @@ export default function PortalLogin() {
                     </CardContent>
                 </Card>
 
-                <p className="mt-6 text-center text-sm text-yellow-50/90">
+                <p className="mt-6 text-center text-sm text-sky-100/90">
                     Work at the company?{' '}
                     <Link to="/login" className="font-semibold underline">
                         Go to the CRM staff login

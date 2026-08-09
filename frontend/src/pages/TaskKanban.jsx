@@ -2,96 +2,100 @@ import React, { useState, useEffect } from 'react';
 import { Search, Bell, Building2, Calendar, Users } from 'lucide-react';
 import NotificationPopup from "./NotificationPopup";
 import { getNotifications } from "../api/notifications";
+import CreateTaskPopup from "../components/TaskPopUp";
+import EditTaskPopup from "../components/EditTaskPopup";
 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 
 import "../styles/TaskBoard.css";
 import TaskDetail from "./TaskDetail";
 import {
-  getTasks,
-  updateTaskStatus
+    getTasks,
+    updateTaskStatus
 } from "../api/tasks";
 
 const COLUMNS = [
-  { id: "todo", name: "To Do" },
-  { id: "inprogress", name: "In Progress" },
-  { id: "completed", name: "Completed" }
+    {id: "todo", name: "To Do"},
+    {id: "inprogress", name: "In Progress"},
+    {id: "completed", name: "Completed"}
 ];
 
 const TaskKanban = () => {
-  const [tasks, setTasks] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterPriority, setFilterPriority] = useState("all");
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [draggedTaskId, setDraggedTaskId] = useState(null);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+    const [tasks, setTasks] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterPriority, setFilterPriority] = useState("all");
+    const [selectedTask, setSelectedTask] = useState(null);
+    const [draggedTaskId, setDraggedTaskId] = useState(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [showCreateTask, setShowCreateTask] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
 
 
-  const unreadCount =
-      notifications.filter(n => !n.read).length;
+    const unreadCount =
+        notifications.filter(n => !n.read).length;
 
 
-  // PRIORITY COLORS
-  const getPriorityClass = (priority) => {
-    switch (priority) {
-      case "High":
-        return "prio-high";
+    // PRIORITY COLORS
+    const getPriorityClass = (priority) => {
+        switch (priority) {
+            case "High":
+                return "prio-high";
 
-      case "Medium":
-        return "prio-medium";
+            case "Medium":
+                return "prio-medium";
 
-      case "Low":
-        return "prio-low";
+            case "Low":
+                return "prio-low";
 
-      default:
-        return "";
+            default:
+                return "";
+        }
+    };
+
+    const handleDragStart = (taskId) => {
+        setDraggedTaskId(taskId);
+    };
+
+    const handleDrop = async (newStatus) => {
+
+        try {
+            setTasks(prev =>
+                prev.map(task =>
+                    task._id === draggedTaskId
+                        ? {...task, status: newStatus}
+                        : task
+                )
+            )
+            await updateTaskStatus(
+                draggedTaskId,
+                newStatus
+            )
+        } catch (err) {
+            console.error(
+                "Failed to update task",
+                err
+            )
+
+        }
+
     }
-  };
 
-  const handleDragStart = (taskId) => {
-    setDraggedTaskId(taskId);
-  };
+    const filteredTasks = tasks.filter(task => {
+        const matchesSearch =
+            (task.title ?? "").toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesPriority =
+            filterPriority === "all" ||
+            task.priority.toLowerCase() === filterPriority.toLowerCase();
 
-  const handleDrop = async (newStatus) => {
-
-    try {
-      setTasks(prev =>
-          prev.map(task =>
-              task._id === draggedTaskId
-                  ? {...task, status: newStatus}
-                  : task
-          )
-      )
-      await updateTaskStatus(
-          draggedTaskId,
-          newStatus
-      )
-    } catch (err) {
-      console.error(
-          "Failed to update task",
-          err
-      )
-
-    }
-
-  }
-
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch =
-        (task.title ?? "").toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPriority =
-        filterPriority === "all" ||
-        task.priority.toLowerCase() === filterPriority.toLowerCase();
-
-    return matchesSearch && matchesPriority;
-  });
+        return matchesSearch && matchesPriority;
+    });
 
     useEffect(() => {
 
@@ -108,147 +112,185 @@ const TaskKanban = () => {
 
     }, []);
 
-  return (
-      <div className="task-container">
+    return (
+        <div className="task-container">
 
-          {/* POPUP */}
-          {selectedTask && (
-              <TaskDetail
-                  task={selectedTask}
-                  onClose={() => setSelectedTask(null)}
-              />
-          )}
+            {/* POPUP */}
 
-          {showNotifications && (
-              <NotificationPopup
-                  onClose={() => setShowNotifications(false)}
-              />
-          )}
+            {showCreateTask && (
+                <CreateTaskPopup
+                    onClose={() => setShowCreateTask(false)}
+                    refreshTasks={() => {
+                        getTasks()
+                            .then(data => setTasks(data))
+                            .catch(err => console.error(err));
+                    }}
+                />
+            )}
 
-          {/* NAVBAR */}
-          <div className="task-navbar">
+            {editingTask && (
+                <EditTaskPopup
+                    task={editingTask}
+                    onClose={() => setEditingTask(null)}
+                    refreshTasks={(updatedTask) => {
 
-              <div className="search-wrapper">
-                  <Search className="search-icon-svg" size={18}/>
+                        setTasks(prev =>
+                            prev.map(task =>
+                                task._id === updatedTask._id
+                                    ? updatedTask
+                                    : task
+                            )
+                        );
 
-                  <input
-                      type="text"
-                      placeholder="Search for task names..."
-                      className="search-input-field"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-              </div>
+                        setSelectedTask(updatedTask);
+                    }}
+                />
+            )}
 
-              <Select
-                  onValueChange={(value) => setFilterPriority(value)}
-                  defaultValue="all"
-              >
-                  <SelectTrigger className="dropdown-trigger-custom">
-                      <SelectValue placeholder="Priority"/>
-                  </SelectTrigger>
+            {selectedTask && (
+                <TaskDetail
+                    task={selectedTask}
+                    onClose={() => setSelectedTask(null)}
+                    onEdit={(task) => setEditingTask(task)}
+                />
+            )}
 
-                  <SelectContent className="dropdown-content-custom">
-                      <SelectItem value="all">All Priorities</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
-              </Select>
+            {showNotifications && (
+                <NotificationPopup
+                    onClose={() => setShowNotifications(false)}
+                />
+            )}
 
-              <div
-                  className="notification-wrapper"
-                  onClick={() => setShowNotifications(true)}
-              >
-                  <Bell size={20}/>
-                  {unreadCount > 0 && (
-                      <span className="notif-indicator"></span>
-                  )}
-              </div>
+            {/* NAVBAR */}
+            <div className="task-navbar">
 
-          </div>
+                <div className="search-wrapper">
+                    <Search className="search-icon-svg" size={18}/>
 
-          {/* BOARD */}
-          <div className="kanban-board-gradient">
+                    <input
+                        type="text"
+                        placeholder="Search for task names..."
+                        className="search-input-field"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <button
+                    className="create-task-btn"
+                    onClick={() => setShowCreateTask(true)}
+                >
+                    Create Task +
+                </button>
 
-              <div className="columns-wrapper">
+                <Select
+                    onValueChange={(value) => setFilterPriority(value)}
+                    defaultValue="all"
+                >
+                    <SelectTrigger className="dropdown-trigger-custom">
+                        <SelectValue placeholder="Priority"/>
+                    </SelectTrigger>
 
-                  {COLUMNS.map(column => (
-                      <div
-                          key={column.id}
-                          className="kanban-column"
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={() => handleDrop(column.id)}
-                      >
+                    <SelectContent className="dropdown-content-custom">
+                        <SelectItem value="all">All Priorities</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                </Select>
 
-                          <h2 className="column-title">
-                              {column.name}
-                          </h2>
+                <div
+                    className="notification-wrapper"
+                    onClick={() => setShowNotifications(true)}
+                >
+                    <Bell size={20}/>
+                    {unreadCount > 0 && (
+                        <span className="notif-indicator"></span>
+                    )}
+                </div>
 
-                          <div className="cards-stack">
+            </div>
 
-                              {filteredTasks
-                                  .filter(task => task.status === column.id)
-                                  .map(task => (
+            {/* BOARD */}
+            <div className="kanban-board-gradient">
 
-                                      <div
-                                          key={task._id}
-                                          className="task-card-item"
-                                          draggable
-                                          onDragStart={() => handleDragStart(task._id)}
-                                          onClick={() => setSelectedTask(task)}
-                                      >
+                <div className="columns-wrapper">
 
-                                          <div className="card-header">
+                    {COLUMNS.map(column => (
+                        <div
+                            key={column.id}
+                            className="kanban-column"
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={() => handleDrop(column.id)}
+                        >
 
-                                              <h3 className="task-text-title">
-                                                  {task.title}
-                                              </h3>
+                            <h2 className="column-title">
+                                {column.name}
+                            </h2>
 
-                                              <span className={`prio-tag ${getPriorityClass(task.priority)}`}>
+                            <div className="cards-stack">
+
+                                {filteredTasks
+                                    .filter(task => task.status === column.id)
+                                    .map(task => (
+
+                                        <div
+                                            key={task._id}
+                                            className="task-card-item"
+                                            draggable
+                                            onDragStart={() => handleDragStart(task._id)}
+                                            onClick={() => setSelectedTask(task)}
+                                        >
+
+                                            <div className="card-header">
+
+                                                <h3 className="task-text-title">
+                                                    {task.title}
+                                                </h3>
+
+                                                <span className={`prio-tag ${getPriorityClass(task.priority)}`}>
                           {task.priority}
                         </span>
 
-                                          </div>
+                                            </div>
 
-                                          <div className="card-body">
-                                              <Building2 size={14}/>
-                                              {task.company}
-                                          </div>
+                                            <div className="card-body">
+                                                <Building2 size={14}/>
+                                                {task.company}
+                                            </div>
 
-                                          <div className="card-footer">
+                                            <div className="card-footer">
 
-                                              <div className={`date-info ${task.overdue ? 'date-overdue' : ''}`}>
-                                                  <Calendar
-                                                      size={14}/> {new Date(task.dueDate).toLocaleDateString()} {task.overdue && "(Overdue)"}
-                                              </div>
+                                                <div className={`date-info ${task.overdue ? 'date-overdue' : ''}`}>
+                                                    <Calendar
+                                                        size={14}/> {new Date(task.dueDate).toLocaleDateString()} {task.overdue && "(Overdue)"}
+                                                </div>
 
-                                              {task.assignedTo?.length > 1 && (
-                                                  <div className="collab-info">
-                                                      <Users size={16}/>
-                                                      <span className="collab-plus">
+                                                {task.assignedTo?.length > 1 && (
+                                                    <div className="collab-info">
+                                                        <Users size={16}/>
+                                                        <span className="collab-plus">
                               +{task.assignedTo.length - 1}
                             </span>
-                                                  </div>
-                                              )}
+                                                    </div>
+                                                )}
 
-                                          </div>
+                                            </div>
 
-                                      </div>
+                                        </div>
 
-                                  ))}
+                                    ))}
 
-                          </div>
+                            </div>
 
-                      </div>
-                  ))}
+                        </div>
+                    ))}
 
-              </div>
+                </div>
 
-          </div>
+            </div>
 
-      </div>
-  );
+        </div>
+    );
 };
 
 export default TaskKanban;

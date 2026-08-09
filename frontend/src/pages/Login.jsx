@@ -71,26 +71,26 @@ export default function Login() {
             className="min-h-screen"
             style={{
                 backgroundImage:
-                    'linear-gradient(135deg, #704B2F 0%, #CC8C48 50%, #AA6A37 100%)',
+                    'linear-gradient(135deg, #1B1C3A 0%, #253984 55%, #2A2A72 100%)',
             }}
         >
             <AppHeader/>
 
             <main className="flex min-h-[calc(100vh-92px)] flex-col items-center px-4 py-10">
-                <h1 className="mb-1 text-center text-5xl font-extrabold tracking-tight text-amber-200 drop-shadow-sm sm:text-6xl">
+                <h1 className="mb-1 text-center text-5xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-6xl">
                     Welcome Back!
                 </h1>
-                <p className="mb-8 text-center text-lg text-yellow-100/90">
+                <p className="mb-8 text-center text-lg text-sky-100/90">
                     Log in to access your CRM
                 </p>
 
-                <Card className="w-full max-w-md rounded-3xl border-amber-200/50 bg-yellow-50/95 shadow-xl">
+                <Card className="w-full max-w-md rounded-3xl border-white/40 bg-white/95 shadow-2xl">
                     <CardContent className="p-8">
                         <form onSubmit={handleSubmit} noValidate className="space-y-5">
                             <div className="space-y-2">
                                 <Label
                                     htmlFor="email"
-                                    className="flex items-center gap-2 text-stone-700"
+                                    className="flex items-center gap-2 text-slate-700"
                                 >
                                     <Mail className="h-4 w-4"/> Work Email
                                 </Label>
@@ -102,14 +102,14 @@ export default function Login() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={submitting}
                                     required
-                                    className="h-12 rounded-xl border-stone-200 bg-stone-200/70 text-stone-800 focus-visible:bg-white"
+                                    className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-800 focus-visible:bg-white"
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <Label
                                     htmlFor="password"
-                                    className="flex items-center gap-2 text-stone-700"
+                                    className="flex items-center gap-2 text-slate-700"
                                 >
                                     <Lock className="h-4 w-4"/> Password
                                 </Label>
@@ -121,7 +121,7 @@ export default function Login() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={submitting}
                                     required
-                                    className="h-12 rounded-xl border-stone-200 bg-stone-200/70 text-stone-800 focus-visible:bg-white"
+                                    className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-800 focus-visible:bg-white"
                                 />
                             </div>
 
@@ -135,23 +135,23 @@ export default function Login() {
                                 type="submit"
                                 size="xl"
                                 disabled={submitting}
-                                className="w-full bg-amber-300 text-stone-800 shadow-sm hover:bg-amber-400"
+                                className="w-full bg-[#253984] text-[#EAF6FF] shadow-md hover:bg-[#2A2A72]"
                             >
                                 {submitting ? 'Logging in…' : 'Log In'}
                                 <ArrowRight className="h-4 w-4"/>
                             </Button>
 
-                            <div className="flex items-center gap-3 pt-1 text-stone-400">
-                                <div className="h-px flex-1 bg-stone-300"/>
+                            <div className="flex items-center gap-3 pt-1 text-slate-400">
+                                <div className="h-px flex-1 bg-slate-300"/>
                                 <span className="text-sm">Or</span>
-                                <div className="h-px flex-1 bg-stone-300"/>
+                                <div className="h-px flex-1 bg-slate-300"/>
                             </div>
 
-                            <p className="text-center text-stone-600">
+                            <p className="text-center text-slate-600">
                                 Don&apos;t have an account?{' '}
                                 <Link
                                     to="/signup"
-                                    className="font-semibold text-stone-800 hover:underline"
+                                    className="font-semibold text-[#253984] hover:underline"
                                 >
                                     Sign up
                                 </Link>
@@ -162,12 +162,12 @@ export default function Login() {
 
                 <section
                     aria-label="Single sign-on"
-                    className="mt-6 w-full max-w-md rounded-2xl bg-amber-900/40 p-5 text-center backdrop-blur-sm"
+                    className="mt-6 w-full max-w-md rounded-2xl border border-white/15 bg-white/10 p-5 text-center backdrop-blur-sm"
                 >
-                    <p className="flex items-center justify-center gap-2 font-semibold text-emerald-100">
+                    <p className="flex items-center justify-center gap-2 font-semibold text-sky-100">
                         <Lock className="h-4 w-4"/> Secure SSO Authentication
                     </p>
-                    <p className="mb-4 mt-1 text-sm text-yellow-50/90">
+                    <p className="mb-4 mt-1 text-sm text-sky-100/80">
                         Your credentials are handled securely by your organization
                     </p>
                     <GoogleSignInButton
@@ -177,7 +177,7 @@ export default function Login() {
                     />
                 </section>
 
-                <p className="mt-6 text-center text-sm text-yellow-50/90">
+                <p className="mt-6 text-center text-sm text-sky-100/90">
                     Are you a customer?{' '}
                     <Link to="/portal" className="font-semibold underline">
                         Visit the Customer Portal

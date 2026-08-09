@@ -184,4 +184,23 @@ router.delete('/:id', requireAuth, requirePermission('deleteRecords'), async (re
   }
 })
 
+// UPDATE deal probability
+router.patch('/:id/probability', requireAuth, async (req, res) => {
+    try {
+        const {probability} = req.body
+        if (typeof probability !== 'number' || probability < 0 || probability > 100)
+            return res.status(400).json({message: 'Probability must be a number between 0 and 100'})
+
+        const deal = await Deal.findByIdAndUpdate(
+            req.params.id,
+            {probability},
+            {new: true, runValidators: true}
+        )
+        if (!deal) return res.status(404).json({message: 'Deal not found'})
+        res.json(deal)
+    } catch {
+        res.status(500).json({message: 'Failed to update probability'})
+    }
+})
+
 module.exports = router

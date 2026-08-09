@@ -18,10 +18,45 @@
 .app-sidebar {
   width: 200px;
   min-width: 200px;
-  background: transparent;
+    transition: width .3s ease;
+    position: relative;
+}
+
+.app-sidebar.collapsed {
+    width: 70px;
+    min-width: 70px;
+}
+
+.sidebar-toggle {
+    position: absolute;
+    top: 18px;
+    right: 12px;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, .15);
+    color: white;
+
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
+    justify-content: center;
+    align-items: center;
+
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.sidebar-toggle:hover {
+    background: rgba(255, 255, 255, .25);
+}
+
+.app-sidebar.collapsed .sidebar-toggle {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
 }
 
 .app-main {
@@ -44,6 +79,12 @@
 .menu-wrapper {
   padding-top: 36px;
   width: 100%;
+    transition: opacity 0.2s ease;
+}
+
+.menu-wrapper.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .menu-title {

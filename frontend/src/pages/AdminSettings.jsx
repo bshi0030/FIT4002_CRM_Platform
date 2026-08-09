@@ -52,62 +52,64 @@ function AdminSettings() {
 
     return (
         <div className="admin-page">
-            <div className="admin-header">
-                <div>
-                    <h1>Settings</h1>
-                    <p>System configuration, teams, user access and permissions.</p>
+            <div className="admin-container">
+                <div className="admin-header">
+                    <h1 className="admin-title">Settings</h1>
+                    <p className="admin-subtitle">
+                        System configuration, teams, user access and permissions.
+                    </p>
                 </div>
-            </div>
 
-            <div className="admin-tabs" role="tablist">
-                {TABS.map((tab) => (
-                    <button
-                        key={tab.key}
-                        role="tab"
-                        aria-selected={activeTab === tab.key}
-                        className={`admin-tab ${activeTab === tab.key ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tab.key)}
-                    >
-                        {tab.icon} {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            {feedback && (
-                <div className={`admin-feedback ${feedback.type}`} role="status">
-                    {feedback.type === 'success' ? <FiCheckCircle/> : <FiAlertCircle/>}
-                    {feedback.message}
+                <div className="admin-tabs" role="tablist">
+                    {TABS.map((tab) => (
+                        <button
+                            key={tab.key}
+                            role="tab"
+                            aria-selected={activeTab === tab.key}
+                            className={`admin-tab ${activeTab === tab.key ? 'active' : ''}`}
+                            onClick={() => setActiveTab(tab.key)}
+                        >
+                            {tab.icon} {tab.label}
+                        </button>
+                    ))}
                 </div>
-            )}
 
-            {activeTab === 'general' && <GeneralSettingsTab notify={notify}/>}
+                {feedback && (
+                    <div className={`admin-feedback ${feedback.type}`} role="status">
+                        {feedback.type === 'success' ? <FiCheckCircle/> : <FiAlertCircle/>}
+                        {feedback.message}
+                    </div>
+                )}
 
-            {activeTab === 'teams' && (
-                <TeamsTab
-                    teams={teams}
-                    users={users}
-                    loading={loading}
-                    onDirectoryChanged={loadDirectory}
-                    notify={notify}
-                />
-            )}
+                {activeTab === 'general' && <GeneralSettingsTab notify={notify}/>}
 
-            {activeTab === 'users' && (
-                <UsersTab
-                    teams={teams}
-                    onDirectoryChanged={loadDirectory}
-                    notify={notify}
-                />
-            )}
+                {activeTab === 'teams' && (
+                    <TeamsTab
+                        teams={teams}
+                        users={users}
+                        loading={loading}
+                        onDirectoryChanged={loadDirectory}
+                        notify={notify}
+                    />
+                )}
 
-            {activeTab === 'permissions' && (
-                <PermissionsTab
-                    users={users}
-                    loading={loading}
-                    onDirectoryChanged={loadDirectory}
-                    notify={notify}
-                />
-            )}
+                {activeTab === 'users' && (
+                    <UsersTab
+                        teams={teams}
+                        onDirectoryChanged={loadDirectory}
+                        notify={notify}
+                    />
+                )}
+
+                {activeTab === 'permissions' && (
+                    <PermissionsTab
+                        users={users}
+                        loading={loading}
+                        onDirectoryChanged={loadDirectory}
+                        notify={notify}
+                    />
+                )}
+            </div>
         </div>
     );
 }

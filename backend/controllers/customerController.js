@@ -71,8 +71,27 @@ const getCustomerById = async (req, res) => {
     }
     res.status(200).json(customer);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error' });
+      res.status(500).json({message: 'Server Error'});
   }
+};
+
+// @desc    Get single customer by exact full name (case-insensitive)
+// @route   GET /api/customers/search?name=...
+const getCustomerByName = async (req, res) => {
+    try {
+        const {name} = req.query;
+        if (!name) return res.status(400).json({message: 'Name query parameter is required'});
+
+        const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const customer = await Customer.findOne({
+            fullName: {$regex: `^${escapeRegex(name)}$`, $options: 'i'}
+        });
+
+        if (!customer) return res.status(404).json({message: 'Customer not found'});
+        res.status(200).json(customer);
+    } catch (error) {
+        res.status(500).json({message: 'Server Error'});
+    }
 };
 
 // @desc    Update customer
@@ -104,7 +123,7 @@ const deleteCustomer = async (req, res) => {
     const customer = await Customer.findById(req.params.id);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
     if (!(await canViewCustomer(req.user, customer))) {
-      return res.status(403).json({message: 'You do not have access to this customer'});
+        return res.status(403).json({message: 'You do not have access to this customer'});
     }
 
     // Best-effort cleanup of uploaded files belonging to this customer
@@ -194,7 +213,7 @@ const deleteCustomerFile = async (req, res) => {
     const customer = await Customer.findById(req.params.id);
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
     if (!(await canViewCustomer(req.user, customer))) {
-      return res.status(403).json({message: 'You do not have access to this customer'});
+        return res.status(403).json({message: 'You do not have access to this customer'});
     }
 
     const fileIndex = customer.attachments.findIndex(f => f._id.toString() === req.params.fileId);
@@ -260,16 +279,20 @@ const deleteInteraction = async (req, res) => {
       return res.status(404).json({ status: "fail", message: "Customer not found." });
     }
     if (!(await canViewCustomer(req.user, customer))) {
-      return res.status(403).json({status: "fail", message: "You do not have access to this customer."});
+        return res.status(403).json({status: "fail", message: "You do not have access to this customer."});
     }
 
     const targetInteraction = customer.interactions.id(interactionId);
 
     if (targetInteraction && targetInteraction.type === 'Task') {
-      await Task.findOneAndDelete({
-        customer: new mongoose.Types.ObjectId(id),
-        title: targetInteraction.details
-      });
+        if (targetInteraction.taskId) {
+            await Task.findByIdAndDelete(targetInteraction.taskId);
+        } else {
+            await Task.findOneAndDelete({
+                customer: new mongoose.Types.ObjectId(id),
+                description: targetInteraction.details
+            });
+        }
     }
 
     const updatedCustomer = await Customer.findByIdAndUpdate(
@@ -336,7 +359,7 @@ const editInteraction = async (req, res) => {
           }
         },
         {
-          arrayFilters: [{"elem._id": interactionId}],
+            arrayFilters: [{"elem._id": interactionId}],
           new: true
         }
     );
@@ -387,4 +410,5 @@ module.exports = {
   addInteraction,
   deleteInteraction,
   editInteraction,
+    getCustomerByName,
 };
