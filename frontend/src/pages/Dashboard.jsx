@@ -134,6 +134,41 @@ function SortableCard({id, title, subTitle, headerRight, children, isEditing}) {
 const DEFAULT_KPI_LAYOUT = ['totalSales', 'dealsCompleted', 'ongoingDeals', 'avgDealValue'];
 const DEFAULT_LAYOUT = ['pipeline', 'trends', 'activity', 'team'];
 
+function SortableCard({id, title, subTitle, headerRight, children, isEditing}) {
+    const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id});
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : 'auto',
+        opacity: isDragging ? 0.8 : 1,
+    };
+
+    return (
+        <div className={`chart-card ${id}-card`} ref={setNodeRef} style={style}>
+            <div className="card-header">
+                <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                    {isEditing && (
+                        <div className="drag-handle" {...attributes} {...listeners}>
+                            <FiMove size={16}/>
+                        </div>
+                    )}
+                    <div>
+                        <h3 className="card-title">{title}</h3>
+                        <p className="card-sub">{subTitle}</p>
+                    </div>
+                </div>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    {headerRight}
+                </div>
+            </div>
+            {children}
+        </div>
+    );
+}
+
+const DEFAULT_KPI_LAYOUT = ['totalSales', 'dealsCompleted', 'ongoingDeals', 'avgDealValue'];
+const DEFAULT_LAYOUT = ['pipeline', 'trends', 'activity', 'team'];
+
 export default function Dashboard() {
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
