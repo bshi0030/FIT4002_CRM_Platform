@@ -94,24 +94,6 @@ const getCustomerByName = async (req, res) => {
     }
 };
 
-// @desc    Get single customer by exact full name (case-insensitive)
-// @route   GET /api/customers/search?name=...
-const getCustomerByName = async (req, res) => {
-  try {
-    const {name} = req.query;
-    if (!name) return res.status(400).json({message: 'Name query parameter is required'});
-
-    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const customer = await Customer.findOne({
-      fullName: {$regex: `^${escapeRegex(name)}$`, $options: 'i'}
-    });
-
-    if (!customer) return res.status(404).json({message: 'Customer not found'});
-    res.status(200).json(customer);
-  } catch (error) {
-    res.status(500).json({message: 'Server Error'});
-  }
-};
 
 // @desc    Update customer
 // @route   PUT /api/customers/:id
