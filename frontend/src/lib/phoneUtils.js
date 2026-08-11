@@ -21,7 +21,7 @@
  *   VITE_DEFAULT_PHONE_COUNTRY_CODE=65
  */
 const DEFAULT_COUNTRY_CODE =
-  (import.meta.env.VITE_DEFAULT_PHONE_COUNTRY_CODE || '60').replace(/\D/g, '');
+    (import.meta.env.VITE_DEFAULT_PHONE_COUNTRY_CODE || '60').replace(/\D/g, '');
 
 /**
  * Normalises a raw phone number string into an international digits-only
@@ -52,28 +52,28 @@ const DEFAULT_COUNTRY_CODE =
  * normalisePhoneNumber('abc')              // null
  */
 export function normalisePhoneNumber(phoneNumber, countryCode) {
-  if (phoneNumber == null || phoneNumber === '') return null;
+    if (phoneNumber == null || phoneNumber === '') return null;
 
-  const cc = (countryCode || DEFAULT_COUNTRY_CODE).replace(/\D/g, '');
-  let raw = String(phoneNumber).trim();
+    const cc = (countryCode || DEFAULT_COUNTRY_CODE).replace(/\D/g, '');
+    let raw = String(phoneNumber).trim();
 
-  // Strip leading "+" — the rest is already in international format
-  if (raw.startsWith('+')) {
-    raw = raw.slice(1);
-  }
+    // Strip leading "+" — the rest is already in international format
+    if (raw.startsWith('+')) {
+        raw = raw.slice(1);
+    }
 
-  // Remove all remaining non-digit characters
-  const digits = raw.replace(/\D/g, '');
+    // Remove all remaining non-digit characters
+    const digits = raw.replace(/\D/g, '');
 
-  if (!digits) return null;
+    if (!digits) return null;
 
-  // Local number starting with 0 — replace leading 0 with country code
-  const normalised = digits.startsWith('0') ? cc + digits.slice(1) : digits;
+    // Local number starting with 0 — replace leading 0 with country code
+    const normalised = digits.startsWith('0') ? cc + digits.slice(1) : digits;
 
-  // Reject numbers that are clearly too short to be valid
-  if (normalised.length < 7) return null;
+    // Reject numbers that are clearly too short to be valid
+    if (normalised.length < 7) return null;
 
-  return normalised;
+    return normalised;
 }
 
 /**
@@ -93,7 +93,7 @@ export function normalisePhoneNumber(phoneNumber, countryCode) {
  * generateWhatsAppUrl(null)               // null
  */
 export function generateWhatsAppUrl(phoneNumber, countryCode) {
-  const normalised = normalisePhoneNumber(phoneNumber, countryCode);
-  if (!normalised) return null;
-  return `https://wa.me/${normalised}`;
+    const normalised = normalisePhoneNumber(phoneNumber, countryCode);
+    if (!normalised) return null;
+    return `https://wa.me/${normalised}`;
 }

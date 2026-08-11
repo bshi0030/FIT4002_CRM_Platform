@@ -38,6 +38,19 @@ const userSchema = new mongoose.Schema(
             enum: ROLES,
             default: 'User',
         },
+        // Primary team the user belongs to. Users belong to at most one team.
+        team: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Team',
+            default: null,
+        },
+        // Individual overrides for restricted features. Only Admins hold these
+        // by default, and they implicitly hold all of them.
+        permissions: {
+            deleteCustomers: {type: Boolean, default: false},
+            deleteRecords: {type: Boolean, default: false},
+            viewAllData: {type: Boolean, default: false},
+        },
         authProvider: {
             type: String,
             enum: ['local', 'google'],
@@ -64,12 +77,24 @@ userSchema.methods.comparePassword = function (candidate) {
 }
 
 userSchema.methods.toSafeJSON = function () {
+    // team may be a raw ObjectId or a populated Team document
+    const team =
+        this.team && this.team.name
+            ? {id: this.team._id, name: this.team.name}
+            : this.team || null
+
     return {
         id: this._id,
         fullName: this.fullName,
         email: this.email,
         companyName: this.companyName,
         role: this.role,
+        team,
+        permissions: {
+            deleteCustomers: Boolean(this.permissions?.deleteCustomers),
+            deleteRecords: Boolean(this.permissions?.deleteRecords),
+            viewAllData: Boolean(this.permissions?.viewAllData),
+        },
         authProvider: this.authProvider,
         createdAt: this.createdAt,
     }

@@ -99,7 +99,7 @@ export default function GoogleSignInButton({onCredential, onError, disabled}) {
 
     if (unavailable) {
         return (
-            <p className="text-center text-sm text-yellow-50/80">
+            <p className="text-center text-sm text-sky-100/80">
                 Google sign-in is not configured.
             </p>
         )

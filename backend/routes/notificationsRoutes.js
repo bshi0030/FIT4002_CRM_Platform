@@ -16,13 +16,13 @@ router.get("/", requireAuth, async (req, res) => {
   try {
 
     const notifications =
-      await Notification.find({
-        user: req.user._id
-      })
+        await Notification.find({
+            user: req.user._id
+        })
 
-      .sort({ createdAt: -1 })
+            .sort({createdAt: -1})
 
-      .limit(20);
+            .limit(20);
 
     res.json(notifications);
 
@@ -45,9 +45,9 @@ router.patch("/read", requireAuth, async (req, res) => {
   try {
 
     await Notification.updateMany(
-      { user: req.user._id },
+        {user: req.user._id},
 
-      { read: true }
+        {read: true}
     );
 
     res.json({

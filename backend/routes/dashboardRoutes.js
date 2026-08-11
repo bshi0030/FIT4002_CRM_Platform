@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { getDashboardData } = require('../controllers/dashboardController');
+const {getDashboardData} = require('../controllers/dashboardController');
 
-const { requireAuth } = require('../middleware/auth');
+const {requireAuth} = require('../middleware/auth');
 
 // GET /api/dashboard
 router.get('/', requireAuth, getDashboardData);

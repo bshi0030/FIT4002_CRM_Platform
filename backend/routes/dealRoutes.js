@@ -2,9 +2,16 @@ const express = require('express')
 const router = express.Router()
 const Deal = require('../models/Deal')
 const { requireAuth, requireRole } = require('../middleware/auth')
+const {requirePermission} = require('../middleware/permissions')
 const DealLog = require('../models/DealLog')
 const Customer = require('../models/Customer')
 const User = require('../models/User')
+const {
+  getVisibleDealFilter,
+  getVisibleCustomerFilter,
+    getVisibleDealLogFilter,
+  canAccessDeal
+} = require('../middleware/teamScope')
 
 const STAGE_ORDER = [
   'Qualified', 'Contact Made', 'Demo Scheduled', 'Proposal Made', 'Negotiation', 'Won', 'Lost'
@@ -12,20 +19,22 @@ const STAGE_ORDER = [
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-// GET all deals
+// GET all deals visible to the requester (team scoped)
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const deals = await Deal.find().sort({ createdAt: -1 })
+    const scope = await getVisibleDealFilter(req.user)
+    const deals = await Deal.find(scope).sort({ createdAt: -1 })
     res.json(deals)
   } catch {
     res.status(500).json({ message: 'Failed to fetch deals' })
   }
 })
 
-// GET all status logs across all deals (for Deal History)
+// GET all status logs across visible deals (for Deal History)
 router.get('/logs', requireAuth, async (req, res) => {
   try {
-    const deals = await Deal.find({ 'statusLogs.0': { $exists: true } }, 'name statusLogs')
+    const scope = await getVisibleDealFilter(req.user)
+    const deals = await Deal.find({ ...scope, 'statusLogs.0': { $exists: true } }, 'name statusLogs')
     const logs = []
     deals.forEach(deal => {
       deal.statusLogs.forEach(log => {
@@ -38,8 +47,8 @@ router.get('/logs', requireAuth, async (req, res) => {
       })
     })
 
-    // Also pull deleted deal logs
-    const deletedLogs = await DealLog.find().lean()
+      // Also pull deleted deal logs, scoped the same way as live deals
+      const deletedLogs = await DealLog.find(await getVisibleDealLogFilter(req.user)).lean()
     deletedLogs.forEach(log => {
       logs.push({
         dealName: log.dealName,
@@ -63,8 +72,13 @@ router.post('/', requireAuth, requireRole('User', 'Admin'), async (req, res) => 
     const { name, company, price, priority, probability, assignee, customer } = req.body
 
     if (customer) {
+        // Deals can only be linked to customers the creator can actually see
+      const customerScope = await getVisibleCustomerFilter(req.user)
       const existingCustomer = await Customer.findOne({
-        fullName: { $regex: `^${escapeRegex(customer)}$`, $options: 'i' }
+        $and: [
+          { fullName: { $regex: `^${escapeRegex(customer)}$`, $options: 'i' } },
+          customerScope
+        ]
       })
       if (!existingCustomer) {
         return res.status(400).json({ message: 'Customer does not exist in the system' })
@@ -98,6 +112,8 @@ router.patch('/:id/stage', requireAuth, async (req, res) => {
     const { stage } = req.body
     const deal = await Deal.findById(req.params.id)
     if (!deal) return res.status(404).json({ message: 'Deal not found' })
+    if (!(await canAccessDeal(req.user, deal)))
+      return res.status(403).json({ message: 'You do not have access to this deal' })
 
     const currentIndex = STAGE_ORDER.indexOf(deal.stage)
     const nextIndex = STAGE_ORDER.indexOf(stage)
@@ -130,6 +146,8 @@ router.patch('/:id/outcome', requireAuth, async (req, res) => {
 
     const deal = await Deal.findById(req.params.id)
     if (!deal) return res.status(404).json({ message: 'Deal not found' })
+    if (!(await canAccessDeal(req.user, deal)))
+      return res.status(403).json({ message: 'You do not have access to this deal' })
 
     if (['Won', 'Lost'].includes(deal.stage))
       return res.status(400).json({ message: 'Deal already finalised' })
@@ -143,11 +161,14 @@ router.patch('/:id/outcome', requireAuth, async (req, res) => {
   }
 })
 
-// DELETE deal
-router.delete('/:id', requireAuth, requireRole('User', 'Admin'), async (req, res) => {
+// DELETE deal. Admin by default; grantable per person via
+// Settings -> Permissions. Non-admin holders stay team scoped.
+router.delete('/:id', requireAuth, requirePermission('deleteRecords'), async (req, res) => {
   try {
     const deal = await Deal.findById(req.params.id)
     if (!deal) return res.status(404).json({ message: 'Deal not found' })
+      if (!(await canAccessDeal(req.user, deal)))
+          return res.status(403).json({message: 'You do not have access to this deal'})
 
     await DealLog.create({
       dealName: deal.name,
@@ -165,21 +186,21 @@ router.delete('/:id', requireAuth, requireRole('User', 'Admin'), async (req, res
 
 // UPDATE deal probability
 router.patch('/:id/probability', requireAuth, async (req, res) => {
-  try {
-    const { probability } = req.body
-    if (typeof probability !== 'number' || probability < 0 || probability > 100)
-      return res.status(400).json({ message: 'Probability must be a number between 0 and 100' })
+    try {
+        const {probability} = req.body
+        if (typeof probability !== 'number' || probability < 0 || probability > 100)
+            return res.status(400).json({message: 'Probability must be a number between 0 and 100'})
 
-    const deal = await Deal.findByIdAndUpdate(
-      req.params.id,
-      { probability },
-      { new: true, runValidators: true }
-    )
-    if (!deal) return res.status(404).json({ message: 'Deal not found' })
-    res.json(deal)
-  } catch {
-    res.status(500).json({ message: 'Failed to update probability' })
-  }
+        const deal = await Deal.findByIdAndUpdate(
+            req.params.id,
+            {probability},
+            {new: true, runValidators: true}
+        )
+        if (!deal) return res.status(404).json({message: 'Deal not found'})
+        res.json(deal)
+    } catch {
+        res.status(500).json({message: 'Failed to update probability'})
+    }
 })
 
 module.exports = router
