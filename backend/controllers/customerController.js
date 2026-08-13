@@ -261,7 +261,7 @@ const addInteraction = async (req, res) => {
       });
     }
 
-    customer.interactions.push({ type, details, author: req.user.fullName });
+    customer.interactions.push({ type, details, author: req.user.fullName, createdBy: req.user._id });
     await customer.save();
 
     res.status(201).json(customer);

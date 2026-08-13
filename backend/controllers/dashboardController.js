@@ -8,17 +8,34 @@ exports.getDashboardData = async (req, res) => {
     try {
         const isSupervisor = req.user && ['Admin', 'Supervisor'].includes(req.user.role);
 
-        let effectiveMemberId = req.query.memberId;
-        if (!isSupervisor && req.user) {
-            effectiveMemberId = req.user._id;
+        const { seesEverything, getCompanyUserIds, getTeamMemberIds } = require('../middleware/teamScope');
+
+        let allowedUserIds = [];
+        if (req.user) {
+            if (seesEverything(req.user)) {
+                allowedUserIds = await getCompanyUserIds(req.user);
+            } else {
+                allowedUserIds = await getTeamMemberIds(req.user);
+            }
         }
 
-        const dealMatch = effectiveMemberId && mongoose.isValidObjectId(effectiveMemberId)
-            ? [{$match: {createdBy: new mongoose.Types.ObjectId(effectiveMemberId)}}]
+        let targetUserIds = allowedUserIds;
+
+        if (req.query.memberId && mongoose.isValidObjectId(req.query.memberId)) {
+            const memberIdStr = String(req.query.memberId);
+            if (allowedUserIds.some(id => String(id) === memberIdStr)) {
+                targetUserIds = [new mongoose.Types.ObjectId(req.query.memberId)];
+            }
+        } else if (!isSupervisor && req.user) {
+            targetUserIds = [req.user._id];
+        }
+
+        const dealMatch = targetUserIds.length > 0 
+            ? [{$match: {createdBy: {$in: targetUserIds}}}]
             : [];
 
-        const interactionMatch = effectiveMemberId && mongoose.isValidObjectId(effectiveMemberId)
-            ? [{$match: {"interactions.createdBy": new mongoose.Types.ObjectId(effectiveMemberId)}}]
+        const interactionMatch = targetUserIds.length > 0
+            ? [{$match: {"interactions.createdBy": {$in: targetUserIds}}}]
             : [];
 
         const timeFilter = req.query.timeFilter || 'thisMonth';
@@ -105,6 +122,7 @@ exports.getDashboardData = async (req, res) => {
 
         // 1. Aggregation for Deals
         const ongoingAgg = await Deal.aggregate([
+            ...dealMatch,
             ...dateMatchDealCreated,
             {
                 $facet: {
@@ -125,6 +143,7 @@ exports.getDashboardData = async (req, res) => {
         ]);
 
         const completedAgg = await Deal.aggregate([
+            ...dealMatch,
             ...dateMatchDealUpdated,
             {
                 $group: {
@@ -191,6 +210,7 @@ exports.getDashboardData = async (req, res) => {
         let prevIStats = {callsMade: 0, emailsSent: 0, meetingsHeld: 0};
         if (showChange) {
             const prevOngoingAgg = await Deal.aggregate([
+                ...dealMatch,
                 ...prevDateMatchDealCreated,
                 {
                     $group: {
@@ -201,6 +221,7 @@ exports.getDashboardData = async (req, res) => {
             ]);
 
             const prevCompletedAgg = await Deal.aggregate([
+                ...dealMatch,
                 ...prevDateMatchDealUpdated,
                 {
                     $group: {
@@ -365,6 +386,7 @@ exports.getDashboardData = async (req, res) => {
             : null;
 
         const pipelineAgg = await Deal.aggregate([
+            ...dealMatch,
             {
                 $facet: {
                     completedDeals: [
@@ -559,10 +581,20 @@ exports.getDashboardData = async (req, res) => {
             salesTrends = salesTrends.map(d => ({week: d.week, sales: d.sales}));
         }
 
-        let usersQuery = isSupervisor ? {} : {_id: req.user?._id};
+        const usersQuery = { _id: { $in: allowedUserIds } };
         const users = req.user ? await User.find(usersQuery).select('fullName _id role') : [];
 
+        let tableUsers = users;
+        if (req.query.memberId && mongoose.isValidObjectId(req.query.memberId)) {
+            tableUsers = users.filter(u => u._id.toString() === req.query.memberId.toString());
+        } else if (!isSupervisor && req.user) {
+            tableUsers = users.filter(u => u._id.toString() === req.user._id.toString());
+        }
+
+        const tableUserIds = tableUsers.map(u => u._id);
+
         const dealUserStats = await Deal.aggregate([
+            { $match: { createdBy: { $in: tableUserIds } } },
             ...dateMatchDealUpdated,
             {$match: {stage: "Won"}},
             {
@@ -576,7 +608,7 @@ exports.getDashboardData = async (req, res) => {
 
         const activityUserStats = await Customer.aggregate([
             {$unwind: "$interactions"},
-            {$match: {"interactions.createdBy": {$exists: true, $ne: null}}},
+            {$match: {"interactions.createdBy": { $in: tableUserIds }}},
             ...dateMatchInteraction,
             {
                 $group: {
@@ -585,11 +617,6 @@ exports.getDashboardData = async (req, res) => {
                 }
             }
         ]);
-
-        let tableUsers = users;
-        if (effectiveMemberId && mongoose.isValidObjectId(effectiveMemberId)) {
-            tableUsers = users.filter(u => u._id.toString() === effectiveMemberId.toString());
-        }
 
         let members = tableUsers.map(u => {
             const dStat = dealUserStats.find(d => d._id?.toString() === u._id.toString()) || {sales: 0, deals: 0};

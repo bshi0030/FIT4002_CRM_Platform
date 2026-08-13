@@ -63,12 +63,22 @@ const getVisibleCustomerFilter = async (user) => {
         {owner: null, team: null},
     ]
 
+    let tIds = [];
     if (user.team) {
-        if (user.role === 'Supervisor') {
-            clauses.push({team: user.team})
-        } else if (await teamSharingEnabled(user.team)) {
-            clauses.push({team: user.team})
+        if (user.role === 'Supervisor' || await teamSharingEnabled(user.team)) {
+            tIds.push(user.team);
         }
+    }
+    
+    if (user.role === 'Supervisor') {
+        const supervised = await Team.find({ supervisor: user._id }).select('_id');
+        supervised.forEach(t => {
+            if (!tIds.some(id => String(id) === String(t._id))) tIds.push(t._id);
+        });
+    }
+
+    if (tIds.length > 0) {
+        clauses.push({team: {$in: tIds}});
     }
 
     return {$or: clauses}
@@ -86,52 +96,81 @@ const canViewCustomer = async (user, customer) => {
             (id) => String(id) === String(customer.owner._id || customer.owner)
         )
     }
-    if (
-        user.team &&
-        customer.team &&
-        String(customer.team._id || customer.team) === String(user.team)
-    ) {
-        if (user.role === 'Supervisor') return true
+    if (user.role === 'Supervisor') {
+        let tIds = [];
+        if (user.team) tIds.push(user.team);
+        const supervised = await Team.find({ supervisor: user._id }).select('_id');
+        supervised.forEach(t => {
+            if (!tIds.some(id => String(id) === String(t._id))) tIds.push(t._id);
+        });
+        if (customer.team && tIds.some(id => String(id) === String(customer.team._id || customer.team))) {
+            return true;
+        }
+    } else if (user.team && customer.team && String(customer.team._id || customer.team) === String(user.team)) {
         return teamSharingEnabled(user.team)
     }
     return false
 }
 
-// IDs of all users in the same team as `user` (always includes the user).
+// IDs of all users in the teams this user has access to.
 const getTeamMemberIds = async (user) => {
-    if (!user.team) return [user._id]
-    const members = await User.find({team: user.team}).select('_id')
-    const ids = members.map((m) => m._id)
-    if (!ids.some((id) => String(id) === String(user._id))) ids.push(user._id)
+    let tIds = [];
+    if (user.team) tIds.push(user.team);
+    if (user.role === 'Supervisor') {
+        const supervised = await Team.find({ supervisor: user._id }).select('_id');
+        supervised.forEach(t => {
+            if (!tIds.some(id => String(id) === String(t._id))) tIds.push(t._id);
+        });
+    }
+
+    if (tIds.length === 0) return [user._id];
+
+    const members = await User.find({team: {$in: tIds}}).select('_id');
+    const ids = members.map((m) => m._id);
+    if (!ids.some((id) => String(id) === String(user._id))) ids.push(user._id);
     return ids
 }
 
 // Mongo filter matching every deal the user is allowed to see.
 // "Sees everything" access is bounded to deals created within the company.
 const getVisibleDealFilter = async (user) => {
-    const ids = seesEverything(user)
-        ? await getCompanyUserIds(user)
-        : await getTeamMemberIds(user)
-    return {createdBy: {$in: ids}}
+    if (seesEverything(user)) {
+        return {createdBy: {$in: await getCompanyUserIds(user)}};
+    }
+    if (user.role === 'Supervisor') {
+        return {createdBy: {$in: await getTeamMemberIds(user)}};
+    }
+    return {createdBy: user._id};
 }
 
 const canAccessDeal = async (user, deal) => {
     if (!deal.createdBy) return false
-    const ids = seesEverything(user)
-        ? await getCompanyUserIds(user)
-        : await getTeamMemberIds(user)
-    return ids.some((id) => String(id) === String(deal.createdBy._id || deal.createdBy))
+    
+    if (seesEverything(user)) {
+        const ids = await getCompanyUserIds(user);
+        return ids.some((id) => String(id) === String(deal.createdBy._id || deal.createdBy));
+    }
+    if (user.role === 'Supervisor') {
+        const ids = await getTeamMemberIds(user);
+        return ids.some((id) => String(id) === String(deal.createdBy._id || deal.createdBy));
+    }
+    
+    return String(user._id) === String(deal.createdBy._id || deal.createdBy);
 }
 
 // Scope for deleted-deal logs (DealLog documents, keyed by who made the change).
 const getVisibleDealLogFilter = async (user) => {
-    const ids = seesEverything(user)
-        ? await getCompanyUserIds(user)
-        : await getTeamMemberIds(user)
-    return {changedBy: {$in: ids}}
+    if (seesEverything(user)) {
+        return {changedBy: {$in: await getCompanyUserIds(user)}};
+    }
+    if (user.role === 'Supervisor') {
+        return {changedBy: {$in: await getTeamMemberIds(user)}};
+    }
+    return {changedBy: user._id};
 }
 
 module.exports = {
+    seesEverything,
     getVisibleCustomerFilter,
     canViewCustomer,
     getTeamMemberIds,

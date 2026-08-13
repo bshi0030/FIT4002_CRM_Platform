@@ -9,9 +9,21 @@ const { requireAuth } = require("../middleware/auth");
 // every logged in users tasks
 router.get("/", requireAuth, async (req, res) => {
   try {
-    const userId = new mongoose.Types.ObjectId(req.user._id);
+    const { seesEverything, getCompanyUserIds, getTeamMemberIds } = require('../middleware/teamScope');
+    let allowedUserIds = [];
+    if (seesEverything(req.user)) {
+        allowedUserIds = await getCompanyUserIds(req.user);
+    } else if (req.user.role === 'Supervisor') {
+        allowedUserIds = await getTeamMemberIds(req.user);
+    } else {
+        allowedUserIds = [req.user._id];
+    }
+    
     const tasks = await Task.find({
-        $or: [{assignedTo: userId}, {createdBy: userId}]
+        $or: [
+            {assignedTo: {$in: allowedUserIds}}, 
+            {createdBy: {$in: allowedUserIds}}
+        ]
     })
 
         .populate("assignedTo", "_id fullName")
