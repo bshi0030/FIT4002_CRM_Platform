@@ -199,7 +199,8 @@ const addInteraction = async (req, res) => {
     }
 
     if (type === 'Email') {
-      if (!googleAccessToken) {
+      const tokenToSend = req.user?.gmailAccessToken || googleAccessToken;
+      if (!tokenToSend) {
         return res.status(400).json({ message: 'Google authentication required to send emails.' });
       }
 
@@ -209,7 +210,7 @@ const addInteraction = async (req, res) => {
         customerEmail || customer.email, 
         emailSubject || "CRM Updates", 
         details, 
-        googleAccessToken
+        tokenToSend
       );
       console.log("✅ Live email dispatched successfully.");
     }
