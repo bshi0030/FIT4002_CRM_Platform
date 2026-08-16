@@ -9,9 +9,13 @@ const User = require('../models/User')
 const {
   getVisibleDealFilter,
   getVisibleCustomerFilter,
-    getVisibleDealLogFilter,
-  canAccessDeal
+  getVisibleDealLogFilter,
+  canAccessDeal,
+  getCompanyUserIds,
+  getTeamMemberIds
 } = require('../middleware/teamScope')
+const { hasPermission } = require('../middleware/permissions')
+
 
 const STAGE_ORDER = [
   'Qualified', 'Contact Made', 'Demo Scheduled', 'Proposal Made', 'Negotiation', 'Won', 'Lost'
@@ -20,8 +24,46 @@ const STAGE_ORDER = [
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 // GET all deals visible to the requester (team scoped)
+// Optional query params: ?userId=<id> or ?teamId=<id>
 router.get('/', requireAuth, async (req, res) => {
   try {
+    const { userId, teamId } = req.query
+
+    if (userId) {
+      // Validate the target user exists and is accessible
+      const targetUser = await User.findById(userId).select('_id team companyName')
+      if (!targetUser) return res.status(404).json({ message: 'User not found' })
+
+      // Admin/viewAllData: any user in their company
+      // Supervisor: only users in their own team
+      if (req.user.role === 'Admin' || hasPermission(req.user, 'viewAllData')) {
+        const companyIds = await getCompanyUserIds(req.user)
+        const inCompany = companyIds.some(id => String(id) === String(userId))
+        if (!inCompany) return res.status(403).json({ message: 'Access denied' })
+      } else if (req.user.role === 'Supervisor') {
+        const teamIds = await getTeamMemberIds(req.user)
+        const inTeam = teamIds.some(id => String(id) === String(userId))
+        if (!inTeam) return res.status(403).json({ message: 'Access denied' })
+      } else {
+        return res.status(403).json({ message: 'Insufficient permissions' })
+      }
+
+      const deals = await Deal.find({ createdBy: targetUser._id }).sort({ createdAt: -1 })
+      return res.json(deals)
+    }
+
+    if (teamId) {
+      // Only Admin or Supervisor with viewAllData
+      if (req.user.role !== 'Admin' && !hasPermission(req.user, 'viewAllData')) {
+        return res.status(403).json({ message: 'Insufficient permissions' })
+      }
+      const teamMembers = await User.find({ team: teamId }).select('_id')
+      const memberIds = teamMembers.map(m => m._id)
+      const deals = await Deal.find({ createdBy: { $in: memberIds } }).sort({ createdAt: -1 })
+      return res.json(deals)
+    }
+
+    // Default: return all deals visible to this user
     const scope = await getVisibleDealFilter(req.user)
     const deals = await Deal.find(scope).sort({ createdAt: -1 })
     res.json(deals)
@@ -64,6 +106,8 @@ router.get('/logs', requireAuth, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch logs' })
   }
 })
+
+
 
 // CREATE deal
 // CREATE deal

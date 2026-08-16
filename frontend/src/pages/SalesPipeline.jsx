@@ -5,6 +5,8 @@ import DealDetailModal from "../components/DealDetailModal";
 import { getDeals, createDeal, updateDealStage, markDealOutcome, getDealLogs, deleteDeal } from "../api/deals";
 import { useAuth } from "@/context/auth";
 import {can} from "@/lib/permissions";
+import { fetchMyTeam, fetchTeams } from "../api/teams";
+import { fetchUsers } from "../api/users";
 
 const STAGES = [
     {name: "Qualified", dot: "#A4A4A4"},
@@ -37,19 +39,58 @@ function SalesPipeline() {
     const [priorityFilter, setPriorityFilter] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedDeal, setSelectedDeal] = useState(null);
+    const canViewAllData = can(user, 'viewAllData');
+const isAdmin = user?.role === 'Admin';
+const isSupervisor = user?.role === 'Supervisor';
 
-    useEffect(() => {
-        getDeals()
-            .then(data => {
-                setDeals(data);
-                setLoading(false);
+const [teamMembers, setTeamMembers] = useState([]);
+const [allUsers, setAllUsers] = useState([]);
+const [allTeams, setAllTeams] = useState([]);
+const [userFilter, setUserFilter] = useState('');
+const [teamFilter, setTeamFilter] = useState('');
+
+    // Load filter options
+useEffect(() => {
+    if (isAdmin) {
+        // Admin needs all users and all teams in their company
+        Promise.all([fetchUsers(), fetchTeams()])
+            .then(([usersData, teamsData]) => {
+                setAllUsers(usersData.users || []);
+                setAllTeams(teamsData.teams || []);
             })
-            .catch(err => {
-                console.error(err);
-                setError('Failed to load deals');
-                setLoading(false);
-            });
-    }, []);
+            .catch(console.error);
+    } else if (isSupervisor) {
+        // Supervisor needs their own team members
+        fetchMyTeam()
+            .then(data => setTeamMembers(data.members || []))
+            .catch(console.error);
+        // If supervisor has viewAllData, also load all teams
+        if (canViewAllData) {
+            fetchTeams()
+                .then(data => setAllTeams(data.teams || []))
+                .catch(console.error);
+        }
+    }
+}, [isAdmin, isSupervisor, canViewAllData]);
+
+// Load deals whenever filters change
+useEffect(() => {
+    setLoading(true);
+    const params = {};
+    if (userFilter) params.userId = userFilter;
+    else if (teamFilter) params.teamId = teamFilter;
+
+    getDeals(params)
+        .then(data => {
+            setDeals(data);
+            setLoading(false);
+        })
+        .catch(err => {
+            console.error(err);
+            setError('Failed to load deals');
+            setLoading(false);
+        });
+}, [userFilter, teamFilter]);
 
     const handleAddLead = () => setShowModal(true);
     const handleCloseModal = () => {
@@ -258,6 +299,72 @@ function SalesPipeline() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
+
+                    {/* Supervisor: filter by salesperson in their team */}
+{isSupervisor && !canViewAllData && teamMembers.length > 0 && (
+    <select
+        className="btn-filter"
+        value={userFilter}
+        onChange={e => { setUserFilter(e.target.value); setTeamFilter(''); }}
+    >
+        <option value="">All Salespersons</option>
+        {teamMembers.map(m => (
+            <option key={m.id} value={m.id}>{m.fullName}</option>
+        ))}
+    </select>
+)}
+
+{/* Supervisor with viewAllData: salesperson filter (team only) + team filter */}
+{isSupervisor && canViewAllData && (
+    <>
+        <select
+            className="btn-filter"
+            value={userFilter}
+            onChange={e => { setUserFilter(e.target.value); setTeamFilter(''); }}
+        >
+            <option value="">All Salespersons</option>
+            {teamMembers.map(m => (
+                <option key={m.id} value={m.id}>{m.fullName}</option>
+            ))}
+        </select>
+        <select
+            className="btn-filter"
+            value={teamFilter}
+            onChange={e => { setTeamFilter(e.target.value); setUserFilter(''); }}
+        >
+            <option value="">All Teams</option>
+            {allTeams.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+        </select>
+    </>
+)}
+
+{/* Admin: salesperson filter (all company users) + team filter */}
+{isAdmin && (
+    <>
+        <select
+            className="btn-filter"
+            value={userFilter}
+            onChange={e => { setUserFilter(e.target.value); setTeamFilter(''); }}
+        >
+            <option value="">All Salespersons</option>
+            {allUsers.map(u => (
+                <option key={u.id} value={u.id}>{u.fullName} ({u.role})</option>
+            ))}
+        </select>
+        <select
+            className="btn-filter"
+            value={teamFilter}
+            onChange={e => { setTeamFilter(e.target.value); setUserFilter(''); }}
+        >
+            <option value="">All Teams</option>
+            {allTeams.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+        </select>
+    </>
+)}
                 </div>
 
                 {loading && <p style={{color: '#555', fontSize: '14px'}}>Loading deals...</p>}

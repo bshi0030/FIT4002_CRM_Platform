@@ -5,6 +5,7 @@ const User = require('../models/User')
 const Customer = require('../models/Customer')
 const {requireAuth, requireRole} = require('../middleware/auth')
 const {companyPattern, sameCompanyName} = require('../middleware/teamScope')
+const { hasPermission } = require('../middleware/permissions')
 
 const router = express.Router()
 
@@ -61,7 +62,11 @@ const findNameClash = (user, name, excludeId = null) =>
     })
 
 // GET /api/teams: the admin's company teams, used by team management and filters
-router.get('/', requireAuth, requireRole('Admin'), async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
+    // Admins see all company teams; Supervisors with viewAllData also get the list
+    if (req.user.role !== 'Admin' && !hasPermission(req.user, 'viewAllData')) {
+        return res.status(403).json({ message: 'Insufficient permissions' })
+    }
     try {
         const teams = await Team.find(companyTeamFilter(req.user))
             .populate('supervisor', 'fullName email')
