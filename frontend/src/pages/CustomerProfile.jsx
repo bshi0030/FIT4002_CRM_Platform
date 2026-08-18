@@ -693,22 +693,17 @@ function CustomerProfile() {
                                 {isComposingEmail ? (
                                     <EmailComposer
                                         customerEmail={customer.email}
+                                        customerId={customer?._id || customer?.id || id}
                                         onClose={() => setIsComposingEmail(false)}
-                                        onEmailSent={async ({subject}) => {
-
-                                            try {
-                                                // Axios automatically serializes JSON objects
-                                                await api.post(`/customers/${id}/interactions`, {
-                                                    type: "Email",
-                                                    details: `Sent Email - Subject: ${subject || ""}`,
-                                                });
-
-                                                await fetchCustomer(false);
-                                                setIsComposingEmail(false);
-                                            } catch (err) {
-                                                console.error("Failed to log email interaction", err);
-                                            }
-                                        }}
+                                        onEmailSent={async () => {
+                                          try {
+                                              await fetchCustomer(false);
+                                          } catch (err) {
+                                              console.error("Failed to refresh customer data:", err);
+                                          } finally {
+                                              setIsComposingEmail(false);
+                                          }
+                                      }}
                                     />
                                 ) : selectedInteraction && (
                                     <div className="side-panel">
