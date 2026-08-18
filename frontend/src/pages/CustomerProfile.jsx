@@ -327,7 +327,8 @@ function CustomerProfile() {
             type: newInteractionData.type || "Note",
             details: newInteractionData.desc,
             priority: newInteractionData.priority || "Medium",
-            dueDate: newInteractionData.dueDate || null
+            dueDate: newInteractionData.dueDate || null,
+            companyName: customer?.company
         };
 
         try {
@@ -801,27 +802,15 @@ function CustomerProfile() {
 
 
                     {/* Files & Documents */}
-                    {activeTab !== 'Notes' && (
+                    {!['Emails', 'Notes', 'Calls', 'Tasks'].includes(activeTab) && (
                         <div className="files-card">
                             <div className="files-header">
                                 <h3>Files & Documents</h3>
-                                {uploading && <span style={{
-                                    fontSize: '12px',
-                                    color: '#253984',
-                                    fontFamily: 'Inter',
-                                    marginRight: '8px'
-                                }}>Uploading...</span>}
-                                {uploadError && <span style={{
-                                    fontSize: '12px',
-                                    color: 'red',
-                                    fontFamily: 'Inter',
-                                    marginRight: '8px'
-                                }}>{uploadError}</span>}
                                 <label className="upload-btn">
-                                    <FiUpload/>
-                                    Upload
-                                    <input type="file" hidden onChange={handleFileUpload} disabled={uploading}/>
-                                </label>
+                                <FiUpload />
+                                Upload
+                                <input type="file" hidden onChange={handleFileUpload} />
+                              </label>
                             </div>
 
                             <div className="files-list">
@@ -834,9 +823,9 @@ function CustomerProfile() {
                                                 <span className="file-name">{doc.originalName}</span>
 
                                                 <span className="file-meta">
-                        Uploaded {formatInteractionTime(doc.createdAt)} -{" "}
+                                                    Uploaded {formatInteractionTime(doc.createdAt)} -{" "}
                                                     {(doc.fileSize / 1024 / 1024).toFixed(1)} MB
-                      </span>
+                                                </span>
                                             </div>
 
                                             <div className="file-actions">
@@ -877,20 +866,6 @@ function CustomerProfile() {
                         </div>
 
                         <div className="modal-body">
-                            {/* <div className="form-group">
-                <label>Interaction Type</label>
-                <select
-                  name="type"
-                  value={newInteractionData.type}
-                  onChange={handleNewInteractionChange}
-                  className="edit-select"
-                >
-                  <option value="Email">Email</option>
-                  <option value="Call">Call</option>
-                  <option value="Task">Task</option>
-                  <option value="Note">Note</option>
-                </select>
-              </div> */}
 
                             <div className="form-group">
                                 <label>Description / Notes</label>

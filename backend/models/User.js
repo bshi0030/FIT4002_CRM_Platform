@@ -61,6 +61,14 @@ const userSchema = new mongoose.Schema(
             index: true,
             sparse: true,
         },
+        gmailAccessToken: {
+            type: String,
+            default: null,
+        },
+        isGmailLinked: {
+            type: Boolean,
+            default: false,
+        },
     },
     {timestamps: true}
 )
@@ -97,6 +105,8 @@ userSchema.methods.toSafeJSON = function () {
         },
         authProvider: this.authProvider,
         createdAt: this.createdAt,
+        isGmailLinked: this.isGmailLinked,
+        gmailAccessToken: this.gmailAccessToken,
     }
 }
 

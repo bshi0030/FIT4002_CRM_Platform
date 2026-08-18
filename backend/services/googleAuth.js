@@ -14,6 +14,12 @@ const getClient = () => {
 }
 
 exports.verifyIdToken = async (idToken) => {
+    if (typeof idToken !== 'string') {
+        const err = new Error('Invalid token format');
+        err.status = 400;
+        throw err;
+    }
+    
     const oauth = getClient()
     const ticket = await oauth.verifyIdToken({
         idToken,

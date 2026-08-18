@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Task = require('../models/Task');
 const path = require('path');
 const fs = require('fs');
+const { sendGmailMessage }= require('../services/gmailService');
 const { getVisibleCustomerFilter, canViewCustomer } = require('../middleware/teamScope');
 
 // @desc    Create new customer
@@ -238,7 +239,7 @@ const deleteCustomerFile = async (req, res) => {
 
 const addInteraction = async (req, res) => {
   try {
-    const { type, details, companyName, priority, dueDate } = req.body;
+    const { type, details, companyName, priority, dueDate, googleAccessToken, customerEmail, emailSubject } = req.body;
     const customerId = req.params.id;
 
     const customer = await Customer.findById(customerId);
@@ -261,7 +262,24 @@ const addInteraction = async (req, res) => {
       });
     }
 
-    customer.interactions.push({ type, details, author: req.user.fullName, createdBy: req.user._id });
+    if (type === 'Email') {
+      const tokenToSend = req.user?.gmailAccessToken || googleAccessToken;
+      if (!tokenToSend) {
+        return res.status(400).json({ message: 'Google authentication required to send emails.' });
+      }
+
+      console.log(`✉️ Dispatching email to ${customerEmail || customer.email}...`);
+      
+      await sendGmailMessage(
+        customerEmail || customer.email, 
+        emailSubject || "CRM Updates", 
+        details, 
+        tokenToSend
+      );
+      console.log("✅ Live email dispatched successfully.");
+    }
+
+    customer.interactions.push({ type, details, author: req.user.fullName });
     await customer.save();
 
     res.status(201).json(customer);

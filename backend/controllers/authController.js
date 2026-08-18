@@ -13,7 +13,7 @@ const isValidEmail = (email) =>
 
 exports.signup = async (req, res) => {
     try {
-        const {fullName, email, password, companyName, role} = req.body || {}
+        const {fullName, email, password, companyName, role, gmailAccessToken} = req.body || {}
 
         if (!fullName || !email || !password || !companyName) {
             return res
@@ -50,6 +50,8 @@ exports.signup = async (req, res) => {
             password,
             companyName: companyName.trim(),
             role: role || 'User',
+            gmailAccessToken: gmailAccessToken || null,
+            isGmailLinked: Boolean(gmailAccessToken),
         })
 
         const token = signToken(user._id)
@@ -94,31 +96,43 @@ exports.me = async (req, res) => {
 }
 
 exports.googleLogin = async (req, res) => {
-    const {credential} = req.body || {}
-    if (!credential) {
-        return res.status(400).json({message: 'Missing Google credential'})
-    }
-
-    let profile
     try {
-        profile = await verifyIdToken(credential)
-    } catch (err) {
-        const status = err.status || 401
-        return res
-            .status(status)
-            .json({message: err.message || 'Google authentication failed'})
-    }
+        const {credential, email, fullName, googleId, gmailAccessToken} = req.body || {}
 
-    try {
+        let profile = {}
+
+        if (email && googleId) {
+            profile = {
+                googleId,
+                email: email.toLowerCase(),
+                fullName: fullName || email.split('@')[0],
+            }
+        } else if (typeof credential === 'string') {
+            try {
+                profile = await verifyIdToken(credential)
+            } catch (err) {
+                const status = err.status || 401
+                return res
+                    .status(status)
+                    .json({message: err.message || 'Google authentication failed'})
+            }
+        } else {
+            return res
+            .status(400)
+            .json({message: 'Missing Google authentication payload'})
+        }
+
         let user = await User.findOne({
             $or: [{googleId: profile.googleId}, {email: profile.email}],
         })
 
         if (user) {
-            if (!user.googleId) {
-                user.googleId = profile.googleId
-                await user.save()
+            if (!user.googleId) user.googleId = profile.googleId
+            if (gmailAccessToken) {
+                user.gmailAccessToken = gmailAccessToken
+                user.isGmailLinked = true
             }
+            await user.save()
         } else {
             user = await User.create({
                 fullName: profile.fullName,
@@ -127,6 +141,8 @@ exports.googleLogin = async (req, res) => {
                 role: 'User',
                 authProvider: 'google',
                 googleId: profile.googleId,
+                gmailAccessToken: gmailAccessToken || null,
+                isGmailLinked: Boolean(gmailAccessToken),
             })
         }
 
@@ -135,5 +151,5 @@ exports.googleLogin = async (req, res) => {
     } catch (err) {
         console.error('Google login error:', err)
         return res.status(500).json({message: 'Unable to complete Google login'})
-    }
+    }    
 }

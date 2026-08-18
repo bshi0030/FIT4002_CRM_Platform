@@ -14,6 +14,7 @@ import {
     Users,
 } from 'lucide-react'
 import {useAuth} from '@/context/auth'
+import { requestGmailToken } from '@/context/AuthContext'
 import AppHeader from '@/components/AppHeader'
 import KanbanMock from '@/components/KanbanMock'
 import {Button} from '@/components/ui/button'
@@ -131,19 +132,26 @@ export default function Signup() {
 
         setSubmitting(true)
         try {
+            const gmailAccessToken = await requestGmailToken()
+
             await signup({
                 fullName: form.fullName.trim(),
                 email: form.email.trim(),
                 password: form.password,
                 companyName: form.companyName.trim(),
                 role: form.role,
+                gmailAccessToken,
             })
             navigate('/', {replace: true})
         } catch (err) {
-            setError(
-                err?.response?.data?.message ||
-                'Unable to create your account. Please try again.'
-            )
+            if (err?.error === 'access_denied' || err?.message?.includes('closed')) {
+                setError('Google authorization was canceled. Please approve access to create your account.')
+            } else {
+                setError(
+                    err?.response?.data?.message ||
+                    'Unable to create your account. Please try again.'
+                )
+            }
         } finally {
             setSubmitting(false)
         }
