@@ -28,12 +28,18 @@ const taskSchema = new mongoose.Schema({
     type: Date
   },
 
-   assignedTo: [
+    assignedTo: [
     {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }
     ],
+
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
 
     description: {
     type: String,
@@ -50,19 +56,10 @@ const taskSchema = new mongoose.Schema({
     ref: 'Deal'
   },
 
-  currentStage: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Stage'
-  },
-
-  nextStage: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Stage'
-  },
 
     collaborative: {
-      type: Boolean,
-      default: false
+        type: Boolean,
+        default: false
     }
 
 

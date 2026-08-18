@@ -55,6 +55,10 @@ app.use('/api/interactions', require('./routes/interactionRoutes'))
 app.use('/api/deals', require('./routes/dealRoutes'))
 app.use('/api/tasks', require('./routes/taskRoutes'))
 app.use('/api/notifications', require('./routes/notificationsRoutes'))
+app.use('/api/users', require('./routes/userRoutes'))
+app.use('/api/teams', require('./routes/teamRoutes'))
+app.use('/api/settings', require('./routes/settingsRoutes'))
+app.use('/api/portal', require('./routes/portalRoutes'))
 app.use('/api/dashboard', require('./routes/dashboardRoutes'))
 
 // Error handlers — always last

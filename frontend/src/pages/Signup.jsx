@@ -33,10 +33,10 @@ import {
 const ROLES = ['Admin', 'Supervisor', 'User']
 
 const GRADIENTS = {
-    primary: 'linear-gradient(180deg, #FDD780 0%, #E9FF6B 100%)',
-    warm: 'linear-gradient(180deg, #F7E99A 0%, #E9FF6B 100%)',
+    primary: 'linear-gradient(180deg, #FFFFFF 0%, #DDE6FF 100%)',
+    warm: 'linear-gradient(180deg, #F5F8FF 0%, #CBD9FF 100%)',
     fresh:
-        'linear-gradient(180deg, #34C759 0%, #8EE362 50%, #E9FF6B 100%)',
+        'linear-gradient(180deg, #E9F0FF 0%, #B9CCFF 50%, #93AEF5 100%)',
 }
 
 const FEATURES = [
@@ -158,25 +158,26 @@ export default function Signup() {
     }
 
     return (
-        <div className="min-h-screen bg-stone-300">
+        <div className="min-h-screen bg-[#1B1C3A]">
             <AppHeader/>
 
             <section
                 className="px-6 py-12"
                 style={{
-                    backgroundImage: 'linear-gradient(135deg, #FDD780 0%, #E9FF6B 100%)',
+                    backgroundImage:
+                        'linear-gradient(135deg, #1B1C3A 0%, #253984 55%, #2A2A72 100%)',
                 }}
             >
                 <div
                     className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center lg:gap-20 xl:gap-28">
                     <div>
-                        <h1 className="mb-8 text-5xl font-extrabold leading-tight text-stone-900 sm:text-6xl">
+                        <h1 className="mb-8 text-5xl font-extrabold leading-tight text-white drop-shadow-sm sm:text-6xl">
                             Close More Deals,
                             <br/>
                             Faster than Ever
                         </h1>
 
-                        <Card className="rounded-3xl border-amber-200/50 bg-yellow-50/80 shadow-md">
+                        <Card className="rounded-3xl border-white/40 bg-white/95 shadow-2xl">
                             <CardContent className="p-7">
                                 <form onSubmit={handleSubmit} noValidate className="space-y-4">
                                     <Field
@@ -219,7 +220,7 @@ export default function Signup() {
                                     />
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="role" className="text-stone-700">
+                                        <Label htmlFor="role" className="text-slate-700">
                                             Role
                                         </Label>
                                         <Select
@@ -229,7 +230,7 @@ export default function Signup() {
                                         >
                                             <SelectTrigger
                                                 id="role"
-                                                className="h-12 rounded-xl border-stone-200 bg-stone-100 text-stone-800"
+                                                className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-800"
                                             >
                                                 <SelectValue placeholder="Select a role"/>
                                             </SelectTrigger>
@@ -253,17 +254,17 @@ export default function Signup() {
                                         type="submit"
                                         size="xl"
                                         disabled={submitting}
-                                        className="w-full bg-amber-300 text-stone-800 shadow-sm hover:bg-amber-400"
+                                        className="w-full bg-[#253984] text-[#EAF6FF] shadow-md hover:bg-[#2A2A72]"
                                     >
                                         {submitting ? 'Creating account…' : 'Create Your Account'}
                                         <ArrowRight className="h-4 w-4"/>
                                     </Button>
 
-                                    <p className="pt-1 text-center text-sm text-stone-600">
+                                    <p className="pt-1 text-center text-sm text-slate-600">
                                         Already have an account?{' '}
                                         <Link
                                             to="/login"
-                                            className="font-semibold text-stone-800 hover:underline"
+                                            className="font-semibold text-[#253984] hover:underline"
                                         >
                                             Log in
                                         </Link>
@@ -279,7 +280,7 @@ export default function Signup() {
                 </div>
             </section>
 
-            <section className="bg-stone-300 px-6 py-12">
+            <section className="bg-slate-200 px-6 py-12">
                 <div className="mx-auto max-w-6xl">
                     <div className="mb-10 text-center lg:hidden">
                         <FeaturesHeading/>
@@ -306,7 +307,7 @@ function Field({label, icon: Icon, name, ...inputProps}) {
         <div className="space-y-2">
             <Label
                 htmlFor={name}
-                className="flex items-center gap-2 text-stone-700"
+                className="flex items-center gap-2 text-slate-700"
             >
                 {Icon ? <Icon className="h-4 w-4"/> : null}
                 {label}
@@ -315,7 +316,7 @@ function Field({label, icon: Icon, name, ...inputProps}) {
                 id={name}
                 name={name}
                 required
-                className="h-12 rounded-xl border-stone-200 bg-stone-100 text-stone-800 focus-visible:bg-white"
+                className="h-12 rounded-xl border-slate-200 bg-slate-100 text-slate-800 focus-visible:bg-white"
                 {...inputProps}
             />
         </div>
@@ -325,16 +326,16 @@ function Field({label, icon: Icon, name, ...inputProps}) {
 function FeatureCard({title, body, icon: Icon, background, placement}) {
     return (
         <Card
-            className={`rounded-2xl border-transparent text-stone-900 shadow-sm ${placement || ''}`}
+            className={`rounded-2xl border-transparent text-[#232528] shadow-md ${placement || ''}`}
             style={{backgroundImage: background}}
         >
             <CardContent className="p-6">
                 <div
-                    className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-stone-900 text-amber-300">
+                    className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#253984] text-[#EAF6FF]">
                     <Icon className="h-5 w-5"/>
                 </div>
-                <h3 className="mb-2 text-lg font-bold text-stone-900">{title}</h3>
-                <p className="text-sm text-stone-800/90">{body}</p>
+                <h3 className="mb-2 text-lg font-bold text-[#232528]">{title}</h3>
+                <p className="text-sm text-[#555555]">{body}</p>
             </CardContent>
         </Card>
     )
@@ -343,10 +344,10 @@ function FeatureCard({title, body, icon: Icon, background, placement}) {
 function FeaturesHeading() {
     return (
         <>
-            <h2 className="text-3xl font-bold text-stone-900">
+            <h2 className="text-3xl font-bold text-[#232528]">
                 Everything You Need To Succeed
             </h2>
-            <p className="mt-2 text-stone-700">
+            <p className="mt-2 text-[#555555]">
                 Powerful features designed to help your sales team work smarter, not
                 harder
             </p>

@@ -9,6 +9,6 @@ export const fetchDashboardData = async (memberId = '', timeFilter = 'thisMonth'
         if (customEndDate) params.append('endDate', customEndDate);
     }
     const url = `/dashboard?${params.toString()}`;
-    const { data } = await client.get(url)
+    const {data} = await client.get(url)
     return data
 }

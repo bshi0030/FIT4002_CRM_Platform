@@ -2,252 +2,295 @@ import React, { useState, useEffect } from 'react';
 import { Search, Bell, Building2, Calendar, Users } from 'lucide-react';
 import NotificationPopup from "./NotificationPopup";
 import { getNotifications } from "../api/notifications";
+import CreateTaskPopup from "../components/TaskPopUp";
+import EditTaskPopup from "../components/EditTaskPopup";
 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 
 import "../styles/TaskBoard.css";
 import TaskDetail from "./TaskDetail";
 import {
-  getTasks,
-  updateTaskStatus
+    getTasks,
+    updateTaskStatus
 } from "../api/tasks";
 
 const COLUMNS = [
-  { id: "todo", name: "To Do" },
-  { id: "inprogress", name: "In Progress" },
-  { id: "completed", name: "Completed" }
+    {id: "todo", name: "To Do"},
+    {id: "inprogress", name: "In Progress"},
+    {id: "completed", name: "Completed"}
 ];
 
 const TaskKanban = () => {
-  const [tasks, setTasks] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterPriority, setFilterPriority] = useState("all");
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [draggedTaskId, setDraggedTaskId] = useState(null);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-
-  
-  const unreadCount =
-  notifications.filter(n => !n.read).length;
+    const [tasks, setTasks] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterPriority, setFilterPriority] = useState("all");
+    const [selectedTask, setSelectedTask] = useState(null);
+    const [draggedTaskId, setDraggedTaskId] = useState(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [showCreateTask, setShowCreateTask] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
 
 
-  // PRIORITY COLORS
-  const getPriorityClass = (priority) => {
-    switch (priority) {
-      case "High":
-        return "prio-high";
+    const unreadCount =
+        notifications.filter(n => !n.read).length;
 
-      case "Medium":
-        return "prio-medium";
 
-      case "Low":
-        return "prio-low";
+    // PRIORITY COLORS
+    const getPriorityClass = (priority) => {
+        switch (priority) {
+            case "High":
+                return "prio-high";
 
-      default:
-        return "";
+            case "Medium":
+                return "prio-medium";
+
+            case "Low":
+                return "prio-low";
+
+            default:
+                return "";
+        }
+    };
+
+    const handleDragStart = (taskId) => {
+        setDraggedTaskId(taskId);
+    };
+
+    const handleDrop = async (newStatus) => {
+
+        try {
+            setTasks(prev =>
+                prev.map(task =>
+                    task._id === draggedTaskId
+                        ? {...task, status: newStatus}
+                        : task
+                )
+            )
+            await updateTaskStatus(
+                draggedTaskId,
+                newStatus
+            )
+        } catch (err) {
+            console.error(
+                "Failed to update task",
+                err
+            )
+
+        }
+
     }
-  };
 
-  const handleDragStart = (taskId) => {
-    setDraggedTaskId(taskId);
-  };
+    const filteredTasks = tasks.filter(task => {
+        const matchesSearch =
+            (task.title ?? "").toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesPriority =
+            filterPriority === "all" ||
+            task.priority.toLowerCase() === filterPriority.toLowerCase();
 
-  const handleDrop = async (newStatus) => {
+        return matchesSearch && matchesPriority;
+    });
 
-    try {
-      setTasks(prev =>
-        prev.map(task =>
-          task._id === draggedTaskId
-            ? { ...task, status: newStatus }
-            : task
-        )
-      )
-      await updateTaskStatus(
-        draggedTaskId,
-        newStatus
-      )
-    } catch (err) {
-      console.error(
-        "Failed to update task",
-        err
-      )
+    useEffect(() => {
 
-    }
+        getTasks()
+            .then(data => {
+                console.log("TASKS FROM API:", data);
+                setTasks(data);
+            })
+            .catch(err => console.error("API ERROR:", err));
 
-  }
+        getNotifications()
+            .then(data => setNotifications(data))
+            .catch(err => console.error(err));
 
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch =
-  (task.title ?? "").toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPriority =
-      filterPriority === "all" ||
-      task.priority.toLowerCase() === filterPriority.toLowerCase();
+    }, []);
 
-    return matchesSearch && matchesPriority;
-  });
+    return (
+        <div className="task-container">
 
-useEffect(() => {
+            {/* POPUP */}
 
-  getTasks()
-    .then(data => {
-      console.log("TASKS FROM API:", data);
-      setTasks(data);
-    })
-    .catch(err => console.error("API ERROR:", err));
+            {showCreateTask && (
+                <CreateTaskPopup
+                    onClose={() => setShowCreateTask(false)}
+                    refreshTasks={() => {
+                        getTasks()
+                            .then(data => setTasks(data))
+                            .catch(err => console.error(err));
+                    }}
+                />
+            )}
 
-  getNotifications()
-    .then(data => setNotifications(data))
-    .catch(err => console.error(err));
+            {editingTask && (
+                <EditTaskPopup
+                    task={editingTask}
+                    onClose={() => setEditingTask(null)}
+                    refreshTasks={(updatedTask) => {
 
-}, []);
+                        setTasks(prev =>
+                            prev.map(task =>
+                                task._id === updatedTask._id
+                                    ? updatedTask
+                                    : task
+                            )
+                        );
 
-  return (
-    <div className="task-container">
+                        setSelectedTask(updatedTask);
+                    }}
+                />
+            )}
 
-      {/* POPUP */}
-      {selectedTask && (
-        <TaskDetail
-          task={selectedTask}
-          onClose={() => setSelectedTask(null)}
-        />
-      )}
+            {selectedTask && (
+                <TaskDetail
+                    task={selectedTask}
+                    onClose={() => setSelectedTask(null)}
+                    onEdit={(task) => setEditingTask(task)}
+                />
+            )}
 
-      {showNotifications && (
-  <NotificationPopup
-    onClose={() => setShowNotifications(false)}
-  />
-)}
+            {showNotifications && (
+                <NotificationPopup
+                    onClose={() => setShowNotifications(false)}
+                />
+            )}
 
-      {/* NAVBAR */}
-      <div className="task-navbar">
+            {/* NAVBAR */}
+            <div className="task-navbar">
 
-        <div className="search-wrapper">
-          <Search className="search-icon-svg" size={18} />
+                <div className="search-wrapper">
+                    <Search className="search-icon-svg" size={18}/>
 
-          <input
-            type="text"
-            placeholder="Search for task names..."
-            className="search-input-field"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+                    <input
+                        type="text"
+                        placeholder="Search for task names..."
+                        className="search-input-field"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <button
+                    className="create-task-btn"
+                    onClick={() => setShowCreateTask(true)}
+                >
+                    Create Task +
+                </button>
 
-        <Select
-          onValueChange={(value) => setFilterPriority(value)}
-          defaultValue="all"
-        >
-          <SelectTrigger className="dropdown-trigger-custom">
-            <SelectValue placeholder="Priority" />
-          </SelectTrigger>
+                <Select
+                    onValueChange={(value) => setFilterPriority(value)}
+                    defaultValue="all"
+                >
+                    <SelectTrigger className="dropdown-trigger-custom">
+                        <SelectValue placeholder="Priority"/>
+                    </SelectTrigger>
 
-          <SelectContent className="dropdown-content-custom">
-            <SelectItem value="all">All Priorities</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-          </SelectContent>
-        </Select>
+                    <SelectContent className="dropdown-content-custom">
+                        <SelectItem value="all">All Priorities</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                </Select>
 
-<div
-  className="notification-wrapper"
-  onClick={() => setShowNotifications(true)}
->
-  <Bell size={20} />
-  {unreadCount > 0 && (
-  <span className="notif-indicator"></span>
-)}
-</div>
+                <div
+                    className="notification-wrapper"
+                    onClick={() => setShowNotifications(true)}
+                >
+                    <Bell size={20}/>
+                    {unreadCount > 0 && (
+                        <span className="notif-indicator"></span>
+                    )}
+                </div>
 
-      </div>
+            </div>
 
-      {/* BOARD */}
-      <div className="kanban-board-gradient">
+            {/* BOARD */}
+            <div className="kanban-board-gradient">
 
-        <div className="columns-wrapper">
+                <div className="columns-wrapper">
 
-          {COLUMNS.map(column => (
-            <div
-              key={column.id}
-              className="kanban-column"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => handleDrop(column.id)}
-            >
+                    {COLUMNS.map(column => (
+                        <div
+                            key={column.id}
+                            className="kanban-column"
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={() => handleDrop(column.id)}
+                        >
 
-              <h2 className="column-title">
-                {column.name}
-              </h2>
+                            <h2 className="column-title">
+                                {column.name}
+                            </h2>
 
-              <div className="cards-stack">
+                            <div className="cards-stack">
 
-                {filteredTasks
-                  .filter(task => task.status === column.id)
-                  .map(task => (
+                                {filteredTasks
+                                    .filter(task => task.status === column.id)
+                                    .map(task => (
 
-                    <div
-                      key={task._id}
-                      className="task-card-item"
-                      draggable
-                      onDragStart={() => handleDragStart(task._id)}
-                      onClick={() => setSelectedTask(task)}
-                    >
+                                        <div
+                                            key={task._id}
+                                            className="task-card-item"
+                                            draggable
+                                            onDragStart={() => handleDragStart(task._id)}
+                                            onClick={() => setSelectedTask(task)}
+                                        >
 
-                      <div className="card-header">
+                                            <div className="card-header">
 
-                        <h3 className="task-text-title">
-                          {task.title}
-                        </h3>
+                                                <h3 className="task-text-title">
+                                                    {task.title}
+                                                </h3>
 
-                        <span className={`prio-tag ${getPriorityClass(task.priority)}`}>
+                                                <span className={`prio-tag ${getPriorityClass(task.priority)}`}>
                           {task.priority}
                         </span>
 
-                      </div>
+                                            </div>
 
-                      <div className="card-body">
-                        <Building2 size={14} />
-                        {task.company}
-                      </div>
+                                            <div className="card-body">
+                                                <Building2 size={14}/>
+                                                {task.company}
+                                            </div>
 
-                      <div className="card-footer">
+                                            <div className="card-footer">
 
-                        <div className={`date-info ${task.overdue ? 'date-overdue' : ''}`}>
-                          <Calendar size={14} /> {new Date(task.dueDate).toLocaleDateString()} {task.overdue && "(Overdue)"}
-                        </div>
+                                                <div className={`date-info ${task.overdue ? 'date-overdue' : ''}`}>
+                                                    <Calendar
+                                                        size={14}/> {new Date(task.dueDate).toLocaleDateString()} {task.overdue && "(Overdue)"}
+                                                </div>
 
-                        {task.assignedTo?.length > 1 && (
-                          <div className="collab-info">
-                            <Users size={16} />
-                            <span className="collab-plus">
+                                                {task.assignedTo?.length > 1 && (
+                                                    <div className="collab-info">
+                                                        <Users size={16}/>
+                                                        <span className="collab-plus">
                               +{task.assignedTo.length - 1}
                             </span>
-                          </div>
-                        )}
+                                                    </div>
+                                                )}
 
-                      </div>
+                                            </div>
 
-                    </div>
+                                        </div>
 
-                  ))}
+                                    ))}
 
-              </div>
+                            </div>
+
+                        </div>
+                    ))}
+
+                </div>
 
             </div>
-          ))}
 
         </div>
-
-      </div>
-
-    </div>
-  );
+    );
 };
 
 export default TaskKanban;

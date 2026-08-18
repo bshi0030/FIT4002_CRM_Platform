@@ -3,8 +3,8 @@ const path = 'backend/controllers/dashboardController.js';
 let content = fs.readFileSync(path, 'utf8');
 
 content = content.replace(
-/        if \(Object\.keys\(dealDateCondition\)\.length > 0\) \{\n            dateMatchDeal = \[\{ \$match: \{ updatedAt: dealDateCondition \} \}\];\n        \}/,
-`        let dateMatchDealCreated = [];
+    /        if \(Object\.keys\(dealDateCondition\)\.length > 0\) \{\n            dateMatchDeal = \[\{ \$match: \{ updatedAt: dealDateCondition \} \}\];\n        \}/,
+    `        let dateMatchDealCreated = [];
         let dateMatchDealUpdated = [];
         if (Object.keys(dealDateCondition).length > 0) {
             dateMatchDealCreated = [{ $match: { createdAt: dealDateCondition } }];
@@ -13,8 +13,8 @@ content = content.replace(
 );
 
 content = content.replace(
-/        let prevDateMatchDeal = \[\];\n        let prevDateMatchInteraction = \[\];\n        if \(showChange\) \{\n            let pDealDateCond = \{\};\n            if \(prevStartDate\) pDealDateCond\.\$gte = prevStartDate;\n            if \(prevEndDate\) pDealDateCond\.\$lte = new Date\(new Date\(prevEndDate\)\.setHours\(23, 59, 59, 999\)\);\n            if \(Object\.keys\(pDealDateCond\)\.length > 0\) \{\n                prevDateMatchDeal = \[\{ \$match: \{ updatedAt: pDealDateCond \} \}\];\n                prevDateMatchInteraction = \[\{ \$match: \{ "interactions\.date": pDealDateCond \} \}\];\n            \}\n        \}/,
-`        let prevDateMatchDealCreated = [];
+    /        let prevDateMatchDeal = \[\];\n        let prevDateMatchInteraction = \[\];\n        if \(showChange\) \{\n            let pDealDateCond = \{\};\n            if \(prevStartDate\) pDealDateCond\.\$gte = prevStartDate;\n            if \(prevEndDate\) pDealDateCond\.\$lte = new Date\(new Date\(prevEndDate\)\.setHours\(23, 59, 59, 999\)\);\n            if \(Object\.keys\(pDealDateCond\)\.length > 0\) \{\n                prevDateMatchDeal = \[\{ \$match: \{ updatedAt: pDealDateCond \} \}\];\n                prevDateMatchInteraction = \[\{ \$match: \{ "interactions\.date": pDealDateCond \} \}\];\n            \}\n        \}/,
+    `        let prevDateMatchDealCreated = [];
         let prevDateMatchDealUpdated = [];
         let prevDateMatchInteraction = [];
         if (showChange) {
