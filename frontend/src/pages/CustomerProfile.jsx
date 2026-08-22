@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import {useParams, Link, useNavigate} from 'react-router-dom';
 import api from '../api/client';
-import { useAuth } from '@/context/auth';
+import {useAuth} from '@/context/auth';
 import {can} from '@/lib/permissions';
 import '../styles/CustomerProfile.css';
 import '../styles/InteractionSidePanel.css'
@@ -696,14 +696,14 @@ function CustomerProfile() {
                                         customerId={customer?._id || customer?.id || id}
                                         onClose={() => setIsComposingEmail(false)}
                                         onEmailSent={async () => {
-                                          try {
-                                              await fetchCustomer(false);
-                                          } catch (err) {
-                                              console.error("Failed to refresh customer data:", err);
-                                          } finally {
-                                              setIsComposingEmail(false);
-                                          }
-                                      }}
+                                            try {
+                                                await fetchCustomer(false);
+                                            } catch (err) {
+                                                console.error("Failed to refresh customer data:", err);
+                                            } finally {
+                                                setIsComposingEmail(false);
+                                            }
+                                        }}
                                     />
                                 ) : selectedInteraction && (
                                     <div className="side-panel">
@@ -802,10 +802,10 @@ function CustomerProfile() {
                             <div className="files-header">
                                 <h3>Files & Documents</h3>
                                 <label className="upload-btn">
-                                <FiUpload />
-                                Upload
-                                <input type="file" hidden onChange={handleFileUpload} />
-                              </label>
+                                    <FiUpload/>
+                                    Upload
+                                    <input type="file" hidden onChange={handleFileUpload}/>
+                                </label>
                             </div>
 
                             <div className="files-list">

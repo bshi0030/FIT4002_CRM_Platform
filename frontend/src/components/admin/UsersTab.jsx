@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { FiSearch, FiUsers } from 'react-icons/fi';
-import { fetchUsers, updateUserRole, updateUserTeam } from '../../api/users';
-import { useAuth } from '@/context/auth';
+import {useEffect, useRef, useState} from 'react';
+import {FiSearch, FiUsers} from 'react-icons/fi';
+import {fetchUsers, updateUserRole, updateUserTeam} from '../../api/users';
+import {useAuth} from '@/context/auth';
 
 const ROLES = ['Admin', 'Supervisor', 'User'];
 
@@ -14,7 +14,7 @@ const initialsOf = (name = '') =>
         .join('');
 
 // Full user directory with search and filters, role assignment, and team assignment or transfer.
-function UsersTab({ teams, onDirectoryChanged, notify }) {
+function UsersTab({teams, onDirectoryChanged, notify}) {
     const {user: me} = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);

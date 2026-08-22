@@ -2,6 +2,15 @@ const User = require('../models/User')
 const {ROLES} = require('../models/User')
 const {signToken} = require('../middleware/auth')
 const {verifyIdToken} = require('../services/googleAuth')
+const {verifyEmailExists} = require('../services/emailVerification')
+const {validatePassword} = require('../services/passwordPolicy')
+const {
+    isConfirmationRequired,
+    isValidCodeFormat,
+    issueCode,
+    confirmCode,
+} = require('../services/emailConfirmation')
+const {companyPattern} = require('../middleware/teamScope')
 
 const companyFromEmail = (email) => {
     const domain = (email.split('@')[1] || '').split('.')[0] || 'My Company'
@@ -10,6 +19,13 @@ const companyFromEmail = (email) => {
 
 const isValidEmail = (email) =>
     typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+const normalizeEmail = (email) => String(email || '').toLowerCase().trim()
+
+// A company has exactly one Admin: whoever signs up first. Everyone after
+// them joins as Supervisor or User and is promoted from Settings -> Users.
+const companyHasAdmin = async (companyName) =>
+    Boolean(await User.findOne({companyName: companyPattern(companyName), role: 'Admin'}))
 
 exports.signup = async (req, res) => {
     try {
@@ -26,36 +42,86 @@ exports.signup = async (req, res) => {
                 .json({message: 'Full name cannot be more than 120 characters'})
         }
         if (!isValidEmail(email)) {
-            return res.status(400).json({message: 'Please provide a valid email'})
-        }
-        if (typeof password !== 'string' || password.length < 8) {
             return res
                 .status(400)
-                .json({message: 'Password must be at least 8 characters'})
+                .json({message: 'Please provide a valid email', field: 'email'})
+        }
+        const passwordCheck = validatePassword(password)
+        if (!passwordCheck.ok) {
+            return res
+                .status(400)
+                .json({message: passwordCheck.message, field: 'password', failed: passwordCheck.failed})
         }
         if (role && !ROLES.includes(role)) {
             return res.status(400).json({message: 'Invalid role'})
         }
 
-        const existing = await User.findOne({email: email.toLowerCase()})
+        const existing = await User.findOne({email: normalizeEmail(email)})
         if (existing) {
-            return res
-                .status(409)
-                .json({message: 'An account with this email already exists'})
+            return res.status(409).json({
+                message: existing.emailVerified
+                    ? 'An account with this email already exists'
+                    : 'An account with this email is waiting to be verified. Enter the code we sent you, or request a new one.',
+                field: 'email',
+                code: existing.emailVerified ? 'email_taken' : 'email_not_verified',
+                email: existing.emailVerified ? undefined : existing.email,
+            })
         }
+
+        const requestedRole = role || 'User'
+        if (requestedRole === 'Admin' && (await companyHasAdmin(companyName))) {
+            return res.status(409).json({
+                message:
+                    'This company already has an administrator. Sign up as a Supervisor or User, then ask your administrator to change your role.',
+                field: 'role',
+                code: 'admin_exists',
+            })
+        }
+
+        // A well-formed address is not necessarily a real one: confirm the
+        // mailbox exists before an account is created against it.
+        const emailCheck = await verifyEmailExists(email)
+        if (!emailCheck.ok) {
+            return res.status(400).json({message: emailCheck.message, field: 'email'})
+        }
+
+        const confirmationRequired = isConfirmationRequired()
 
         const user = await User.create({
             fullName: fullName.trim(),
-            email: email.toLowerCase().trim(),
+            email: normalizeEmail(email),
             password,
             companyName: companyName.trim(),
-            role: role || 'User',
+            role: requestedRole,
+            emailVerified: !confirmationRequired,
             gmailAccessToken: gmailAccessToken || null,
             isGmailLinked: Boolean(gmailAccessToken),
         })
 
-        const token = signToken(user._id)
-        return res.status(201).json({token, user: user.toSafeJSON()})
+        // Without a confirmation step the account is usable straight away.
+        if (!confirmationRequired) {
+            const token = signToken(user._id)
+            return res.status(201).json({token, user: user.toSafeJSON()})
+        }
+
+        const sent = await issueCode(user)
+        if (!sent.ok) {
+            // The account exists but no code went out; let them ask again
+            // from the verification screen rather than start over.
+            return res.status(201).json({
+                verificationRequired: true,
+                email: user.email,
+                codeSent: false,
+                message: sent.message,
+            })
+        }
+
+        return res.status(201).json({
+            verificationRequired: true,
+            email: user.email,
+            codeSent: true,
+            expiresInMinutes: sent.expiresInMinutes,
+        })
     } catch (err) {
         if (err && err.name === 'ValidationError') {
             const message = Object.values(err.errors).map((e) => e.message).join(', ')
@@ -73,7 +139,7 @@ exports.login = async (req, res) => {
             return res.status(400).json({message: 'Email and password are required'})
         }
 
-        const user = await User.findOne({email: email.toLowerCase()}).select('+password')
+        const user = await User.findOne({email: normalizeEmail(email)}).select('+password')
         if (!user) {
             return res.status(401).json({message: 'Invalid email or password'})
         }
@@ -83,11 +149,94 @@ exports.login = async (req, res) => {
             return res.status(401).json({message: 'Invalid email or password'})
         }
 
+        // Checked only once the password is right, so the response never
+        // reveals which addresses have accounts.
+        if (!user.emailVerified) {
+            return res.status(403).json({
+                message: 'Please confirm your email address before logging in.',
+                code: 'email_not_verified',
+                email: user.email,
+            })
+        }
+
         const token = signToken(user._id)
         return res.json({token, user: user.toSafeJSON()})
     } catch (err) {
         console.error('Login error:', err)
         return res.status(500).json({message: 'Unable to log in'})
+    }
+}
+
+// POST /api/auth/verify-email: finish a sign-up with the emailed code.
+exports.verifyEmail = async (req, res) => {
+    try {
+        const {email, code} = req.body || {}
+
+        if (!email || !code) {
+            return res.status(400).json({message: 'Email and verification code are required'})
+        }
+        if (!isValidCodeFormat(code)) {
+            return res
+                .status(400)
+                .json({message: 'Enter the 6-digit code from your email.', field: 'code'})
+        }
+
+        const user = await User.findOne({email: normalizeEmail(email)})
+        if (!user) {
+            return res
+                .status(400)
+                .json({message: 'That code is not correct.', field: 'code'})
+        }
+        if (user.emailVerified) {
+            return res.status(409).json({
+                message: 'This email is already confirmed. Please log in.',
+                code: 'already_verified',
+            })
+        }
+
+        const result = await confirmCode(user, code)
+        if (!result.ok) {
+            return res.status(400).json({message: result.message, field: 'code', code: result.reason})
+        }
+
+        await user.populate('team', 'name')
+        const token = signToken(user._id)
+        return res.json({token, user: user.toSafeJSON()})
+    } catch (err) {
+        console.error('Verify email error:', err)
+        return res.status(500).json({message: 'Unable to confirm your email address'})
+    }
+}
+
+// POST /api/auth/resend-verification: send a fresh code for a pending sign-up.
+exports.resendVerification = async (req, res) => {
+    try {
+        const {email} = req.body || {}
+        if (!email) {
+            return res.status(400).json({message: 'Email is required'})
+        }
+
+        const user = await User.findOne({email: normalizeEmail(email)})
+
+        // Unknown or already-confirmed addresses get the same answer as a
+        // successful send, so the endpoint cannot be used to find accounts.
+        const generic = {
+            message: 'If that account still needs confirming, a new code is on its way.',
+        }
+        if (!user || user.emailVerified) return res.json(generic)
+
+        const sent = await issueCode(user)
+        if (!sent.ok) {
+            const status = sent.reason === 'cooldown' ? 429 : 502
+            return res
+                .status(status)
+                .json({message: sent.message, retryAfterSeconds: sent.retryAfterSeconds})
+        }
+
+        return res.json({...generic, codeSent: true, expiresInMinutes: sent.expiresInMinutes})
+    } catch (err) {
+        console.error('Resend verification error:', err)
+        return res.status(500).json({message: 'Unable to send a new verification code'})
     }
 }
 
@@ -118,8 +267,8 @@ exports.googleLogin = async (req, res) => {
             }
         } else {
             return res
-            .status(400)
-            .json({message: 'Missing Google authentication payload'})
+                .status(400)
+                .json({message: 'Missing Google authentication payload'})
         }
 
         let user = await User.findOne({
@@ -128,6 +277,8 @@ exports.googleLogin = async (req, res) => {
 
         if (user) {
             if (!user.googleId) user.googleId = profile.googleId
+            // Google has already proven the address belongs to this person.
+            if (!user.emailVerified) user.emailVerified = true
             if (gmailAccessToken) {
                 user.gmailAccessToken = gmailAccessToken
                 user.isGmailLinked = true
@@ -139,6 +290,7 @@ exports.googleLogin = async (req, res) => {
                 email: profile.email,
                 companyName: companyFromEmail(profile.email),
                 role: 'User',
+                emailVerified: true,
                 authProvider: 'google',
                 googleId: profile.googleId,
                 gmailAccessToken: gmailAccessToken || null,

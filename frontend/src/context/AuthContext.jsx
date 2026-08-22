@@ -90,8 +90,16 @@ export function AuthProvider({children}) {
         return u
     }, [])
 
+    // Sign-up either returns a session or asks for the emailed confirmation
+    // code, so the raw response is handed back for the page to act on.
     const signup = useCallback(async (payload) => {
-        const {token, user: u} = await authApi.signup(payload)
+        const data = await authApi.signup(payload)
+        if (data.token && data.user) persist(data.token, data.user)
+        return data
+    }, [])
+
+    const verifyEmail = useCallback(async ({email, code}) => {
+        const {token, user: u} = await authApi.verifyEmail({email, code})
         persist(token, u)
         return u
     }, [])
@@ -109,8 +117,17 @@ export function AuthProvider({children}) {
     }, [])
 
     const value = useMemo(
-        () => ({user, initializing, login, signup, loginWithGoogle, logout, requestGmailToken}),
-        [user, initializing, login, signup, loginWithGoogle, logout]
+        () => ({
+            user,
+            initializing,
+            login,
+            signup,
+            verifyEmail,
+            loginWithGoogle,
+            logout,
+            requestGmailToken,
+        }),
+        [user, initializing, login, signup, verifyEmail, loginWithGoogle, logout]
     )
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
