@@ -295,3 +295,28 @@
     }
   }
 }
+
+/* Dropdown options: the tick on the selected option belongs after its label.
+ *
+ * The stock shadcn markup draws that tick with an absolutely positioned
+ * element and relies on the option's own right padding to leave room for it.
+ * Any stylesheet that restyles dropdown items — the task board does, with
+ * !important — takes that room away, and the tick ends up drawn over the
+ * label. Laying the row out as a flex line and sending the tick to the end of
+ * it keeps the tick in the right place no matter what the option's padding is,
+ * and no matter which version of components/ui/select.tsx is in the tree.
+ *
+ * These rules sit outside @layer on purpose so they win over the utility
+ * classes on the element. The option's label is the one child carrying an id
+ * (Radix points aria-labelledby at it); the tick is not.
+ */
+[data-slot="select-content"] [data-slot="select-item"] {
+    display: flex;
+    align-items: center;
+}
+
+[data-slot="select-content"] [data-slot="select-item"] > span:not([id]) {
+    position: static;
+    order: 1;
+    margin-left: auto;
+}
