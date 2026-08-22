@@ -298,24 +298,25 @@
 
 /* Dropdown options: the tick on the selected option belongs after its label.
  *
- * The stock shadcn markup draws that tick with an absolutely positioned
- * element and relies on the option's own right padding to leave room for it.
- * Any stylesheet that restyles dropdown items — the task board does, with
- * !important — takes that room away, and the tick ends up drawn over the
- * label. Laying the row out as a flex line and sending the tick to the end of
- * it keeps the tick in the right place no matter what the option's padding is,
- * and no matter which version of components/ui/select.tsx is in the tree.
+ * Several shadcn versions draw that tick with an absolutely positioned element
+ * — some pinned left, some right — and rely on the option's own padding to
+ * leave room for it. Any stylesheet that restyles dropdown items takes that
+ * room away, and the tick ends up drawn over the label. Laying the row out as
+ * a flex line and sending the tick to the end of it keeps the tick in the
+ * right place whatever the option's padding is, and whichever version of
+ * components/ui/select is in the tree.
  *
- * These rules sit outside @layer on purpose so they win over the utility
- * classes on the element. The option's label is the one child carrying an id
- * (Radix points aria-labelledby at it); the tick is not.
+ * Keyed on the attributes Radix itself sets on a select option, so it holds
+ * even if the component is regenerated. The option's label is the one child
+ * carrying an id (Radix points aria-labelledby at it); the tick is not.
+ * Outside @layer on purpose, so it wins over the element's utility classes.
  */
-[data-slot="select-content"] [data-slot="select-item"] {
+[role="option"][data-radix-collection-item] {
     display: flex;
     align-items: center;
 }
 
-[data-slot="select-content"] [data-slot="select-item"] > span:not([id]) {
+[role="option"][data-radix-collection-item] > span:not([id]) {
     position: static;
     order: 1;
     margin-left: auto;
