@@ -15,3 +15,5 @@ export const updateTask = (taskId, taskData) =>
     api.patch(`/tasks/${taskId}`, taskData)
         .then(res => res.data);
 
+export const deleteTask = (taskId) =>
+    api.delete(`/tasks/${taskId}`).then(res => res.data)

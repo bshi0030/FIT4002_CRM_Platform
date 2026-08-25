@@ -17,7 +17,7 @@ import "../styles/TaskBoard.css";
 import TaskDetail from "./TaskDetail";
 import {
     getTasks,
-    updateTaskStatus
+    updateTaskStatus, deleteTask
 } from "../api/tasks";
 
 const COLUMNS = [
@@ -36,6 +36,21 @@ const TaskKanban = () => {
     const [notifications, setNotifications] = useState([]);
     const [showCreateTask, setShowCreateTask] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
+
+    //confirm-delete state
+    const [confirmDeleteTask, setConfirmDeleteTask] = useState(null);
+
+    const handleConfirmDelete = async () => {
+    try {
+        await deleteTask(confirmDeleteTask._id);
+        setTasks(prev => prev.filter(t => t._id !== confirmDeleteTask._id));
+        setConfirmDeleteTask(null);
+        setSelectedTask(null); // close the detail panel too
+    } catch (err) {
+        console.error("Failed to delete task", err);
+        alert(err.response?.data?.message || 'Failed to delete task');
+    }
+};
 
 
     const unreadCount =
@@ -147,13 +162,27 @@ const TaskKanban = () => {
                 />
             )}
 
-            {selectedTask && (
-                <TaskDetail
-                    task={selectedTask}
-                    onClose={() => setSelectedTask(null)}
-                    onEdit={(task) => setEditingTask(task)}
-                />
-            )}
+{selectedTask && (
+    <TaskDetail
+        task={selectedTask}
+        onClose={() => setSelectedTask(null)}
+        onEdit={(task) => setEditingTask(task)}
+        onDelete={(task) => setConfirmDeleteTask(task)}
+    />
+)}
+
+{confirmDeleteTask && (
+    <div className="modal-overlay" onClick={() => setConfirmDeleteTask(null)}>
+        <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <h2 className="modal-title">Delete Task</h2>
+            <p>Are you sure you want to delete <strong>{confirmDeleteTask.title}</strong>? This cannot be undone.</p>
+            <div className="modal-actions">
+                <button className="btn-cancel" onClick={() => setConfirmDeleteTask(null)}>Cancel</button>
+                <button className="btn-submit" onClick={handleConfirmDelete}>Delete</button>
+            </div>
+        </div>
+    </div>
+)}
 
             {showNotifications && (
                 <NotificationPopup

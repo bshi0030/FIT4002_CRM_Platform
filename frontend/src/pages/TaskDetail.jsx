@@ -6,7 +6,8 @@ import {
     Building2,
     Calendar,
     ArrowRight,
-    UserRound
+    UserRound,
+    Trash2
 } from "lucide-react";
 
 import {Link} from "react-router-dom";
@@ -14,13 +15,17 @@ import {useAuth} from "@/context/auth";
 import {Pencil} from "lucide-react";
 import {Badge} from "@/components/ui/badge";
 
-const TaskDetail = ({task, onClose, onEdit}) => {
+const TaskDetail = ({task, onClose, onEdit, onDelete}) => {
     console.log(task);
     if (!task) return null;
 
     const {user} = useAuth();
 
-    const canEdit = user && task.createdBy && task.createdBy._id === user.id;
+    const isCreator = user && task.createdBy && task.createdBy._id === user.id;
+    const isSupervisorOrAbove = user?.role === 'Supervisor' || user?.role === 'Admin';
+   
+    const canEdit = isCreator || isSupervisorOrAbove;
+    const canDelete = isSupervisorOrAbove;
 
     const priorityClass =
         task.priority === "High"
@@ -189,6 +194,7 @@ const TaskDetail = ({task, onClose, onEdit}) => {
                         </button>
                     )}
 
+
                     <button className="btn-email">
                         <Mail size={16}/>
                         Send Email
@@ -203,6 +209,13 @@ const TaskDetail = ({task, onClose, onEdit}) => {
                             View Profile
                         </Link>
                     )}
+
+                    {canDelete && (
+    <button className="btn-delete" onClick={() => onDelete(task)} aria-label="Delete task" title="Delete task">
+        <Trash2 size={18}/>
+    </button>
+)}
+
                 </footer>
             </div>
         </div>
