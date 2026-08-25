@@ -194,12 +194,6 @@ const TaskDetail = ({task, onClose, onEdit, onDelete}) => {
                         </button>
                     )}
 
-                        {canDelete && (
-        <button className="btn-delete" onClick={() => onDelete(task)}>
-            <Trash2 size={18}/>
-            Delete Task
-        </button>
-    )}
 
                     <button className="btn-email">
                         <Mail size={16}/>
@@ -215,6 +209,13 @@ const TaskDetail = ({task, onClose, onEdit, onDelete}) => {
                             View Profile
                         </Link>
                     )}
+
+                    {canDelete && (
+    <button className="btn-delete" onClick={() => onDelete(task)} aria-label="Delete task" title="Delete task">
+        <Trash2 size={18}/>
+    </button>
+)}
+
                 </footer>
             </div>
         </div>
