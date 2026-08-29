@@ -1,8 +1,11 @@
+
+const { hasPermission } = require('../middleware/permissions'); 
 const express = require("express");
 const Notification = require("../models/Notification");
 const router = express.Router();
 const Task = require("../models/Task");
 const Customer = require("../models/Customer");
+const User = require("../models/User");
 const mongoose = require("mongoose");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { seesEverything, getCompanyUserIds, getTeamMemberIds } = require('../middleware/teamScope');
@@ -10,6 +13,54 @@ const { seesEverything, getCompanyUserIds, getTeamMemberIds } = require('../midd
 // every logged in users tasks
 router.get("/", requireAuth, async (req, res) => {
   try {
+    const { userId, teamId } = req.query;
+
+    if (userId) {
+      const targetUser = await User.findById(userId).select('_id team companyName');
+      if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+      if (seesEverything(req.user)) {
+        const companyIds = await getCompanyUserIds(req.user);
+        const inCompany = companyIds.some(id => String(id) === String(userId));
+        if (!inCompany) return res.status(403).json({ message: 'Access denied' });
+      } else if (req.user.role === 'Supervisor') {
+        const teamIds = await getTeamMemberIds(req.user);
+        const inTeam = teamIds.some(id => String(id) === String(userId));
+        if (!inTeam) return res.status(403).json({ message: 'Access denied' });
+      } else {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+
+      const tasks = await Task.find({
+          $or: [{ assignedTo: targetUser._id }, { createdBy: targetUser._id }]
+      })
+          .populate("assignedTo", "_id fullName")
+          .populate("createdBy", "fullName")
+          .populate("customer", "fullName company interactions")
+          .populate("deal", "name stage company")
+          .sort({ createdAt: -1 });
+      return res.json(tasks);
+    }
+
+    if (teamId) {
+      if (req.user.role !== 'Admin' && !hasPermission(req.user, 'viewAllData')) {
+        return res.status(403).json({ message: 'Insufficient permissions' });
+      }
+      const teamMembers = await User.find({ team: teamId }).select('_id');
+      const memberIds = teamMembers.map(m => m._id);
+
+      const tasks = await Task.find({
+          $or: [{ assignedTo: { $in: memberIds } }, { createdBy: { $in: memberIds } }]
+      })
+          .populate("assignedTo", "_id fullName")
+          .populate("createdBy", "fullName")
+          .populate("customer", "fullName company interactions")
+          .populate("deal", "name stage company")
+          .sort({ createdAt: -1 });
+      return res.json(tasks);
+    }
+
+    // Default: everything visible to this user
     let allowedUserIds = [];
     if (seesEverything(req.user)) {
         allowedUserIds = await getCompanyUserIds(req.user);
@@ -18,10 +69,10 @@ router.get("/", requireAuth, async (req, res) => {
     } else {
         allowedUserIds = [req.user._id];
     }
-    
+
     const tasks = await Task.find({
         $or: [
-            {assignedTo: {$in: allowedUserIds}}, 
+            {assignedTo: {$in: allowedUserIds}},
             {createdBy: {$in: allowedUserIds}}
         ]
     })
